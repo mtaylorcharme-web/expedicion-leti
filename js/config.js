@@ -4,3 +4,6 @@
    por ejemplo: "https://mision-aya.netlify.app/api/cancion"
    También se puede cambiar desde el panel de Mariana y Francisco. */
 window.PUENTE_SUNO = "/api/cancion";
+
+/* Dónde vive la memoria compartida entre dispositivos. Misma regla que el puente de música. */
+window.PUENTE_PROGRESO = "/api/progreso";

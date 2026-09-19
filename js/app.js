@@ -14,7 +14,7 @@
   const DEF = { name: "Ovaya", xp: 0, streak: { last: null, count: 0 }, days: [], done: {}, wrong: {}, stats: {}, stamps: [], pin: "1234", boss: null, sound: true, log: [] };
   let S = load();
   function load() { try { const s = JSON.parse(localStorage.getItem(KEY)); return s ? Object.assign({}, DEF, s) : Object.assign({}, DEF); } catch (e) { return Object.assign({}, DEF); } }
-  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } }
+  function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } programarSync(); }
   function touchDay() {
     const t = todayKey();
     if (S.streak.last !== t) {
@@ -76,11 +76,11 @@
 
   /* ── navegación ── */
   let view = "home", ctx = {};
-  function go(v, c) { pararVoz(true); view = v; ctx = c || {}; render(); window.scrollTo({ top: 0 }); }
+  function go(v, c) { pararVoz(true); view = v; ctx = c || {}; render(); himnoSegunVista(v); window.scrollTo({ top: 0 }); }
   function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song, daily, fuentes, fuente, ensenar, mundo, ciudad })[view](m); }
   function renderTop() {
     const d = daysToTest(); const dl = d > 1 ? `${d} días` : d === 1 ? "¡mañana!" : d === 0 ? "¡hoy!" : "pasó";
-    $("#topbar").innerHTML = `<span class="chip streak">🔥 ${S.streak.count} <span class="lbl">día${S.streak.count === 1 ? "" : "s"}</span></span><span class="chip xp">⭐ ${S.xp} <span class="lbl">XP</span></span><span class="chip days">📅 <span class="lbl">Prueba:</span> ${dl}</span><span class="spacer"></span><button class="avatar" data-go="passport" aria-label="Pasaporte"><img src="assets/chars/ovaya.png" alt="Ovaya"></button>`;
+    $("#topbar").innerHTML = `<span class="chip streak">🔥 ${S.streak.count} <span class="lbl">día${S.streak.count === 1 ? "" : "s"}</span></span><span class="chip xp">⭐ ${S.xp} <span class="lbl">XP</span></span><span class="chip days">📅 <span class="lbl">Prueba:</span> ${dl}</span><span class="spacer"></span><button class="chip mus ${himno && !himno.paused ? "on" : ""}" data-himno="1" aria-label="Himno de Los Ayas" title="Himno de Los Ayas">🎵</button><button class="avatar" data-go="passport" aria-label="Pasaporte"><img src="assets/chars/ovaya.png" alt="Ovaya"></button>`;
   }
   function renderNav() {
     const items = [["home", "🌴", "Selva"], ["mundo", "🌍", "Mundo"], ["review", "🎯", "Repaso"], ["passport", "🛂", "Pasaporte"], ["parent", "👨‍👩‍👧", "Papás"]];
@@ -98,7 +98,7 @@
       { id: "ovaya", mood: "party", t: "Con los cinco fragmentos veremos otra vez la Ciudad Aya entre las montañas. ¿Nos ayudas a llegar a casa?" }
     ];
     let i = 0; const w = el("div", { class: "welcome" }); m.appendChild(w);
-    const draw = () => { const st = steps[i]; w.innerHTML = `<div class="wl-stage">${i === steps.length - 1 ? `<img class="trio" src="assets/chars/trio.png" alt="Los Ayas">` : monkey(st.id, st.mood, 150)}</div><div class="bubble wl"><span class="who">${CH[st.id].name}</span><span class="tw">${st.t}</span>${SAYBTN}</div><div class="actions" style="justify-content:center"><button class="btn ${i === steps.length - 1 ? "" : "g"}" id="nx">${i === steps.length - 1 ? "¡Vamos a casa! 🏔️" : "Siguiente →"}</button></div><div class="dots">${steps.map((_, k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</div>`; typewrite($(".tw", w)); beep(true); $("#nx", w).addEventListener("click", () => { i++; if (i >= steps.length) { S.welcomed = true; save(); confetti(); jingle("win"); go("home"); } else draw(); }); };
+    const draw = () => { const st = steps[i]; w.innerHTML = `<div class="wl-stage">${i === steps.length - 1 ? `<img class="trio" src="assets/chars/trio.png" alt="Los Ayas">` : monkey(st.id, st.mood, 150)}</div><div class="bubble wl"><span class="who">${CH[st.id].name}</span><span class="tw">${st.t}</span>${SAYBTN}</div><div class="actions" style="justify-content:center">${i === steps.length - 1 ? `<button class="btn y" data-himno="1">Escuchar el himno 🎵</button>` : ""}<button class="btn ${i === steps.length - 1 ? "" : "g"}" id="nx">${i === steps.length - 1 ? "¡Vamos a casa! 🏔️" : "Siguiente →"}</button></div><div class="dots">${steps.map((_, k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</div>`; typewrite($(".tw", w)); beep(true); $("#nx", w).addEventListener("click", () => { i++; if (i >= steps.length) { S.welcomed = true; save(); confetti(); jingle("win"); go("home"); } else draw(); }); };
     draw();
   }
 
@@ -190,6 +190,12 @@
     fc.innerHTML = `<div class="row" style="justify-content:space-between;gap:10px"><div><div class="eyebrow" style="color:#7A4BB8">Taller de fuentes</div><b style="font-family:Fredoka;font-size:18px;font-weight:600">La carpa del detective</b><div class="muted small">${fxh} de ${fx.length} fuentes analizadas. Mapas, diarios y cartas reales de la época.</div></div><button class="btn sm" id="goFx" style="background:#8E6BC7;box-shadow:0 3px 0 #6B49A0">Analizar 🔍</button></div>`;
     $("#goFx", fc).addEventListener("click", () => go("fuentes"));
     side.appendChild(fc);
+    const hc = el("div", { class: "card himno" });
+    const pintaHimno = () => { const son = himno && !himno.paused; hc.innerHTML = `<div class="row"><button class="btn y" data-himno="1" style="width:56px;height:56px;border-radius:50%;padding:0;font-size:22px">${son ? "⏸" : "▶"}</button><div style="flex:1"><div class="eyebrow" style="color:#A8801A">El himno de la expedición</div><b style="font-family:Fredoka;font-size:19px;font-weight:600">${esc(HIMNO.titulo)}</b><div class="hbar"><b id="hb" style="width:${himno ? (himno.currentTime / (himno.duration || HIMNO.dur)) * 100 : 0}%"></b></div></div><span class="notas-mini">${son ? "♪ ♫ ♪" : ""}</span></div>`; };
+    pintaHimno();
+    hc.addEventListener("click", () => setTimeout(pintaHimno, 120));
+    if (himno) { himno.ontimeupdate = () => { const b = hc.querySelector("#hb"); if (b) b.style.width = (himno.currentTime / (himno.duration || HIMNO.dur)) * 100 + "%"; }; }
+    side.appendChild(hc);
     const nPis = (S.pistas || []).length; const cand = CANDIDATOS.length - nPis;
     const cc = el("div", { class: "card busqueda" });
     cc.innerHTML = `<div class="row" style="justify-content:space-between;gap:10px"><div><div class="eyebrow" style="color:#A8801A">La búsqueda de casa</div><b style="font-family:Fredoka;font-size:18px;font-weight:600">${cand === 1 ? "¡Encontraron la Ciudad Aya!" : `Quedan ${cand} lugares posibles`}</b><div class="muted small">${nPis} de 8 pistas y ${nPis} de 8 notas de la melodía.</div></div><button class="btn y sm" id="goCiu">Investigar 🏔️</button></div>`;
@@ -843,6 +849,104 @@
     intro();
   }
 
+  /* ── MEMORIA ENTRE DISPOSITIVOS ── */
+  const syncURL = () => {
+    if (S.puenteProgreso) return S.puenteProgreso;
+    if (/github\.io$/i.test(location.hostname)) return null;
+    return window.PUENTE_PROGRESO || "/api/progreso";
+  };
+  function nuevoCodigo() { const L = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"; return Array.from({ length: 6 }, () => L[Math.floor(Math.random() * L.length)]).join(""); }
+  const mejorDone = (a, b) => { if (!a) return b; if (!b) return a; return { stars: Math.max(a.stars || 0, b.stars || 0), errors: Math.min(a.errors ?? 99, b.errors ?? 99) }; };
+
+  /* Une dos avances sin perder nada de ninguno de los dos aparatos */
+  function fusionar(a, b) {
+    if (!a) return b; if (!b) return a;
+    const nuevo = (a.actualizado || "") >= (b.actualizado || "") ? a : b;
+    const r = Object.assign({}, b, a);
+    r.xp = Math.max(a.xp || 0, b.xp || 0);
+    r.streak = ((a.streak || {}).last || "") >= ((b.streak || {}).last || "") ? a.streak : b.streak;
+    r.days = [...new Set([...(a.days || []), ...(b.days || [])])];
+    r.stamps = [...new Set([...(a.stamps || []), ...(b.stamps || [])])];
+    r.done = {}; for (const k of new Set([...Object.keys(a.done || {}), ...Object.keys(b.done || {})])) r.done[k] = mejorDone((a.done || {})[k], (b.done || {})[k]);
+    r.selfies = Object.assign({}, b.selfies, a.selfies);
+    r.musica = Object.assign({}, b.musica, a.musica);
+    r.pistas = ((a.pistas || []).length >= (b.pistas || []).length) ? a.pistas : b.pistas;
+    r.stats = {}; for (const k of new Set([...Object.keys(a.stats || {}), ...Object.keys(b.stats || {})])) { const x = (a.stats || {})[k] || { ok: 0, n: 0 }, y = (b.stats || {})[k] || { ok: 0, n: 0 }; r.stats[k] = { ok: Math.max(x.ok, y.ok), n: Math.max(x.n, y.n) }; }
+    r.wrong = Object.assign({}, b.wrong, a.wrong);
+    r.games = {}; for (const k of new Set([...Object.keys(a.games || {}), ...Object.keys(b.games || {})])) { const x = (a.games || {})[k], y = (b.games || {})[k]; r.games[k] = /^memo-/.test(k) ? Math.min(x ?? 99, y ?? 99) : Math.max(x || 0, y || 0); }
+    r.fuentes = {}; for (const k of new Set([...Object.keys(a.fuentes || {}), ...Object.keys(b.fuentes || {})])) { const x = (a.fuentes || {})[k] || {}, y = (b.fuentes || {})[k] || {}; r.fuentes[k] = { estrellas: Math.max(x.estrellas || 0, y.estrellas || 0), pct: Math.max(x.pct || 0, y.pct || 0) }; }
+    r.lecciones = {}; for (const k of new Set([...Object.keys(a.lecciones || {}), ...Object.keys(b.lecciones || {})])) { const x = (a.lecciones || {})[k] || {}, y = (b.lecciones || {})[k] || {}; r.lecciones[k] = { pct: Math.max(x.pct || 0, y.pct || 0), estrellas: Math.max(x.estrellas || 0, y.estrellas || 0) }; }
+    r.boss = ((a.boss || {}).pct || 0) >= ((b.boss || {}).pct || 0) ? a.boss : b.boss;
+    r.daily = ((a.daily || {}).date || "") >= ((b.daily || {}).date || "") ? a.daily : b.daily;
+    ["name", "pin", "sound", "puente", "puenteProgreso", "codigo", "welcomed", "bossLast", "offsets", "himno", "factIdx"].forEach(k => { if (nuevo[k] !== undefined) r[k] = nuevo[k]; });
+    r.actualizado = new Date().toISOString();
+    return r;
+  }
+
+  let syncTimer = null, sincronizando = false, ultimoSync = null;
+  function marcarSync(txt, clase) { ultimoSync = txt ? { txt, clase } : null; const n = $("#estadoSync"); if (n) n.innerHTML = txt ? `<span class="sync-estado ${clase || ""}">${esc(txt)}</span>` : ""; }
+  async function subirProgreso(silencioso) {
+    const base = syncURL(); if (!base || !S.codigo) return;
+    try {
+      S.actualizado = new Date().toISOString();
+      const r = await fetch(base, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ codigo: S.codigo, estado: S }) });
+      if (!r.ok) throw new Error((await r.json().catch(() => ({}))).error || "no se pudo guardar");
+      if (!silencioso) marcarSync("Guardado en la nube ✓", "ok");
+    } catch (e) { if (!silencioso) marcarSync("No se pudo guardar: " + e.message, "mal"); }
+  }
+  async function bajarProgreso(silencioso) {
+    const base = syncURL(); if (!base || !S.codigo) return false;
+    try {
+      const r = await fetch(`${base}?codigo=${encodeURIComponent(S.codigo)}`);
+      const d = await r.json();
+      if (d && d.estado) { S = fusionar(S, d.estado); save(); if (!silencioso) marcarSync("Avance recuperado ✓", "ok"); return true; }
+      if (!silencioso) marcarSync("Todavía no hay nada guardado con ese código.", "");
+    } catch (e) { if (!silencioso) marcarSync("No se pudo leer: " + e.message, "mal"); }
+    return false;
+  }
+  async function sincronizar(silencioso) {
+    if (sincronizando) return; sincronizando = true;
+    try { await bajarProgreso(silencioso); await subirProgreso(silencioso); } finally { sincronizando = false; }
+  }
+  function programarSync() { if (!syncURL() || !S.codigo) return; clearTimeout(syncTimer); syncTimer = setTimeout(() => subirProgreso(true), 6000); }
+
+  /* Copia de seguridad en archivo, sin necesitar internet ni cuentas */
+  function exportarProgreso() {
+    S.actualizado = new Date().toISOString();
+    const blob = new Blob([JSON.stringify(S, null, 2)], { type: "application/json" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = `mision-aya-${todayKey()}.json`; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast("Copia guardada en Descargas.");
+  }
+  function importarProgreso(file, listo) {
+    const fr = new FileReader();
+    fr.onload = () => { try { const d = JSON.parse(fr.result); S = fusionar(S, d); save(); toast("Avance restaurado."); listo && listo(); } catch (e) { toast("Ese archivo no se pudo leer."); } };
+    fr.readAsText(file);
+  }
+
+  /* ── HIMNO DE LOS AYAS ── */
+  const HIMNO = { src: "assets/musica/himno.mp3", titulo: "LOS AYA", dur: 61 };
+  const SIN_MUSICA = ["mission", "song", "flash", "game", "memo", "boss", "daily", "ensenar", "fuente", "review"];
+  let himno = null;
+  function himnoInit() {
+    if (himno) return himno;
+    himno = new Audio(HIMNO.src); himno.loop = true; himno.volume = .38; himno.preload = "metadata";
+    himno.addEventListener("play", renderTop); himno.addEventListener("pause", renderTop);
+    himno.addEventListener("error", () => { himno.__roto = true; });
+    return himno;
+  }
+  function himnoToggle() {
+    const a = himnoInit();
+    if (a.paused) { a.play().then(() => { S.himno = true; a.__auto = false; save(); }).catch(() => toast("Toca otra vez para escuchar el himno.")); }
+    else { a.pause(); S.himno = false; a.__auto = false; save(); }
+  }
+  function himnoSegunVista(v) {
+    if (!himno || himno.__roto) return;
+    if (SIN_MUSICA.includes(v)) { if (!himno.paused) { himno.pause(); himno.__auto = true; } }
+    else if (himno.paused && himno.__auto && S.himno) { himno.__auto = false; himno.play().catch(() => { }); }
+  }
+  document.addEventListener("click", e => { if (e.target.closest("[data-himno]")) himnoToggle(); });
+
   /* ── SELFIES CON PERSONAJES HISTÓRICOS ── */
   const personajeDe = mid => PERSONAJES.find(p => p.mision === mid);
   const selfieHecha = p => !!(S.selfies && S.selfies[p.id]);
@@ -1145,6 +1249,12 @@
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600">Para reforzar (${wrong.length})</h3><p class="muted small" style="margin:4px 0 10px">Preguntas falladas que siguen pendientes. Desaparecen cuando se responden bien dos veces en «Repaso».</p><div class="wrongs">${wrong.length ? wrong.map(x => `<div>${esc(x.q)}</div>`).join("") : "<div class='muted' style='border-color:var(--ok)'>Nada pendiente por ahora.</div>"}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600">Ajustes</h3>
                 <div class="field"><label for="np">Cambiar PIN</label><input id="np" inputmode="numeric" maxlength="6" placeholder="Nuevo PIN (4 a 6 números)"></div>
+        <div class="field"><label style="font-weight:800;font-size:14px">Memoria entre dispositivos</label>
+          <div class="sync-caja"><div class="row" style="justify-content:space-between;gap:8px"><div><span class="muted small">Código de Leti</span><div class="codigo" id="codigoVal">${esc(S.codigo || "sin código")}</div></div><button class="btn ghost sm" id="genCodigo">${S.codigo ? "Cambiar" : "Crear código"}</button></div>
+            <p class="muted small" style="margin:8px 0">Usa el mismo código en el celular, la tablet y el computador. El avance se une solo, sin perder nada de ninguno.</p>
+            <div class="actions" style="justify-content:flex-start;gap:8px;margin:0"><button class="btn g sm" id="sincro">Sincronizar ahora</button><button class="btn ghost sm" id="exportar">Guardar copia</button><label class="btn ghost sm" style="cursor:pointer">Restaurar copia<input type="file" id="importar" accept="application/json" hidden></label></div>
+            <div id="estadoSync">${ultimoSync ? `<span class="sync-estado ${ultimoSync.clase || ""}">${esc(ultimoSync.txt)}</span>` : ""}</div></div></div>
+        <div class="field"><label for="pu">Memoria en la nube (dirección de Netlify)</label><input id="pp" value="${esc(S.puenteProgreso || "")}" placeholder="https://tu-sitio.netlify.app/api/progreso"><small class="muted">Sin esto, la copia en archivo funciona igual.</small></div>
         <div class="field"><label for="pu">Puente de Suno (para crear canciones automáticamente)</label><input id="pu" value="${esc(S.puente || "")}" placeholder="https://tu-sitio.netlify.app/api/cancion"><small class="muted">Déjalo vacío si la app vive en el mismo Netlify.</small></div>
         <div class="field"><label style="font-weight:800;font-size:14px">Micrófono</label><button class="btn ghost sm" id="probarMic" style="justify-self:start">Probar micrófono 🎤</button><div id="micres"></div></div>
         <div class="field"><label><input type="checkbox" id="snd" ${S.sound ? "checked" : ""} style="width:auto;margin-right:8px">Sonidos activados</label></div>
@@ -1163,12 +1273,17 @@
         sal.innerHTML = `<div class="campo-voz"><textarea class="write" id="txmic" placeholder="Toca el micrófono y di una frase…"></textarea><div class="voz-barra"><button class="mic" data-target="txmic"><span class="mic-ic">🎤</span><span class="mic-txt">Responder hablando</span></button><span class="voz-hint">debería aparecer escrito lo que digas</span></div></div>`;
       });
     });
-    $("#saveS", w).addEventListener("click", () => { const pu = $("#pu", w).value.trim(); S.puente = pu || null; const np = $("#np", w).value.trim(); if (np) { if (/^\d{4,6}$/.test(np)) S.pin = np; else return toast("El PIN debe tener 4 a 6 números."); } S.sound = $("#snd", w).checked; save(); toast("Ajustes guardados"); render(); });
+    $("#genCodigo", w).addEventListener("click", () => { if (S.codigo && !confirm("¿Cambiar el código? Tendrás que poner el nuevo en los otros aparatos.")) return; S.codigo = nuevoCodigo(); save(); $("#codigoVal", w).textContent = S.codigo; marcarSync("Código creado. Anótalo y úsalo en los otros aparatos.", "ok"); });
+    $("#sincro", w).addEventListener("click", async () => { if (!S.codigo) return marcarSync("Primero crea un código.", "mal"); if (!syncURL()) return marcarSync("Falta la dirección de la memoria en la nube.", "mal"); marcarSync("Sincronizando…", ""); await sincronizar(false); render(); });
+    $("#exportar", w).addEventListener("click", exportarProgreso);
+    $("#importar", w).addEventListener("change", e => { const f = e.target.files[0]; if (f) importarProgreso(f, () => go("parent")); });
+    $("#saveS", w).addEventListener("click", () => { const pp = $("#pp", w).value.trim(); S.puenteProgreso = pp || null; const pu = $("#pu", w).value.trim(); S.puente = pu || null; const np = $("#np", w).value.trim(); if (np) { if (/^\d{4,6}$/.test(np)) S.pin = np; else return toast("El PIN debe tener 4 a 6 números."); } S.sound = $("#snd", w).checked; save(); toast("Ajustes guardados"); render(); });
     $("#reset", w).addEventListener("click", () => { if (confirm("¿Borrar TODO el progreso de la Misión Aya? Esta acción no se puede deshacer.")) { const pin = S.pin; S = Object.assign({}, DEF, { pin }); save(); toast("Progreso reiniciado"); go("home"); } });
   }
 
   /* ── arranque ── */
   touchDay();
   render();
+  if (syncURL() && S.codigo) sincronizar(true).then(() => render());
   if ("serviceWorker" in navigator && location.protocol.startsWith("http")) navigator.serviceWorker.register("sw.js").catch(() => { });
 })();

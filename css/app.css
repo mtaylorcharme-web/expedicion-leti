@@ -544,3 +544,16 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .componiendo span{font-size:14px;color:var(--ink-2);font-weight:700}
 .componiendo .char{flex:none}
 .field small.muted{font-weight:700;font-size:12px}
+.chip.mus{background:#F3E8FF;font-size:17px;padding:6px 12px;line-height:1}
+.chip.mus.on{background:linear-gradient(180deg,#FFE9A8,#F2B134);animation:latido 1.4s ease-in-out infinite}
+@keyframes latido{0%,100%{transform:scale(1)}50%{transform:scale(1.14)}}
+.card.himno{border:2px solid var(--gold);background:linear-gradient(180deg,#FFFDF4,#FFF4DA)}
+.hbar{height:8px;background:#EEE6D2;border-radius:99px;overflow:hidden;margin-top:7px}
+.hbar b{display:block;height:100%;width:0;background:linear-gradient(90deg,#F2B134,#F2603E);border-radius:99px}
+.notas-mini{font:800 15px Nunito;color:var(--gold-deep);letter-spacing:2px}
+@media(prefers-reduced-motion:reduce){.chip.mus.on{animation:none}}
+.sync-caja{background:#fff;border:2px solid var(--line);border-radius:14px;padding:12px 14px;margin-top:6px}
+.codigo{font:700 26px Fredoka;letter-spacing:.14em;color:var(--jungle-deep)}
+.sync-estado{display:inline-block;margin-top:9px;font:800 13px Nunito;padding:5px 11px;border-radius:99px;background:#EEF1EC;color:var(--ink-2)}
+.sync-estado.ok{background:var(--ok-bg);color:var(--jungle-deep)}
+.sync-estado.mal{background:var(--bad-bg);color:var(--bad)}
