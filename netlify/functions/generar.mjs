@@ -19,8 +19,42 @@ Devuelve SOLO un objeto JSON válido, sin texto antes ni después, con esta form
    "missions":[{"id":"c1m1","title":"...","char":"ovaya|chupaya|estaya","story":"...","questions":[...]}],
    "flashcards":[["concepto","explicación"]]
  }],
- "plan": [{"day":0,"label":"Salto 1 · lugar","camps":["c1"],"extra":"Bitácora + 3 saltos"}]
+ "plan": [{"day":0,"label":"Salto 1 · lugar","camps":["c1"],"extra":"Bitácora + 3 saltos"}],
+ "extras": {
+   "causas": [{
+     "id":"ca1","camp":"c1","titulo":"¿Por qué …?","guia":"ovaya|chupaya|estaya",
+     "intro":"lo que dice el guía","pregunta":"la pregunta causal de esta selva",
+     "hechos":[{"id":"h1","t":"un hecho","fecha":"año o período"}],
+     "enlaces":[{"de":"h1","a":"h3","por":"por qué el primero provocó el segundo"}],
+     "trampas":[{"de":"h5","a":"h6","por":"por qué esa flecha NO corresponde"}],
+     "cierre":{"q":"pregunta abierta","modelo":"respuesta modelo","rubrica":["idea clave 1","idea clave 2"]}
+   }],
+   "desafio": [{
+     "id":"d1","camp":"c1","invita":"lo que dice Chupaya",
+     "retos":[{"q":"predicción sobre algo que aún no ha leído","opciones":["a","b","c","d"],"correcta":2,
+               "revelacion":"qué pasó de verdad y por qué la intuición más común falla",
+               "nota":"título exacto de la página de notes que lo explica"}]
+   }],
+   "transferencia": [{
+     "id":"t1","camp":"c1","concepto":"el concepto de esta selva","titulo":"...","guia":"ovaya",
+     "invita":"lo que dice el guía","caso":"recuerda el concepto recién aprendido",
+     "consigna":"aplícalo a un caso REAL de su vida","encasa":true,
+     "pistas":["preguntas que la ayuden a partir"],
+     "rubrica":["cómo pensó, no si acertó"],
+     "cierre":"por qué esto importa"
+   }],
+   "ensenar": [{
+     "id":"e1","camp":"c1","titulo":"...",
+     "armar":{"pregunta":"...","bloques":[{"t":"afirmación","ok":true}]},
+     "repregunta":{"q":"lo que pregunta Chupaya","opts":["..."],"a":0,"why":"..."},
+     "confusion":{"dice":"el malentendido de Chupaya","correcto":"..."},
+     "escribir":{"pregunta":"...","modelo":"...","rubrica":["..."]}
+   }]
+ }
 }
+
+El bloque "extras" es obligatorio: sin él la expedición queda como un cuestionario y
+pierde justo lo que hace que la app enseñe. Una entrada de cada tipo por selva.
 
 Tipos de pregunta permitidos, todos ya soportados por el motor:
 - {"t":"mc","q":"...","opts":["a","b","c","d"],"a":0,"why":"por qué"}
@@ -39,7 +73,14 @@ Reglas que debes respetar:
 5. El campo "why" explica el porqué, no repite la respuesta.
 6. Personajes: Ovaya es curioso y celebra, Chupaya se pierde y hay que rescatarlo, Estaya canta y olvida.
 7. Español neutro, trato de tú. Si la asignatura va en inglés, las preguntas van en inglés con la ayuda en español.
-8. La bitácora explica con claridad antes de preguntar. Nunca preguntes algo que no esté en la bitácora o en el material.`;
+8. La bitácora explica con claridad antes de preguntar. Nunca preguntes algo que no esté en la bitácora o en el material.
+
+Reglas de "extras", que son las que hacen que esto enseñe y no solo pregunte:
+9. CAUSAS: los "hechos" van en orden cronológico real (el motor los baraja). Los "enlaces" son causa → consecuencia, nunca mera sucesión. Las "trampas" son los tres errores reales de esta edad: dos hechos seguidos que no se causan, la flecha invertida, y saltarse los pasos del medio. Cada "por" explica el error, no lo repite.
+10. DESAFIO: son predicciones ANTES de leer. Ninguna opción puede ser absurda: todas deben ser razonables para quien aún no sabe, o deja de ser una hipótesis y pasa a ser una adivinanza. "nota" debe coincidir EXACTO con un "title" de notes de esa selva.
+11. TRANSFERENCIA: el caso tiene que ser REAL y verificable por una niña de 11 años en Chile: su casa, su colegio, su ciudad, su propia vida. Nada hipotético ni inventado. Marca "encasa": true cuando haga falta preguntarle a alguien o mirar algo fuera de la pantalla. La rúbrica evalúa cómo pensó, nunca si acertó.
+12. ENSENAR: Chupaya entiende mal a propósito y ella lo corrige. El malentendido debe ser uno que un niño de verdad tiene.
+13. Si el material de clase no alcanza para alguna parte de "extras", omite esa entrada antes que inventar datos falsos.`;
 
 export default async (req) => {
   const H = cors(req.headers.get("origin"));
@@ -59,7 +100,7 @@ export default async (req) => {
     const r = await fetch("https://api.anthropic.com/v1/messages", {
       method: "POST",
       headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
-      body: JSON.stringify({ model: "claude-sonnet-5", max_tokens: 16000, system: INSTRUCCIONES, messages: [{ role: "user", content: contenido }] })
+      body: JSON.stringify({ model: "claude-sonnet-5", max_tokens: 32000, system: INSTRUCCIONES, messages: [{ role: "user", content: contenido }] })
     });
     const d = await r.json();
     if (!r.ok) return new Response(JSON.stringify({ error: "api_rechazo", mensaje: d?.error?.message || `HTTP ${r.status}` }), { status: 502, headers: H });

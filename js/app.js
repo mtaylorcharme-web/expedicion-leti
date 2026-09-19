@@ -4,6 +4,13 @@
   let C = window.CONTENT; const CH = window.CHARS, monkey = window.monkey;
   function usarUnidad() { try { const u = JSON.parse(localStorage.getItem("mision-aya-v1") || "{}"); if (u.unidadActiva && u.unidades && u.unidades[u.unidadActiva]) C = u.unidades[u.unidadActiva]; } catch (e) { } }
   usarUnidad();
+  /* El material de apoyo (fuentes, lecciones, causas, canciones…) pertenece a UNA unidad.
+     Si hay una unidad generada activa, se usa el material que ella traiga en "extras";
+     el material de los archivos js/content-*.js es solo de la unidad de archivo. Así una
+     expedición de Science nunca muestra la red causal de Historia en su selva c1. */
+  const material = (clave, nombreGlobal) => (C.extras && C.extras[clave]) || (C === window.CONTENT ? (window[nombreGlobal] || []) : []);
+  const FU = () => material("fuentes", "FUENTES");
+  const LE = () => material("ensenar", "LECCIONES");
   const $ = (s, r) => (r || document).querySelector(s);
   const el = (tag, attrs, html) => { const e = document.createElement(tag); if (attrs) for (const k in attrs) { if (k === "class") e.className = attrs[k]; else if (k.startsWith("on")) e.addEventListener(k.slice(2), attrs[k]); else e.setAttribute(k, attrs[k]); } if (html != null) e.innerHTML = html; return e; };
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -187,7 +194,7 @@
     dc.innerHTML = `<div class="row" style="justify-content:space-between;gap:10px"><div><div class="eyebrow">Reto del día</div><b style="font-family:Fredoka;font-size:18px;font-weight:600">${dailyDone ? "¡Reto de hoy superado! ✅" : "5 preguntas sorpresa · +30 XP"}</b><div class="muted small">${dailyDone ? `Sacaste ${S.daily.score}/5. Mañana hay uno nuevo.` : "De las selvas que ya recorriste. ¡Mantén tu racha!"}</div></div>${dailyDone ? "" : `<button class="btn y sm" id="goDaily">¡Jugar! 🎲</button>`}</div>`;
     if (!dailyDone) $("#goDaily", dc).addEventListener("click", () => go("daily"));
     side.appendChild(dc);
-    const fx = FUENTES.filter(f => campUnlocked(C.camps.find(c => c.id === f.camp))); const fxh = fx.filter(fuenteHecha).length;
+    const fx = FU().filter(f => campUnlocked(C.camps.find(c => c.id === f.camp))); const fxh = fx.filter(fuenteHecha).length;
     const fc = el("div", { class: "card taller" });
     fc.innerHTML = `<div class="row" style="justify-content:space-between;gap:10px"><div><div class="eyebrow" style="color:#7A4BB8">Taller de fuentes</div><b style="font-family:Fredoka;font-size:18px;font-weight:600">La carpa del detective</b><div class="muted small">${fxh} de ${fx.length} fuentes analizadas. Mapas, diarios y cartas reales de la época.</div></div><button class="btn sm" id="goFx" style="background:#8E6BC7;box-shadow:0 3px 0 #6B49A0">Analizar 🔍</button></div>`;
     $("#goFx", fc).addEventListener("click", () => go("fuentes"));
@@ -244,7 +251,7 @@
       const sq = el("button", { class: `step aqui ${listo ? "done" : ""}` });
       sq.innerHTML = `<div class="ic">${listo ? "🔁" : hh && hh.pendiente ? "🏠" : "🔁"}</div><div><b>Aquí y ahora <span class="etiqueta verde">caso real</span></b><span class="sub">${esc(T.titulo)} · usa «${esc(T.concepto)}» en tu propia vida</span><span class="sub" style="color:var(--jungle);font-weight:800">${hh && hh.pendiente && !listo ? "Lo dejaste pendiente para hacerlo en casa" : "Si solo funciona con Colón, no lo aprendiste"}</span></div><div class="right">${listo ? hh.marcadas + "/" + hh.de : "→"}</div>`;
       sq.addEventListener("click", () => go("aqui", { camp: c.id })); steps.appendChild(sq); }
-    if (LECCIONES.some(l => l.camp === c.id)) { const L = LECCIONES.find(l => l.camp === c.id); const hecha = leccionHecha(L);
+    if (LE().some(l => l.camp === c.id)) { const L = LE().find(l => l.camp === c.id); const hecha = leccionHecha(L);
       const se = el("button", { class: `step destacado ${hecha ? "done" : ""}` });
       se.innerHTML = `<div class="ic">🧠</div><div><b>Enséñale a Chupaya</b><span class="sub">${esc(L.titulo)} · explícaselo y él te repregunta</span><span class="sub" style="color:var(--jungle);font-weight:800">Lo que le explicas se te queda</span></div><div class="right">${hecha ? "★".repeat(S.lecciones[L.id].estrellas) : "→"}</div>`;
       se.addEventListener("click", () => go("ensenar", { camp: c.id })); steps.appendChild(se); }
@@ -254,12 +261,13 @@
     sg.addEventListener("click", () => go("game", { camp: c.id })); steps.appendChild(sg);
     const sm = el("button", { class: "step" }); sm.innerHTML = `<div class="ic">🎵</div><div><b>Piezas de la nave</b><span class="sub">Empareja concepto y definición con Estaya y recupera piezas · 3 min</span></div><div class="right">${S.games && S.games["memo-" + c.id] ? "🏆 " + S.games["memo-" + c.id] + " mov." : "→"}</div>`;
     sm.addEventListener("click", () => go("memo", { camp: c.id })); steps.appendChild(sm);
-    const fxc = FUENTES.filter(f => f.camp === c.id);
+    const fxc = FU().filter(f => f.camp === c.id);
     if (fxc.length) { const sfx = el("button", { class: "step" }); const hh = fxc.filter(fuenteHecha).length;
       sfx.innerHTML = `<div class="ic">🔍</div><div><b>Taller de fuentes</b><span class="sub">${fxc.length} fuente${fxc.length === 1 ? "" : "s"} real${fxc.length === 1 ? "" : "es"} de este tema · analízalas con la guía de tu clase</span></div><div class="right">${hh === fxc.length ? "✅" : hh ? hh + "/" + fxc.length : "→"}</div>`;
       sfx.addEventListener("click", () => go("fuentes")); steps.appendChild(sfx); }
+    if (cancionDe(c.id)) {
     const ss = el("button", { class: "step" }); ss.innerHTML = `<div class="ic">🎤</div><div><b>La canción de Estaya</b><span class="sub">${esc((cancionDe(c.id) || {}).titulo || "Karaoke")} · escúchala, cántala y completa la letra · 3 min</span></div><div class="right">${S.games && S.games["song-" + c.id] ? "🏆" : "→"}</div>`;
-    ss.addEventListener("click", () => go("song", { camp: c.id })); steps.appendChild(ss);
+    ss.addEventListener("click", () => go("song", { camp: c.id })); steps.appendChild(ss); }
     h.appendChild(steps); m.appendChild(h);
   }
 
@@ -458,7 +466,7 @@
   }
 
   /* ── EL CANCIONERO DE ESTAYA ── */
-  const cancionDe = campId => (window.CANCIONES || []).find(x => x.camp === campId);
+  const cancionDe = campId => material("canciones", "CANCIONES").find(x => x.camp === campId);
   const puenteURL = () => {
     if (S.puente) return S.puente;
     if (/github\.io$/i.test(location.hostname)) return null;
@@ -730,7 +738,7 @@
 
   function ensenar(m) {
     const c = C.camps.find(x => x.id === ctx.camp);
-    const L = LECCIONES.find(x => x.camp === c.id);
+    const L = LE().find(x => x.camp === c.id);
     let memoria = 0, momento = 0;
     const w = el("div", { class: "mission" }); m.appendChild(w);
     const subir = (n) => { memoria = Math.min(100, memoria + n); const b = $("#mem b", w); if (b) { b.style.width = memoria + "%"; $("#mem .pct", w).textContent = Math.round(memoria) + "%"; } };
@@ -845,9 +853,9 @@
       const prev = S.lecciones[L.id]; const primera = !prev;
       S.lecciones[L.id] = { pct: Math.max(pct, prev ? prev.pct : 0), estrellas: Math.max(estrellas, prev ? prev.estrellas : 0) };
       const xp = primera ? 40 + estrellas * 10 : 15 + estrellas * 4; addXP(xp);
-      const todas = LECCIONES.filter(leccionHecha).length;
+      const todas = LE().filter(leccionHecha).length;
       if (todas >= 1) stamp("maestra");
-      if (todas === LECCIONES.length) stamp("maestra-max");
+      if (todas === LE().length) stamp("maestra-max");
       save(); confetti(); jingle("win");
       w.innerHTML = `<div class="result"><div class="celebrate">${["🧠", "🎉", "⭐", "📓", "✨"].map((e, k) => `<span style="left:${10 + k * 19}%;animation-delay:${k * .15}s">${e}</span>`).join("")}</div>
         <div class="chars"><span>${monkey("chupaya", pct >= 65 ? "party" : "think", 130)}</span></div>
@@ -926,11 +934,24 @@ ${paq.archivos.length ? paq.archivos.join("\n") : "(ninguno)"}
 Fotos de guías o cuadernos adjuntas: ${paq.imagenes}
 
 QUÉ NECESITO
-Genera el archivo de contenido de una expedición nueva para Misión Aya siguiendo
-el formato de js/content-historia-u3.js descrito en DOCUMENTACION.md:
-selvas con lugar y época, bitácora por páginas, misiones con los siete tipos de
-pregunta, tarjetas, fuentes, lección de Chupaya, personajes para selfies y canción.
-Respeta los criterios pedagógicos del proyecto.`;
+Genera la expedición nueva completa para Misión Aya, con el formato y los criterios
+de DOCUMENTACION.md. No basta con las preguntas: hace falta todo esto.
+
+1. La unidad: selvas con lugar y época reales, bitácora por páginas, misiones con los
+   siete tipos de pregunta, tarjetas de memoria y plan de estudio.
+2. El hilo de las causas (content-causas.js): hechos en orden real, enlaces de causa a
+   consecuencia con su explicación, trampas deliberadas (sucesión sin causa, flecha
+   invertida, saltarse pasos) y cierre escrito con rúbrica.
+3. El salto a ciegas (content-desafio.js): predicciones ANTES de leer, con opciones que
+   sean todas razonables para quien aún no sabe, y la revelación de por qué falla la
+   intuición más común.
+4. Aquí y ahora (content-transferencia.js): un caso REAL de la vida de Leti por selva
+   —su casa, su colegio, Chile— para usar el concepto fuera de la asignatura.
+5. Enséñale a Chupaya (content-ensenar.js), fuentes reales para el taller, personajes
+   históricos o relevantes para las selfies, y la canción de Estaya.
+
+Respeta los diez criterios pedagógicos del proyecto, sobre todo: producir antes que
+reconocer, distractores que sean confusiones reales, y nada de ranking.`;
     const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
     const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
     a.download = `paquete-${(p.asignatura || "materia").toLowerCase().replace(/\s+/g, "-")}-${p.fecha || "sinfecha"}.txt`;
@@ -1212,15 +1233,15 @@ Respeta los criterios pedagógicos del proyecto.`;
   const fuenteHecha = f => !!(S.fuentes && S.fuentes[f.id]);
 
   function fuentes(m) {
-    const hechas = FUENTES.filter(fuenteHecha).length;
+    const hechas = FU().filter(fuenteHecha).length;
     const w = el("div");
     w.innerHTML = `<button class="btn ghost sm" data-go="home">← Selva</button>
-      <div class="camphead" style="margin-top:12px"><div class="icon" style="background:#8E6BC7">🔍</div><div><div class="eyebrow">Taller de fuentes</div><h2 style="font-size:26px;font-weight:600">La carpa del detective</h2><div class="muted small">${hechas} de ${FUENTES.length} fuentes analizadas</div></div></div>
+      <div class="camphead" style="margin-top:12px"><div class="icon" style="background:#8E6BC7">🔍</div><div><div class="eyebrow">Taller de fuentes</div><h2 style="font-size:26px;font-weight:600">La carpa del detective</h2><div class="muted small">${hechas} de ${FU().length} fuentes analizadas</div></div></div>
       <div class="today card"><div class="char">${monkey("estaya", "think", 76)}</div><div class="bubble"><span class="who">Estaya</span><span class="tw">Aquí guardamos todo lo que encontramos en la selva: mapas, diarios y cartas de verdad. Analiza cada fuente con los cuatro pasos de tu clase y después arma tu argumento.</span>${SAYBTN}</div></div>
       <div class="guiacard"><div class="eyebrow">Los pasos de tu guía</div><ol class="guialist">${PASOS.map(p => `<li>${p}</li>`).join("")}</ol></div>
       <div class="steps" id="lst"></div>`;
     const lst = $("#lst", w);
-    FUENTES.forEach(f => {
+    FU().forEach(f => {
       const c = C.camps.find(x => x.id === f.camp); const un = campUnlocked(c); const hecha = fuenteHecha(f);
       const b = el("button", { class: `step ${hecha ? "done" : ""} ${un ? "" : "locked"}` });
       b.innerHTML = `<div class="ic">${un ? (hecha ? "✅" : (f.img ? "🖼️" : "📜")) : "🔒"}</div><div><b>${esc(f.titulo)}</b><span class="sub">${esc(f.ficha)}</span><span class="sub" style="color:${c.color};font-weight:800">${c.icon} ${esc(c.name)}</span></div><div class="right">${hecha ? "★".repeat(S.fuentes[f.id].estrellas) : un ? "→" : ""}</div>`;
@@ -1231,7 +1252,7 @@ Respeta los criterios pedagógicos del proyecto.`;
   }
 
   function fuente(m) {
-    const f = FUENTES.find(x => x.id === ctx.id); const c = C.camps.find(x => x.id === f.camp);
+    const f = FU().find(x => x.id === ctx.id); const c = C.camps.find(x => x.id === f.camp);
     let paso = 0, aciertos = 0, total = 0;
     const w = el("div", { class: "mission" }); m.appendChild(w);
     const cabeza = () => `<div class="mhead"><button class="close" id="quit" aria-label="Salir">✕</button><div class="pbar"><b style="width:${(paso / PASOS.length) * 100}%;background:linear-gradient(90deg,#8E6BC7,#B695E0)"></b></div><span class="small muted" style="min-width:74px;text-align:right">Paso ${Math.min(paso + 1, PASOS.length)}/${PASOS.length}</span></div>
@@ -1324,9 +1345,9 @@ Respeta los criterios pedagógicos del proyecto.`;
       const prev = S.fuentes[f.id]; const primera = !prev;
       S.fuentes[f.id] = { estrellas: Math.max(estrellas, prev ? prev.estrellas : 0), pct };
       const xp = primera ? 35 + estrellas * 10 : 12 + estrellas * 4; addXP(xp);
-      const listas = FUENTES.filter(fuenteHecha).length;
+      const listas = FU().filter(fuenteHecha).length;
       if (listas >= 3) stamp("detective");
-      if (listas === FUENTES.length) stamp("detective-max");
+      if (listas === FU().length) stamp("detective-max");
       save(); confetti(); jingle("win");
       w.innerHTML = `<div class="result"><div class="celebrate">${["🔍", "📜", "⭐", "🗺️", "✨"].map((e, k) => `<span style="left:${10 + k * 19}%;animation-delay:${k * .15}s">${e}</span>`).join("")}</div>
         <div class="chars"><span>${monkey(f.guia, "party", 110)}</span></div>
@@ -1502,7 +1523,7 @@ Respeta los criterios pedagógicos del proyecto.`;
 
 
   /* ── EL HILO DE LAS CAUSAS ── */
-  const causasDe = campId => (window.CAUSAS || []).find(x => x.camp === campId);
+  const causasDe = campId => material("causas", "CAUSAS").find(x => x.camp === campId);
   const causasHecha = a => !!(S.causas && S.causas[a.id]);
 
   function causas(m) {
@@ -1663,7 +1684,7 @@ Respeta los criterios pedagógicos del proyecto.`;
 
 
   /* ── EL SALTO A CIEGAS · modalidad opcional: intentar antes de leer ── */
-  const desafioDe = campId => (window.DESAFIOS || []).find(x => x.camp === campId);
+  const desafioDe = campId => material("desafio", "DESAFIOS").find(x => x.camp === campId);
 
   function ciego(m) {
     const c = C.camps.find(x => x.id === ctx.camp); const D = desafioDe(c.id);
@@ -1732,7 +1753,7 @@ Respeta los criterios pedagógicos del proyecto.`;
 
 
   /* ── AQUÍ Y AHORA · transferencia a casos reales ── */
-  const transferDe = campId => (window.TRANSFERENCIA || []).find(x => x.camp === campId);
+  const transferDe = campId => material("transferencia", "TRANSFERENCIA").find(x => x.camp === campId);
 
   function aqui(m) {
     const c = C.camps.find(x => x.id === ctx.camp); const T = transferDe(c.id);

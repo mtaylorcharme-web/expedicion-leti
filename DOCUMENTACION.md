@@ -116,12 +116,16 @@ Estas decisiones son deliberadas. Si se cambian, se pierde lo que hace que la ap
 
 En el panel de adultos, pestaña **Pruebas**, se anota el calendario de pruebas y se adjunta el material de clase: texto pegado del profesor, fotos de la guía o del cuaderno, y archivos. La prueba más próxima manda el contador de la portada y el plan de estudio.
 
+Los dos caminos de abajo generan la unidad **completa**, con `extras` incluidos: sin ellos la expedición queda como un cuestionario y pierde justo lo que hace que la app enseñe.
+
 Desde ahí hay dos caminos:
 
 - **Exportar para Claude** descarga un paquete de texto con la asignatura, la fecha, los temas y el material. Se pasa en una conversación y yo devuelvo el archivo de contenido. No necesita cuentas ni claves.
 - **Generar expedición** hace lo mismo solo, llamando a la función `/api/generar` de Netlify, que usa la API de Anthropic con la variable `ANTHROPIC_API_KEY`. Lee también las fotos adjuntas. El resultado se guarda en `S.unidades` y queda activo de inmediato.
 
 Las unidades generadas conviven con las de archivo: si `S.unidadActiva` apunta a una generada, el motor la usa en vez de `window.CONTENT`.
+
+**El material de apoyo pertenece a una unidad, no al motor.** Las fuentes, las lecciones de Chupaya, las redes causales, el salto a ciegas, la transferencia y las canciones se resuelven con `material(clave, nombreGlobal)`: una unidad generada usa lo que traiga en su propio `extras`, y los archivos `js/content-*.js` valen solo para la unidad de archivo. Así una expedición de Science nunca muestra la red causal de Historia en su selva `c1`. Si una unidad no trae cierto material, ese paso simplemente no aparece en la selva. Las claves de `extras` son `causas`, `desafio`, `transferencia`, `ensenar`, `fuentes` y `canciones`.
 
 ## Puentes de Netlify
 
