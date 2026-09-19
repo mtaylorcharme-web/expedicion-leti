@@ -302,3 +302,11 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .mcard.done .b{border-color:var(--ok);background:var(--ok-bg)}
 .mcard.done{opacity:.8}
 @media(prefers-reduced-motion:reduce){.mcard .in{transition:none}}
+/* bienvenida */
+.welcome{max-width:620px;margin:10px auto;text-align:center}
+.wl-stage{height:250px;display:grid;place-items:end center;background:url(../assets/escena-selva.jpg) 50% 30%/cover no-repeat;border-radius:28px;box-shadow:var(--shadow);padding-bottom:6px;margin-bottom:14px}
+.bubble.wl{text-align:left;font-size:17px}
+.bubble.wl::before{display:none}
+.dots{display:flex;justify-content:center;gap:8px;margin-top:14px}
+.dots i{width:10px;height:10px;border-radius:50%;background:#CFCAB8}
+.dots i.on{background:var(--jungle)}

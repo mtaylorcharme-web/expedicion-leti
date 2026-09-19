@@ -87,9 +87,23 @@
   }
   document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
 
+  /* ── BIENVENIDA (primera vez) ── */
+  function welcome(m) {
+    const steps = [
+      { id: "ovaya", mood: "surprised", t: `¡Hola, ${esc(S.name)}! Soy Ovaya, el más curioso de Los Ayas. ¡Encontré un mapa de una selva llena de secretos de Historia!` },
+      { id: "chupaya", mood: "think", t: "Yo soy Chupaya… y ya me perdí. Si respondes bien las preguntas, me vas a encontrar en cada campamento." },
+      { id: "estaya", mood: "happy", t: "♪ Y yo soy Estaya ♪. Traigo tarjetas, canciones y juegos para que todo se te quede en la memoria." },
+      { id: "ovaya", mood: "party", t: "Cada campamento es un tema de tu prueba. Gana estrellas, sellos y XP. ¿Lista para zarpar?" }
+    ];
+    let i = 0; const w = el("div", { class: "welcome" }); m.appendChild(w);
+    const draw = () => { const st = steps[i]; w.innerHTML = `<div class="wl-stage">${monkey(st.id, st.mood, 150)}</div><div class="bubble wl"><span class="who">${CH[st.id].name}</span><span class="tw">${st.t}</span>${SAYBTN}</div><div class="actions" style="justify-content:center"><button class="btn ${i === steps.length - 1 ? "" : "g"}" id="nx">${i === steps.length - 1 ? "¡Sí, vamos! ⛵" : "Siguiente →"}</button></div><div class="dots">${steps.map((_, k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</div>`; typewrite($(".tw", w)); beep(true); $("#nx", w).addEventListener("click", () => { i++; if (i >= steps.length) { S.welcomed = true; save(); confetti(); jingle("win"); go("home"); } else draw(); }); };
+    draw();
+  }
+
   /* ── INICIO ── */
   function home(m) {
     touchDay();
+    if (!S.welcomed) return welcome(m);
     const d = daysToTest();
     const cur = C.camps.find(c => campUnlocked(c) && campDone(c) < c.missions.length) || C.camps[C.camps.length - 1];
     const guide = cur.guide;
@@ -387,7 +401,7 @@
 
   /* ── PASAPORTE ── */
   function passport(m) {
-    const ST = [["first", "🧭", "Primera misión"], ...C.camps.map(c => [c.id, c.icon, c.name]), ["boss", "🏆", "Templo conquistado"], ["streak3", "🔥", "3 días seguidos"], ...C.camps.map(c => ["flash-" + c.id, "🃏", "Tarjetas " + c.n])];
+    const ST = [["first", "🧭", "Primera misión"], ...C.camps.map(c => [c.id, c.icon, c.name]), ["boss", "🏆", "Templo conquistado"], ["streak3", "🔥", "3 días seguidos"], ...C.camps.map(c => ["flash-" + c.id, "🃏", "Tarjetas " + c.n]), ...C.camps.map(c => ["liana-" + c.id, "🐒", "Lianas " + c.n]), ...C.camps.map(c => ["memo-" + c.id, "🎵", "Memorice " + c.n])];
     if (S.streak.count >= 3) stamp("streak3");
     const dn = ["L", "M", "X", "J", "V", "S", "D"]; const now = new Date(); const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay() + 6) % 7)); mon.setHours(0, 0, 0, 0);
     const week = [...Array(7)].map((_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); const k = d.toISOString().slice(0, 10); return `<span class="${S.days.includes(k) ? "d" : ""} ${k === todayKey() ? "t" : ""}">${dn[i]}</span>`; }).join("");
