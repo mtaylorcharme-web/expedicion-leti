@@ -77,7 +77,7 @@
   /* ── navegación ── */
   let view = "home", ctx = {};
   function go(v, c) { view = v; ctx = c || {}; render(); window.scrollTo({ top: 0 }); }
-  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song })[view](m); }
+  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song, daily })[view](m); }
   function renderTop() {
     const d = daysToTest(); const dl = d > 1 ? `${d} días` : d === 1 ? "¡mañana!" : d === 0 ? "¡hoy!" : "pasó";
     $("#topbar").innerHTML = `<span class="chip streak">🔥 ${S.streak.count} <span class="lbl">día${S.streak.count === 1 ? "" : "s"}</span></span><span class="chip xp">⭐ ${S.xp} <span class="lbl">XP</span></span><span class="chip days">📅 <span class="lbl">Prueba:</span> ${dl}</span><span class="spacer"></span><button class="avatar" data-go="passport" aria-label="Pasaporte">${esc(S.name[0] || "L")}</button>`;
@@ -155,6 +155,11 @@
     side.innerHTML = `<div class="card"><div class="today"><div class="char">${monkey(guide, allDone ? "party" : "happy", 96)}</div><div class="bubble"><span class="who">${CH[guide].name}</span><span class="tw">${esc(msg)}</span>${SAYBTN}</div></div><div class="actions" style="justify-content:flex-start"><button class="btn" id="goNext">${allDone ? "Ir al Templo 🏆" : "¡Vamos! ⛵"}</button><button class="btn ghost" data-go="review">Repaso 🎯</button></div></div>`;
     $("#goNext", side).addEventListener("click", () => allDone ? go("boss") : go("camp", { camp: cur.id }));
 
+    const dailyDone = S.daily && S.daily.date === todayKey();
+    const dc = el("div", { class: "card daily" + (dailyDone ? " done" : "") });
+    dc.innerHTML = `<div class="row" style="justify-content:space-between;gap:10px"><div><div class="eyebrow">Reto del día</div><b style="font-family:Fredoka;font-size:18px;font-weight:600">${dailyDone ? "¡Reto de hoy superado! ✅" : "5 preguntas sorpresa · +30 XP"}</b><div class="muted small">${dailyDone ? `Sacaste ${S.daily.score}/5. Mañana hay uno nuevo.` : "De los campamentos que ya abriste. ¡Mantén tu racha!"}</div></div>${dailyDone ? "" : `<button class="btn y sm" id="goDaily">¡Jugar! 🎲</button>`}</div>`;
+    if (!dailyDone) $("#goDaily", dc).addEventListener("click", () => go("daily"));
+    side.appendChild(dc);
     const cd = el("div", { class: "card" });
     cd.innerHTML = `<div class="eyebrow">${esc(C.unit.subject)} · ${esc(C.unit.title)}</div><div class="countdown" style="margin-top:6px"><div class="big">${d >= 0 ? d : 0}</div><div><b style="font-family:Fredoka;font-size:18px">${d > 1 ? "días para la prueba" : d === 1 ? "día para la prueba" : d === 0 ? "¡La prueba es hoy!" : "La prueba ya pasó"}</b><div class="muted small">${esc(C.unit.test.label)} · ${doneMissions()}/${totalMissions} misiones completadas</div></div></div>`;
     side.appendChild(cd);
@@ -398,6 +403,13 @@
     draw();
   }
 
+  /* ── RETO DEL DÍA ── */
+  function daily(m) {
+    const pool = []; C.camps.filter(campUnlocked).forEach(c => c.missions.forEach(ms => ms.questions.forEach((q, i) => { if (q.t !== "write") pool.push({ q, key: `${ms.id}:${i}`, camp: c }); })));
+    const qs = shuffle(pool).slice(0, 5);
+    runQuiz(m, { title: "Reto del día", char: "ovaya", story: "¡Cinco preguntas sorpresa de la selva! Si las respondes hoy, tu racha sigue viva. ¡Vamos!", topic: "Reto del día", camp: qs[0].camp, questions: qs, quit: () => go("home"), onDone: errors => { const score = qs.length - errors; const xp = 30 + score * 4; addXP(xp); S.daily = { date: todayKey(), score }; if (score === 5) stamp("daily5"); save(); return { xp, stars: stars(errors), back: () => go("home") }; } });
+  }
+
   /* ── SIMULACRO (jefe) ── */
   function boss(m) {
     const intro = el("div", { class: "mission" });
@@ -434,7 +446,7 @@
 
   /* ── PASAPORTE ── */
   function passport(m) {
-    const ST = [["first", "🧭", "Primera misión"], ...C.camps.map(c => [c.id, c.icon, c.name]), ["boss", "🏆", "Templo conquistado"], ["streak3", "🔥", "3 días seguidos"], ...C.camps.map(c => ["flash-" + c.id, "🃏", "Tarjetas " + c.n]), ...C.camps.map(c => ["liana-" + c.id, "🐒", "Lianas " + c.n]), ...C.camps.map(c => ["memo-" + c.id, "🎵", "Memorice " + c.n])];
+    const ST = [["first", "🧭", "Primera misión"], ...C.camps.map(c => [c.id, c.icon, c.name]), ["boss", "🏆", "Templo conquistado"], ["streak3", "🔥", "3 días seguidos"], ["daily5", "🎲", "Reto del día perfecto"], ...C.camps.map(c => ["flash-" + c.id, "🃏", "Tarjetas " + c.n]), ...C.camps.map(c => ["liana-" + c.id, "🐒", "Lianas " + c.n]), ...C.camps.map(c => ["memo-" + c.id, "🎵", "Memorice " + c.n])];
     if (S.streak.count >= 3) stamp("streak3");
     const dn = ["L", "M", "X", "J", "V", "S", "D"]; const now = new Date(); const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay() + 6) % 7)); mon.setHours(0, 0, 0, 0);
     const week = [...Array(7)].map((_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); const k = localKey(d); return `<span class="${S.days.includes(k) ? "d" : ""} ${k === todayKey() ? "t" : ""}">${dn[i]}</span>`; }).join("");

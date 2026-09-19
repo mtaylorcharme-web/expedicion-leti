@@ -339,3 +339,5 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .lyrics{display:grid;gap:8px;background:var(--paper);border-radius:20px;padding:16px;box-shadow:0 6px 0 rgba(0,0,0,.05)}
 .line{padding:10px 14px;border-radius:12px;font-weight:700;font-size:16px;color:var(--ink-2);transition:.25s}
 .line.on{background:linear-gradient(90deg,#F3E8FF,#FFE7F0);color:var(--ink);transform:scale(1.02);box-shadow:0 3px 0 rgba(0,0,0,.06)}
+.card.daily{border:2px solid var(--gold);background:#FFF9E8}
+.card.daily.done{border-color:var(--ok);background:var(--ok-bg)}
