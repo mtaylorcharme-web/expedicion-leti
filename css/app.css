@@ -420,3 +420,12 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 @keyframes pulso{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.2);opacity:.65}}
 .voz-hint{font-size:13.5px;color:var(--ink-2);font-weight:700}
 @media(prefers-reduced-motion:reduce){.mic.grabando .mic-ic{animation:none}}
+.voz-problema{margin-top:10px;background:#FFF1EC;border:2px solid var(--coral);border-radius:14px;padding:12px 15px}
+.voz-problema b{font-family:Fredoka;font-size:16px;font-weight:600;display:block}
+.voz-problema p{margin:4px 0 8px;font-size:14.5px;line-height:1.45}
+.micdiag{margin-top:10px;background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px}
+.micdiag>div{display:flex;justify-content:space-between;gap:12px;padding:5px 0;font-size:14px;border-bottom:1px solid #F0EDE3}
+.micdiag>div:last-of-type{border:0}
+.micdiag span{color:var(--ink-2);font-weight:700}
+.micdiag b{text-align:right}
+.micdiag b.mal{color:var(--bad)}

@@ -423,32 +423,48 @@
 
   /* ── RESPONDER HABLANDO (dictado por voz) ── */
   const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-  const MIC_OK = !!SR && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1");
+  const EN_MARCO = (() => { try { return window.self !== window.top; } catch (e) { return true; } })();
+  const SEGURO = location.protocol === "https:" || ["localhost", "127.0.0.1"].includes(location.hostname);
+  const UA = navigator.userAgent;
+  const ES_SAFARI = /Safari/i.test(UA) && !/Chrome|Chromium|CriOS|FxiOS|Edg|OPR/i.test(UA);
+  const NAV = /CriOS|Chrome|Chromium/i.test(UA) ? "Chrome" : /FxiOS|Firefox/i.test(UA) ? "Firefox" : /Edg/i.test(UA) ? "Edge" : ES_SAFARI ? "Safari" : "otro";
+
   const campoVoz = (id, ph) => `<div class="campo-voz">
       <textarea class="write" id="${id}" placeholder="${esc(ph)}"></textarea>
-      ${MIC_OK ? `<div class="voz-barra"><button class="mic" data-target="${id}"><span class="mic-ic">🎤</span><span class="mic-txt">Responder hablando</span></button><span class="voz-hint">o escríbelo con el teclado</span></div>` : ""}
+      <div class="voz-barra"><button class="mic" data-target="${id}"><span class="mic-ic">🎤</span><span class="mic-txt">Responder hablando</span></button><span class="voz-hint">o escríbelo con el teclado</span></div>
     </div>`;
-  let rec = null, recBtn = null, recTa = null, recBase = "", recFinal = "";
+
+  function problemaVoz() {
+    if (!SR) return { t: "Este navegador no entiende la voz", d: `Estás usando ${NAV}, que no tiene reconocimiento de voz. Abre la app en Google Chrome y el micrófono va a funcionar.` };
+    if (!SEGURO) return { t: "La dirección no es segura", d: "El micrófono solo funciona en direcciones que empiezan con https." };
+    return null;
+  }
+  function panelProblema(barra, p, reintentar) {
+    const card = el("div", { class: "voz-problema" }, `<b>🎤 ${esc(p.t)}</b><p>${esc(p.d)}</p>${reintentar ? `<button class="btn ghost sm" data-reintentar="1">Reintentar</button>` : ""}`);
+    barra.replaceWith(card);
+    if (reintentar) card.querySelector("[data-reintentar]").addEventListener("click", () => { card.replaceWith(barra); });
+  }
+
+  let rec = null, recBtn = null, recTa = null, recBase = "", recFinal = "", recSigue = false, recReinicios = 0, recIdioma = "es-CL";
+  function limpiaVoz() {
+    if (recBtn) { recBtn.classList.remove("grabando"); const t = recBtn.querySelector(".mic-txt"); if (t) t.textContent = "Responder hablando"; }
+    if (recTa) recTa.classList.remove("escuchando");
+    recBtn = null; recTa = null; recSigue = false;
+  }
   function pararVoz(inmediato) {
-    if (!rec) return; const r = rec;
+    if (!rec) return; const r = rec; recSigue = false;
     if (inmediato) { try { r.abort(); } catch (e) { } rec = null; limpiaVoz(); return; }
     try { r.stop(); } catch (e) { try { r.abort(); } catch (e2) { } }
     setTimeout(() => { if (rec === r) { rec = null; limpiaVoz(); } }, 1500);
   }
   const cerrarVoz = cont => { pararVoz(true); const vb = $(".voz-barra", cont); if (vb) vb.remove(); };
-  function limpiaVoz() {
-    if (recBtn) { recBtn.classList.remove("grabando"); const t = recBtn.querySelector(".mic-txt"); if (t) t.textContent = "Responder hablando"; }
-    if (recTa) recTa.classList.remove("escuchando");
-    recBtn = null; recTa = null;
-  }
   function pulir(t) { t = t.replace(/\s+/g, " ").trim(); if (!t) return t; t = t[0].toUpperCase() + t.slice(1); if (!/[.!?…]$/.test(t)) t += "."; return t; }
-  document.addEventListener("click", e => {
-    const b = e.target.closest(".mic"); if (!b) return;
-    const ta = document.getElementById(b.dataset.target); if (!ta || ta.disabled) return;
-    if (rec) { const mismo = recBtn === b; pararVoz(); if (mismo) return; }
+
+  function arrancarVoz(b, ta) {
     const r = new SR();
-    r.lang = "es-CL"; r.continuous = true; r.interimResults = true; r.maxAlternatives = 1;
-    rec = r; recBtn = b; recTa = ta; recBase = ta.value.trim() ? ta.value.trim() + " " : ""; recFinal = "";
+    r.lang = recIdioma; r.continuous = !ES_SAFARI; r.interimResults = true; r.maxAlternatives = 1;
+    rec = r; recBtn = b; recTa = ta; recSigue = true;
+    recBase = ta.value.trim() ? ta.value.trim() + " " : ""; recFinal = ""; recReinicios = 0;
     b.classList.add("grabando"); b.querySelector(".mic-txt").textContent = "Escuchando… toca para terminar";
     ta.classList.add("escuchando");
     r.onresult = ev => {
@@ -458,23 +474,63 @@
         if (ev.results[i].isFinal) recFinal += t + " "; else interim += t;
       }
       ta.value = recBase + recFinal + interim;
-      ta.dispatchEvent(new Event("input"));
-      ta.scrollTop = ta.scrollHeight;
+      ta.dispatchEvent(new Event("input")); ta.scrollTop = ta.scrollHeight;
     };
     r.onerror = ev => {
-      if (ev.error === "not-allowed" || ev.error === "service-not-allowed") toast("Permite el micrófono en el navegador para poder hablar.");
+      if (ev.error === "language-not-supported" && recIdioma !== "es-ES") { recIdioma = "es-ES"; recSigue = false; setTimeout(() => arrancarVoz(b, ta), 150); return; }
+      recSigue = false;
+      if (ev.error === "not-allowed" || ev.error === "service-not-allowed") toast(EN_MARCO ? "Abre la app en su propia pestaña para usar el micrófono." : "Permite el micrófono en el navegador para poder hablar.");
       else if (ev.error === "no-speech") toast("No te escuché. Toca el micrófono y habla de nuevo.");
       else if (ev.error === "audio-capture") toast("No encuentro ningún micrófono en este dispositivo.");
       else if (ev.error === "network") toast("El dictado necesita internet.");
       else if (ev.error !== "aborted") toast("Hubo un problema con el micrófono.");
     };
     r.onend = () => {
-      if (recTa && (recFinal || recTa.value)) { recTa.value = pulir(recBase + recFinal); recTa.dispatchEvent(new Event("input")); }
+      if (recSigue && recReinicios < 40 && recTa) { recReinicios++; try { r.start(); return; } catch (e) { } }
+      if (recTa && recFinal) { recTa.value = pulir(recBase + recFinal); recTa.dispatchEvent(new Event("input")); }
       rec = null; limpiaVoz();
     };
     try { r.start(); beep(true); toast("Habla con calma. Toca otra vez cuando termines."); }
-    catch (err) { rec = null; limpiaVoz(); toast("No se pudo iniciar el micrófono."); }
+    catch (err) { rec = null; limpiaVoz(); toast("No se pudo iniciar el micrófono. Intenta otra vez."); }
+  }
+
+  document.addEventListener("click", async e => {
+    const b = e.target.closest(".mic"); if (!b) return;
+    const ta = document.getElementById(b.dataset.target); if (!ta || ta.disabled) return;
+    if (rec) { const mismo = recBtn === b; pararVoz(); if (mismo) return; }
+    const p = problemaVoz();
+    if (p) return panelProblema(b.closest(".voz-barra"), p, false);
+    b.querySelector(".mic-txt").textContent = "Pidiendo permiso…";
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        const st = await navigator.mediaDevices.getUserMedia({ audio: true });
+        st.getTracks().forEach(t => t.stop());
+      }
+    } catch (err) {
+      b.querySelector(".mic-txt").textContent = "Responder hablando";
+      const nombre = err && err.name || "";
+      if (nombre === "NotFoundError" || nombre === "DevicesNotFoundError") return panelProblema(b.closest(".voz-barra"), { t: "No encuentro el micrófono", d: "Este dispositivo no tiene micrófono disponible, o está siendo usado por otra aplicación." }, true);
+      if (EN_MARCO) return panelProblema(b.closest(".voz-barra"), { t: "La app está dentro de un marco", d: "Para hablar, abre la app en su propia pestaña con el enlace https://mtaylorcharme-web.github.io/expedicion-leti/ y vuelve a intentarlo." }, true);
+      return panelProblema(b.closest(".voz-barra"), { t: "El navegador bloqueó el micrófono", d: NAV === "Safari" ? "En Safari, entra al menú Safari, luego Ajustes para este sitio web, y cambia Micrófono a Permitir." : "Toca el candado o el icono de cámara en la barra de direcciones y permite el micrófono para este sitio." }, true);
+    }
+    arrancarVoz(b, ta);
   });
+
+  /* Diagnóstico del micrófono, para el panel de Mariana y Francisco */
+  async function diagnosticoVoz() {
+    let permiso = "no se puede consultar";
+    try { if (navigator.permissions) { const st = await navigator.permissions.query({ name: "microphone" }); permiso = st.state === "granted" ? "concedido" : st.state === "denied" ? "denegado" : "lo va a preguntar"; } } catch (e) { }
+    let micros = "no se puede consultar";
+    try { if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) { const ds = await navigator.mediaDevices.enumerateDevices(); micros = ds.filter(d => d.kind === "audioinput").length + " encontrado(s)"; } } catch (e) { }
+    return [
+      ["Navegador", NAV],
+      ["Reconocimiento de voz", SR ? "disponible" : "NO disponible en este navegador"],
+      ["Dirección segura (https)", SEGURO ? "sí" : "NO"],
+      ["Dentro de un marco", EN_MARCO ? "SÍ (aquí el micrófono se bloquea)" : "no"],
+      ["Permiso del micrófono", permiso],
+      ["Micrófonos del dispositivo", micros]
+    ];
+  }
 
   /* ── ENSÉÑALE A CHUPAYA (aprender enseñando) ── */
   const leccionHecha = l => !!(S.lecciones && S.lecciones[l.id]);
@@ -847,11 +903,23 @@
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600">Para reforzar (${wrong.length})</h3><p class="muted small" style="margin:4px 0 10px">Preguntas falladas que siguen pendientes. Desaparecen cuando se responden bien dos veces en «Repaso».</p><div class="wrongs">${wrong.length ? wrong.map(x => `<div>${esc(x.q)}</div>`).join("") : "<div class='muted' style='border-color:var(--ok)'>Nada pendiente por ahora.</div>"}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600">Ajustes</h3>
                 <div class="field"><label for="np">Cambiar PIN</label><input id="np" inputmode="numeric" maxlength="6" placeholder="Nuevo PIN (4 a 6 números)"></div>
+        <div class="field"><label style="font-weight:800;font-size:14px">Micrófono</label><button class="btn ghost sm" id="probarMic" style="justify-self:start">Probar micrófono 🎤</button><div id="micres"></div></div>
         <div class="field"><label><input type="checkbox" id="snd" ${S.sound ? "checked" : ""} style="width:auto;margin-right:8px">Sonidos activados</label></div>
         <div class="actions" style="justify-content:flex-start"><button class="btn g sm" id="saveS">Guardar ajustes</button><button class="btn ghost sm" id="reset">Reiniciar todo el progreso</button></div>
         <p class="muted small" style="margin-top:12px">Próximamente: subir fotos, texto o enlaces del colegio para crear nuevas expediciones con inteligencia artificial (requiere clave de API de Anthropic).</p></div>`;
     m.appendChild(w);
     $("#lock", w).addEventListener("click", () => { parentOK = false; go("home"); });
+    $("#probarMic", w).addEventListener("click", async () => {
+      const cont = $("#micres", w); cont.innerHTML = `<div class="muted small" style="margin-top:8px">Revisando…</div>`;
+      const filas = await diagnosticoVoz();
+      cont.innerHTML = `<div class="micdiag">${filas.map(([k, v]) => `<div><span>${esc(k)}</span><b class="${/NO|denegado|bloque|SÍ \(/.test(v) ? "mal" : ""}">${esc(v)}</b></div>`).join("")}<button class="btn g sm" id="micPrueba" style="margin-top:10px">Grabar una frase de prueba</button><div id="micsalida"></div></div>`;
+      $("#micPrueba", cont).addEventListener("click", () => {
+        const sal = $("#micsalida", cont);
+        const p = problemaVoz();
+        if (p) { sal.innerHTML = `<div class="voz-problema" style="margin-top:10px"><b>🎤 ${esc(p.t)}</b><p>${esc(p.d)}</p></div>`; return; }
+        sal.innerHTML = `<div class="campo-voz"><textarea class="write" id="txmic" placeholder="Toca el micrófono y di una frase…"></textarea><div class="voz-barra"><button class="mic" data-target="txmic"><span class="mic-ic">🎤</span><span class="mic-txt">Responder hablando</span></button><span class="voz-hint">debería aparecer escrito lo que digas</span></div></div>`;
+      });
+    });
     $("#saveS", w).addEventListener("click", () => { const np = $("#np", w).value.trim(); if (np) { if (/^\d{4,6}$/.test(np)) S.pin = np; else return toast("El PIN debe tener 4 a 6 números."); } S.sound = $("#snd", w).checked; save(); toast("Ajustes guardados"); render(); });
     $("#reset", w).addEventListener("click", () => { if (confirm("¿Borrar TODO el progreso de la Misión Aya? Esta acción no se puede deshacer.")) { const pin = S.pin; S = Object.assign({}, DEF, { pin }); save(); toast("Progreso reiniciado"); go("home"); } });
   }
