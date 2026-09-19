@@ -260,7 +260,7 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 /* monos columpiándose en el mapa */
 .map-monkey{position:absolute;pointer-events:none;z-index:2}
 .map-monkey .mk{filter:drop-shadow(0 4px 3px rgba(0,0,0,.3))}
-.liana{position:absolute;width:4px;background:linear-gradient(#5B7A3A,#3E5A26);border-radius:2px;pointer-events:none}
+.liana{position:absolute;display:none;width:4px;background:linear-gradient(#5B7A3A,#3E5A26);border-radius:2px;pointer-events:none}
 .mk{cursor:pointer}
 .toast{max-width:min(92vw,520px);text-align:center;font-size:15px}
 /* minijuego lianas */
@@ -660,8 +660,9 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
   position:absolute;z-index:5;width:62px;margin-left:-31px;pointer-events:none;
   transform-origin:50% -110px;animation:columpio 3.4s ease-in-out infinite alternate;
   transition:left 1s cubic-bezier(.34,1.2,.5,1),top 1s cubic-bezier(.34,1.2,.5,1)}
-.aya-viajero .cuerda{position:absolute;left:50%;top:-112px;width:4px;height:116px;margin-left:-2px;border-radius:2px;
-  background:linear-gradient(180deg,#2E4A1C,#6B9E43);box-shadow:0 0 0 1px rgba(0,0,0,.12)}
+.aya-viajero .cuerda,.map-monkey .cuerda{position:absolute;left:50%;bottom:100%;width:4px;height:var(--cuerda,116px);
+  margin-left:-2px;border-radius:2px;background:linear-gradient(180deg,#2E4A1C,#6B9E43);box-shadow:0 0 0 1px rgba(0,0,0,.12)}
+.aya-viajero .cuerda::before,.map-monkey .cuerda::before{content:"";position:absolute;left:-5px;top:-4px;width:14px;height:9px;border-radius:5px;background:#3B2A1C}
 .aya-viajero img{display:block;width:100%;height:auto;filter:drop-shadow(0 5px 5px rgba(0,0,0,.4))}
 .aya-viajero b{position:absolute;left:50%;bottom:-20px;transform:translateX(-50%);background:#fff;color:var(--ink);
   padding:2px 9px;border-radius:99px;font:800 11px Nunito;box-shadow:0 2px 0 rgba(0,0,0,.12);white-space:nowrap}

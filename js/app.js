@@ -125,12 +125,43 @@
     const fragmentos = C.camps.filter(c => campDone(c) === c.missions.length).length;
     const wrap = el("div", { class: "home" });
     const map = el("div", { class: "mapwrap" });
-    const ramas = P.slice(0, 6).map(([x, y], i) => {
-      const izq = positions[i][0] < 50; const by = y + 48;
-      const hojas = [...Array(4)].map((_, k) => { const hx = izq ? 60 + k * ((x - 70) / 4) : x + 30 + k * ((540 - x) / 4); return `<ellipse cx="${hx}" cy="${by - 7}" rx="16" ry="8" fill="#3FA66B" transform="rotate(${izq ? -18 : 18} ${hx} ${by - 7})"/>`; }).join("");
-      return izq ? `<rect x="20" y="${by}" width="${x - 8}" height="22" rx="11" fill="#3B2A1C"/><rect x="20" y="${by + 2}" width="${x - 8}" height="8" rx="4" fill="#6B4C33"/>${hojas}`
-                 : `<rect x="${x + 8}" y="${by}" width="${572 - x}" height="22" rx="11" fill="#3B2A1C"/><rect x="${x + 8}" y="${by + 2}" width="${572 - x}" height="8" rx="4" fill="#6B4C33"/>${hojas}`;
+    /* La selva se dibuja en tres planos: troncos lejanos delgados y pálidos, troncos
+       medios, y troncos cercanos gruesos y oscuros pegados a los bordes. Las RAMAS
+       horizontales van a alturas fijas (ramasY) y son las que sostienen de verdad a
+       los Ayas: de ahí cuelgan sus lianas. */
+    const ramasY = [92, 214, 336, 458, 580, 702, 824, 946];
+    const troncoSVG = (x, ancho, color, luz, op) =>
+      `<g opacity="${op}"><rect x="${x}" y="-30" width="${ancho}" height="${mapH + 60}" rx="${ancho * .34}" fill="${color}"/>` +
+      `<rect x="${x + ancho * .17}" y="-30" width="${ancho * .3}" height="${mapH + 60}" rx="${ancho * .15}" fill="${luz}" opacity=".55"/>` +
+      `<rect x="${x + ancho * .72}" y="-30" width="${ancho * .12}" height="${mapH + 60}" rx="${ancho * .06}" fill="#241A11" opacity=".45"/></g>`;
+    const troncosLejos = [[122, 20], [246, 16], [352, 22], [468, 18], [196, 14], [420, 15]]
+      .map(([x, w], i) => troncoSVG(x, w, "#4A6B48", "#6E8C63", .34 + (i % 2) * .06)).join("");
+    const troncosMedio = [[96, 40], [300, 34], [452, 44]]
+      .map(([x, w]) => troncoSVG(x, w, "#5B4330", "#7C5B3E", .62)).join("");
+    const troncosCerca = troncoSVG(2, 84, "#3B2A1C", "#6B4C33", 1) + troncoSVG(514, 84, "#3B2A1C", "#6B4C33", 1);
+
+    /* Cada rama nace de un tronco y cruza buena parte del mapa, con su racimo de hojas */
+    const hojaRacimo = (cx, cy, n, giro) => [...Array(n)].map((_, k) => {
+      const dx = (k - n / 2) * 26, dy = (k % 2 ? -9 : 7);
+      return `<ellipse cx="${cx + dx}" cy="${cy + dy}" rx="22" ry="10" fill="${k % 2 ? "#3FA66B" : "#2E7D4F"}" transform="rotate(${giro + (k % 2 ? -14 : 12)} ${cx + dx} ${cy + dy})"/>`;
     }).join("");
+    const ramasSVG = ramasY.map((ry, i) => {
+      const izq = i % 2 === 0;
+      const largo = 330 + (i % 3) * 52;
+      const x0 = izq ? 60 : 540 - largo;
+      const grosor = 19;
+      return `<g><rect x="${x0}" y="${ry}" width="${largo}" height="${grosor}" rx="${grosor / 2}" fill="#3B2A1C"/>` +
+        `<rect x="${x0}" y="${ry + 2}" width="${largo}" height="7" rx="3.5" fill="#6B4C33" opacity=".75"/>` +
+        hojaRacimo(izq ? x0 + largo - 40 : x0 + 40, ry - 4, 5, izq ? -12 : 12) +
+        hojaRacimo(izq ? x0 + largo * .45 : x0 + largo * .55, ry - 2, 3, izq ? 8 : -8) + `</g>`;
+    }).join("");
+    /* Lianas sueltas que cuelgan de las ramas y dan sensación de espesura */
+    const lianasSueltas = ramasY.flatMap((ry, i) => [0, 1].map(k => {
+      const x = (i * 137 + k * 211 + 70) % 540 + 30, largo = 70 + ((i + k) * 53) % 150;
+      return `<path d="M ${x} ${ry + 14} q ${k ? 12 : -12} ${largo / 2} 0 ${largo}" stroke="#3E5A26" stroke-width="5" fill="none" stroke-linecap="round" opacity=".7"/>` +
+             `<circle cx="${x}" cy="${ry + 14 + largo}" r="7" fill="#4E8A3A" opacity=".8"/>`;
+    })).join("");
+
     const lianas = P.slice(0, -1).map(([x0, y0], i) => {
       const [x1, y1] = P[i + 1];
       const d = `M ${x0} ${y0 + 56} C ${x0} ${y0 + 190}, ${x1} ${y1 - 190}, ${x1} ${y1 - 44}`;
@@ -150,9 +181,11 @@
       <g filter="url(#lejos)" opacity=".5">${[...Array(18)].map((_, i) => { const x = (i * 163 + 40) % 600, y = (i * 271) % mapH, r = 70 + (i % 3) * 34; return `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * .62}" fill="${i % 2 ? "#3E8A4C" : "#2F7440"}"/>`; }).join("")}</g>
       ${[...Array(5)].map((_, i) => { const x = 70 + i * 118, y = i * (mapH / 5); return `<path d="M ${x} ${y} l 54 0 l -128 ${mapH * .26} l -44 0 Z" fill="url(#rayo)" opacity=".7"/>`; }).join("")}
       ${[...Array(34)].map((_, i) => { const x = (i * 137) % 600, y = (i * 211) % (mapH * .82), r = 28 + (i % 4) * 12; return `<circle cx="${x}" cy="${y}" r="${r}" fill="${i % 3 ? "#5FA95F" : "#4E9A52"}" opacity=".32"/>`; }).join("")}
-      <rect x="2" y="-20" width="84" height="${mapH * .78}" rx="26" fill="#3B2A1C"/><rect x="14" y="-20" width="30" height="${mapH * .78}" rx="15" fill="#6B4C33"/><rect x="58" y="-20" width="12" height="${mapH * .78}" rx="6" fill="#2E2116" opacity=".7"/>
-      <rect x="514" y="-20" width="84" height="${mapH * .78}" rx="26" fill="#3B2A1C"/><rect x="556" y="-20" width="30" height="${mapH * .78}" rx="15" fill="#6B4C33"/><rect x="530" y="-20" width="12" height="${mapH * .78}" rx="6" fill="#2E2116" opacity=".7"/>
-      ${ramas}
+      ${troncosLejos}
+      ${troncosMedio}
+      ${troncosCerca}
+      ${ramasSVG}
+      ${lianasSueltas}
       ${lianas}
       ${[...Array(14)].map((_, i) => { const izq = i % 2 === 0; const x = izq ? 22 + (i * 17) % 40 : 522 + (i * 13) % 40, y = (i * 173 + 70) % (mapH * .8); return `<text x="${x}" y="${y}" font-size="30" opacity=".75">${["🌴", "🌿", "🦜", "🌺", "🍃", "🌳"][i % 6]}</text>`; }).join("")}
       <g filter="url(#cerca)" opacity=".85">${[...Array(9)].map((_, i) => { const izq = i % 2 === 0; const x = izq ? -30 + (i * 11) % 40 : 590 + (i * 7) % 30, y = 60 + i * (mapH / 9); const r = 74 + (i % 3) * 26; return `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * .74}" fill="${i % 2 ? "#1F5A38" : "#2A6B43"}"/><ellipse cx="${x + (izq ? 52 : -52)}" cy="${y + 46}" rx="${r * .6}" ry="${r * .44}" fill="#24603C"/>`; }).join("")}</g>
@@ -170,6 +203,7 @@
       lm.classList.add("saltando"); setTimeout(() => lm.classList.remove("saltando"), 1100);
       lm.style.left = `calc(${px}% + ${ladoDe(px) * 108}px)`;
       lm.style.top = `calc(${py}% + 126px)`;
+      setTimeout(anclar, 1020);
     };
     C.camps.forEach((c, i) => {
       const [x, y] = positions[i]; const un = campUnlocked(c); const full = campDone(c) === c.missions.length;
@@ -189,16 +223,15 @@
     ciu.addEventListener("click", () => { beep(true); go("ciudad"); });
     map.appendChild(ciu);
     const idx = allDone ? 5 : C.camps.indexOf(cur); const [lx, ly] = positions[idx];
-    map.appendChild(el("div", { class: "aya-viajero", style: `left:calc(${lx}% + ${ladoDe(lx) * 108}px);top:calc(${ly}% + 126px)` },
+    map.appendChild(el("div", { class: "aya-viajero", "data-cuelga": "1", style: `left:calc(${lx}% + ${ladoDe(lx) * 108}px);top:calc(${ly}% + 126px)` },
       `<span class="cuerda" aria-hidden="true"></span><img src="assets/chars/ovaya.png" alt="Ovaya"><b>Ovaya</b>`));
     map.insertAdjacentHTML("beforeend", `<img class="map-tree" src="assets/chars/trio-arbol.png" alt="" aria-hidden="true">`);
     map.insertAdjacentHTML("beforeend", `<div class="critter fly" style="top:14%;animation-duration:14s">🦜</div><div class="critter fly" style="top:46%;animation-duration:22s;animation-delay:-9s;font-size:22px">🦋</div><div class="critter walk" style="top:62%;animation-duration:30s;animation-delay:-12s">🐢</div>`);
     /* Chupaya se columpia de verdad (recorre un trecho de rama, porque siempre anda perdido)
        y Estaya cuelga cabeza abajo canturreando. Los dos tienen su liana visible. */
     [["chupaya", 86, 40, "swing", "colgado va"], ["estaya", 10, 74, "hang", "♪ la la la ♪"]].forEach(([id, x, y, md, dice]) => {
-      const l = el("div", { class: "liana", style: `left:calc(${x}% + 25px);top:0;height:${y}%` }); map.appendChild(l);
-      const mm = el("div", { class: `map-monkey vive ${id}` , style: `left:${x}%;top:${y}%` },
-        monkey(id, md, 52) + `<span class="globito">${esc(dice)}</span>`);
+      const mm = el("div", { class: `map-monkey vive ${id}`, style: `left:${x}%;top:${y}%`, "data-cuelga": "1" },
+        `<span class="cuerda" aria-hidden="true"></span>` + monkey(id, md, 52) + `<span class="globito">${esc(dice)}</span>`);
       map.appendChild(mm);
     });
     /* Estaya compone: le salen notas que suben */
@@ -277,6 +310,24 @@
     plan.innerHTML = `<h3 style="font-size:19px;font-weight:600">Ruta de regreso hasta la prueba</h3><div class="plan" style="margin-top:10px">${C.plan.map(p => { const dt = new Date(start); dt.setDate(dt.getDate() + p.day); const isT = dt.getTime() === t0.getTime(), past = dt < t0; const camps = p.camps.map(id => C.camps.find(c => c.id === id)); const ok = camps.every(c => campDone(c) === c.missions.length); return `<div class="d ${isT ? "today" : past ? "past" : ""}"><div class="dn">${dn[dt.getDay()]}<b>${dt.getDate()}</b></div><div><b>${esc(p.label)}</b><div class="muted small">${camps.map(c => c.icon + " " + esc(c.name)).join(", ")} · ${esc(p.extra)}</div></div><div class="st">${ok ? "✅" : isT ? "👉" : ""}</div></div>`; }).join("")}</div>`;
     side.appendChild(plan);
     wrap.appendChild(side);
+
+    /* Ningún Aya cuelga del aire: la cuerda se estira exactamente hasta la rama que
+       tiene encima. Las ramas están en unidades del SVG, así que se convierten a
+       píxeles con la altura real del mapa. */
+    function anclar() {
+      const alto = map.clientHeight; if (!alto) return;
+      const enPx = ramasY.map(ry => (ry + 14) * alto / mapH);
+      map.querySelectorAll("[data-cuelga]").forEach(nodo => {
+        const arriba = nodo.offsetTop;
+        const rama = enPx.filter(p => p < arriba - 12).pop();
+        const largo = Math.max(26, Math.round(arriba - (rama == null ? 0 : rama)));
+        nodo.style.setProperty("--cuerda", largo + "px");
+      });
+    }
+    anclar();
+    requestAnimationFrame(anclar);
+    setTimeout(anclar, 320);
+    window.addEventListener("resize", anclar);
 
     /* El mapa mide mil píxeles: si no se acomoda solo, se entra mirando cielo. */
     requestAnimationFrame(() => {
