@@ -213,6 +213,23 @@
     m.appendChild(w);
   }
 
+  const FACTS = [
+    "Colón murió creyendo que había llegado a Asia. Nunca supo que había encontrado un continente nuevo.",
+    "Tenochtitlan tenía unos 200 000 habitantes en 1519: era más grande que cualquier ciudad de España en esa época.",
+    "Los incas no tenían escritura ni rueda, pero construyeron más de 30 000 km de caminos por los Andes.",
+    "Los mayas inventaron el número cero de forma independiente, siglos antes de que llegara a Europa.",
+    "La carabela era tan pequeña que la Niña, uno de los barcos de Colón, medía menos que una cancha de básquetbol.",
+    "Atahualpa ofreció llenar una habitación de oro y dos de plata a cambio de su libertad. Pizarro lo aceptó… y no cumplió.",
+    "La palabra «chocolate» viene del náhuatl, el idioma de los aztecas. Ellos lo tomaban amargo y con ají.",
+    "Antes de 1492 en Europa no existían las papas, el tomate ni el maíz. ¡Ni pizza con tomate ni papas fritas!",
+    "Los conquistadores traían perros de guerra enormes que aterrorizaban a los pueblos indígenas, que nunca habían visto perros tan grandes.",
+    "La vuelta al mundo de Magallanes y Elcano (1519–1522) partió con 5 barcos y unos 240 hombres; regresó 1 barco con 18.",
+    "El nombre «América» viene de Amerigo Vespucci, el navegante que dijo que estas tierras eran un continente nuevo.",
+    "En Chile, Pedro de Valdivia fundó Santiago en 1541 en el cerro Huelén, que hoy conocemos como cerro Santa Lucía."
+  ];
+  function chestHTML() { const f = FACTS[(S.factIdx = ((S.factIdx || 0) + 1) % FACTS.length)]; save(); return `<div class="chest" id="chest"><button class="chest-btn" id="openChest" aria-label="Abrir cofre">🧰</button><div class="chest-body" hidden><div class="eyebrow">Dato curioso de Ovaya</div><p>${esc(f)}</p></div></div>`; }
+  document.addEventListener("click", e => { const b = e.target.closest("#openChest"); if (!b) return; const ch = b.closest(".chest"); b.textContent = "🎁"; b.classList.add("open"); jingle("stamp"); setTimeout(() => { b.hidden = true; ch.querySelector(".chest-body").hidden = false; ch.classList.add("opened"); }, 500); });
+
   /* ── MISIÓN (motor de preguntas) ── */
   function mission(m) {
     const c = C.camps.find(x => x.id === ctx.camp); const ms = c.missions.find(x => x.id === ctx.mission);
@@ -241,6 +258,7 @@
         <div class="stars" aria-label="${st} estrellas">${starStr(st)}</div>
         <div class="xp">+${r.xp} XP</div>
         <p class="muted">${errors === 0 ? "Sin errores. ¡Eres una exploradora experta!" : errors === 1 ? "Solo un error. Lo repasarás en «Repaso»." : `Tuviste ${errors} errores. Aparecerán en «Repaso» para que los domines.`}</p>
+        ${chestHTML()}
         <div class="actions" style="justify-content:center"><button class="btn g" id="cont">Continuar</button>${r.retry ? `<button class="btn ghost" id="retry">Repetir</button>` : ""}</div></div>`;
       $("#cont", w).addEventListener("click", r.back);
       if (r.retry) $("#retry", w).addEventListener("click", r.retry);

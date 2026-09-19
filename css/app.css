@@ -345,3 +345,10 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .wl-stage .trio{height:230px;width:auto;filter:drop-shadow(0 8px 6px rgba(0,0,0,.35));animation:bob 2.4s ease-in-out infinite}
 .trio-wide{display:block;height:170px;width:auto;margin:0 auto 12px;filter:drop-shadow(0 6px 4px rgba(31,42,30,.25))}
 .map-tree{position:absolute;right:-6px;top:58%;height:40%;width:auto;pointer-events:none;z-index:1;filter:drop-shadow(0 4px 4px rgba(0,0,0,.3));animation:tilt 5s ease-in-out infinite;transform-origin:50% 100%}
+/* cofre */
+.chest{margin:10px auto 14px;max-width:460px}
+.chest-btn{font-size:64px;line-height:1;animation:wiggle 1.2s ease-in-out infinite;filter:drop-shadow(0 6px 4px rgba(0,0,0,.2))}
+.chest-btn.open{animation:pop .4s ease-out}
+@keyframes wiggle{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg) translateY(-4px)}}
+.chest-body{background:#FFF7E0;border:2px solid var(--gold);border-radius:16px;padding:12px 16px;text-align:left;animation:fade .35s ease-out}
+.chest-body p{margin:4px 0 0;font-size:15.5px}
