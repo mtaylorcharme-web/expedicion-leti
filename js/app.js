@@ -451,6 +451,7 @@
     alAvanzar("Enviándole la letra a Suno…");
     const r = await fetch(base, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ titulo, estilo, letra }) });
     const d = await r.json().catch(() => ({}));
+    if (d.audio) return d.audio;
     if (!r.ok || !d.taskId) throw new Error(d.mensaje || d.detalle || d.error || "No se pudo empezar la canción.");
     const frases = ["Suno está afinando los instrumentos…", "Estaya está eligiendo el ritmo…", "Grabando la primera estrofa…", "Ensayando el coro…", "Mezclando la canción…", "Ya casi, no te vayas…"];
     for (let i = 0; i < 40; i++) {
@@ -540,8 +541,11 @@
         pinta("Preparando…");
         try {
           const url = await generarConSuno({ titulo: CAN.titulo, estilo: CAN.estilo, letra: CAN.letra.join("\n") }, pinta);
-          S.musica = S.musica || {}; S.musica[CAN.id] = url; save(); jingle("win"); confetti();
-          toast("🎵 ¡La canción está lista!"); hayAudio = null; montarReproductor();
+          if (/^https?:/.test(url)) { S.musica = S.musica || {}; S.musica[CAN.id] = url; save(); }
+          jingle("win"); confetti(); toast("🎵 ¡La canción está lista!");
+          est.innerHTML = `<div class="componiendo"><div class="char">${monkey("estaya", "party", 64)}</div><div><b>¡Lista!</b><span>Descárgala y guárdala como ${CAN.id}.mp3 en assets/musica para que quede para siempre.</span></div></div><div class="actions" style="justify-content:flex-start"><a class="btn g sm" style="text-decoration:none" href="${url}" download="${CAN.id}.mp3" target="_blank" rel="noopener">Descargar el MP3 ⬇</a></div>`;
+          S.musica = S.musica || {}; if (/^data:/.test(url)) { audio = new Audio(url); }
+          hayAudio = null; setTimeout(() => { if (/^https?:/.test(url)) montarReproductor(); }, 400);
         } catch (err) {
           btn.disabled = false;
           est.innerHTML = `<div class="voz-problema" style="margin-top:10px"><b>🎵 No se pudo crear la canción</b><p>${esc(err.message)}</p><p class="muted small">Revisa en el panel de Mariana y Francisco que el puente de Suno esté bien configurado, o crea la canción a mano con la receta de arriba.</p></div>`;

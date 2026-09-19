@@ -1,4 +1,4 @@
-CANCIONES DE MISIÓN AYA · cómo crearlas en Suno
+CANCIONES DE MISIÓN AYA · cómo crearlas
 
 Hay 5 canciones, una por selva. La app ya trae la letra y el estilo listos.
 
@@ -24,3 +24,17 @@ Apenas el archivo está en esta carpeta, la app lo detecta sola: aparece el
 reproductor con la letra que se va iluminando verso a verso.
 Si la letra se adelanta o se atrasa, en el reproductor hay botones de
 más y menos medio segundo para ajustarla. El ajuste queda guardado.
+
+
+OPCIÓN AUTOMÁTICA (el botón "Crearla ahora" dentro de la app)
+Necesita un generador con API. El puente de Netlify ya soporta tres:
+
+  PROVEEDOR=mureka      api.mureka.ai        tiene créditos gratis al registrarse
+  PROVEEDOR=elevenlabs  api.elevenlabs.io    plan gratuito mensual, API oficial
+  PROVEEDOR=suno        servicios puente de terceros (de pago, no es Suno oficial)
+
+En Netlify, en Site configuration > Environment variables, agrega:
+  PROVEEDOR        el que elijas
+  MUSICA_API_KEY   tu clave de ese proveedor
+
+Suno no tiene API pública propia: revisé su sitio y sus planes y no la ofrecen.
