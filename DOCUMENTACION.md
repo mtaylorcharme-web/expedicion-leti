@@ -28,6 +28,7 @@ js/content-fuentes.js      fuentes históricas para el taller
 js/content-ensenar.js      lecciones de "Enséñale a Chupaya"
 js/content-mundo.js        personajes, lugares, candidatos, pistas, expediciones
 js/content-canciones.js    letras y estilos para generar música
+js/content-causas.js       redes causales: qué provocó qué, por selva
 netlify/functions/         puentes: música (cancion) y memoria (progreso)
 assets/                    fotos de los Ayas, retratos históricos, mapa, música
 ```
@@ -80,6 +81,7 @@ Las de tipo `write` aceptan dictado por voz automáticamente.
 - **Lecciones de Chupaya** (`content-ensenar.js`): una por selva. Bloques verdaderos y falsos, una repregunta y un malentendido que corregir.
 - **Mundo** (`content-mundo.js`): personajes con `mision` apuntando al id de la misión que desbloquea su selfie, y lugares con coordenadas reales para el mapa y Google Earth.
 - **Canciones** (`content-canciones.js`): letra con marcas `[Verso]` y `[Coro]`, y un estilo en inglés para el generador.
+- **Causas** (`content-causas.js`): una red causal por selva. `hechos` en orden cronológico real, `enlaces` con las uniones verdaderas y su explicación, `trampas` con uniones falsas que un niño de esta edad hace de verdad (sucesión sin causa, flecha invertida, saltarse pasos) y `cierre` con escritura y rúbrica. Es la actividad que enseña multicausalidad, que es lo que evalúa la unidad.
 
 ### 4. Archivos que hay que enchufar
 
@@ -96,6 +98,7 @@ Estas decisiones son deliberadas. Si se cambian, se pierde lo que hace que la ap
 5. **Las habilidades, no solo los datos.** Si el profesor evalúa analizar fuentes o argumentar, la app tiene que hacer eso, no preguntar su definición.
 6. **Mezclar temas.** Estudiar por bloques se siente bien y se olvida rápido.
 7. **Sin ranking contra otros niños.** Compite contra sí misma.
+8. **Causalidad, no cronología.** Ordenar fechas es el piso. El aprendizaje está en unir qué provocó qué, y en distinguir una sucesión de una causa. Por eso cada red causal incluye trampas deliberadas.
 
 ## Memoria y sincronización
 

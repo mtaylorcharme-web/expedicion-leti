@@ -593,3 +593,17 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .adj .quitar{width:28px;height:28px;border-radius:50%;background:#F3EFE5;font-weight:800;color:var(--ink-2);flex:none}
 .codigo-in{flex:1;font:700 24px Fredoka;letter-spacing:.14em;text-transform:uppercase;text-align:center;border:2px solid var(--line);border-radius:12px;padding:8px 10px;background:#fff;color:var(--jungle-deep);min-width:0}
 .codigo-in:focus{outline:3px solid var(--gold);border-color:transparent}
+
+/* ── El hilo de las causas ── */
+.causas{position:relative;display:grid;gap:12px;padding-left:34px;margin-bottom:12px}
+.causas .hilos{position:absolute;inset:0;pointer-events:none;overflow:visible;z-index:1}
+.hecho{position:relative;z-index:2;display:grid;gap:3px;text-align:left;background:var(--paper);border:2px solid var(--line);border-radius:16px;padding:11px 14px;box-shadow:0 4px 0 rgba(0,0,0,.05);transition:border-color .12s,transform .08s}
+.hecho .fecha{font:800 12px Fredoka;color:var(--ink-2);letter-spacing:.04em;text-transform:uppercase}
+.hecho .txt{font-weight:700;font-size:15.5px;line-height:1.35}
+.hecho:active{transform:translateY(2px)}
+.hecho.sel{border-color:var(--gold);background:#FFF7E0;box-shadow:0 4px 0 var(--gold-deep)}
+.causas .hecho::before{content:"";position:absolute;left:-24px;top:50%;width:11px;height:11px;margin-top:-5px;border-radius:50%;background:var(--line)}
+.hecho.sel::before{background:var(--gold)}
+.contador{text-align:right;font-weight:800;margin-bottom:6px}
+.pista{background:#FFF7E0;border:2px dashed var(--gold);border-radius:14px;padding:10px 13px;font-weight:700;color:var(--ink-2)}
+@media (max-width:420px){.causas{padding-left:30px}.hecho .txt{font-size:14.5px}}

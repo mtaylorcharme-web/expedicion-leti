@@ -79,7 +79,7 @@
   /* ── navegación ── */
   let view = "home", ctx = {};
   function go(v, c) { pararVoz(true); view = v; ctx = c || {}; render(); himnoSegunVista(v); window.scrollTo({ top: 0 }); }
-  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song, daily, fuentes, fuente, ensenar, mundo, ciudad })[view](m); }
+  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song, daily, fuentes, fuente, ensenar, mundo, ciudad, causas })[view](m); }
   function renderTop() {
     const d = daysToTest(); const dl = d > 1 ? `${d} días` : d === 1 ? "¡mañana!" : d === 0 ? "¡hoy!" : "pasó";
     $("#topbar").innerHTML = `<span class="chip streak">🔥 ${S.streak.count} <span class="lbl">día${S.streak.count === 1 ? "" : "s"}</span></span><span class="chip xp">⭐ ${S.xp} <span class="lbl">XP</span></span><span class="chip days">📅 <span class="lbl">Prueba:</span> ${dl}</span><span class="spacer"></span><button class="chip mus ${himno && !himno.paused ? "on" : ""}" data-himno="1" aria-label="Himno de Los Ayas" title="Himno de Los Ayas">🎵</button><button class="avatar" data-go="passport" aria-label="Pasaporte"><img src="assets/chars/ovaya.png" alt="Ovaya"></button>`;
@@ -232,6 +232,10 @@
       b.addEventListener("click", () => un ? go("mission", { camp: c.id, mission: ms.id }) : toast("Primero completa la misión anterior."));
       steps.appendChild(b);
     });
+    if (causasDe(c.id)) { const A = causasDe(c.id); const hh = S.causas && S.causas[A.id];
+      const sc = el("button", { class: `step destacado ${hh ? "done" : ""}` });
+      sc.innerHTML = `<div class="ic">🧵</div><div><b>El hilo de las causas</b><span class="sub">${esc(A.titulo)} · ordena los hechos y une qué provocó qué</span><span class="sub" style="color:var(--jungle);font-weight:800">Aquí se aprende la multicausalidad</span></div><div class="right">${hh ? "★".repeat(hh.estrellas) : "→"}</div>`;
+      sc.addEventListener("click", () => go("causas", { camp: c.id })); steps.appendChild(sc); }
     if (LECCIONES.some(l => l.camp === c.id)) { const L = LECCIONES.find(l => l.camp === c.id); const hecha = leccionHecha(L);
       const se = el("button", { class: `step destacado ${hecha ? "done" : ""}` });
       se.innerHTML = `<div class="ic">🧠</div><div><b>Enséñale a Chupaya</b><span class="sub">${esc(L.titulo)} · explícaselo y él te repregunta</span><span class="sub" style="color:var(--jungle);font-weight:800">Lo que le explicas se te queda</span></div><div class="right">${hecha ? "★".repeat(S.lecciones[L.id].estrellas) : "→"}</div>`;
@@ -1486,6 +1490,165 @@ Respeta los criterios pedagógicos del proyecto.`;
     $("#importar", w).addEventListener("change", e => { const f = e.target.files[0]; if (f) importarProgreso(f, () => go("parent")); });
     $("#saveS", w).addEventListener("click", () => { const pg = $("#pg", w).value.trim(); S.puenteGenerar = pg || null; const pp = $("#pp", w).value.trim(); S.puenteProgreso = pp || null; const pu = $("#pu", w).value.trim(); S.puente = pu || null; const np = $("#np", w).value.trim(); if (np) { if (/^\d{4,6}$/.test(np)) S.pin = np; else return toast("El PIN debe tener 4 a 6 números."); } S.sound = $("#snd", w).checked; save(); toast("Ajustes guardados"); render(); });
     $("#reset", w).addEventListener("click", () => { if (confirm("¿Borrar TODO el progreso de la Misión Aya? Esta acción no se puede deshacer.")) { const pin = S.pin; S = Object.assign({}, DEF, { pin }); save(); toast("Progreso reiniciado"); go("home"); } });
+  }
+
+
+  /* ── EL HILO DE LAS CAUSAS ── */
+  const causasDe = campId => (window.CAUSAS || []).find(x => x.camp === campId);
+  const causasHecha = a => !!(S.causas && S.causas[a.id]);
+
+  function causas(m) {
+    const c = C.camps.find(x => x.id === ctx.camp); const A = causasDe(c.id);
+    if (!A) return go("camp", { camp: c.id });
+    const guia = A.guia || "ovaya";
+    const total = A.enlaces.length;
+    let paso = 1, errores = 0, hechas = [], sel = null;
+    const w = el("div", { class: "mission" }); m.appendChild(w);
+
+    function cabecera(txt, sub) {
+      return `<div class="mhead"><button class="close" id="quit" aria-label="Salir">✕</button><div class="pbar"><b id="mp" style="width:${paso === 1 ? 10 : paso === 2 ? 30 + (hechas.length / total) * 55 : 95}%"></b></div><span class="small muted" style="min-width:74px;text-align:right">Paso ${paso} de 3</span></div>
+        <div class="today" style="margin-bottom:12px"><div class="char">${monkey(guia, paso === 3 ? "think" : "happy", 72)}</div><div class="bubble"><span class="who">${CH[guia].name}</span><span class="tw">${esc(txt)}</span>${SAYBTN}</div></div>
+        ${sub ? `<div class="qcard" style="margin-bottom:12px"><h2 style="font-size:19px">${esc(A.pregunta)}</h2><div class="ctx">${esc(sub)}</div></div>` : ""}`;
+    }
+    function salir() { $("#quit", w).addEventListener("click", () => go("camp", { camp: c.id })); typewrite($(".bubble .tw", w)); }
+
+    /* paso 1 · ordenar en el tiempo */
+    function ordenar() {
+      paso = 1;
+      w.innerHTML = cabecera(A.intro, "Primero ponlos en orden. Toca un hecho para agregarlo; tócalo arriba para devolverlo.") +
+        `<div class="orderwrap"><div class="seq" id="seq"><span class="lab">Tu línea de tiempo</span></div><div class="pool" id="pool"><span class="lab">Hechos</span></div></div>
+         <div class="actions"><button class="btn ghost sm" id="reset">Reiniciar</button><button class="btn g" id="check" disabled>Comprobar</button></div>`;
+      salir();
+      let pool = shuffle(A.hechos), seq = [];
+      const draw = () => {
+        const P = $("#pool", w), Q = $("#seq", w);
+        P.innerHTML = `<span class="lab">Hechos</span>`; Q.innerHTML = `<span class="lab">Tu línea de tiempo</span>`;
+        pool.forEach(h => { const b = el("button", { class: "item" }, `<span class="num" style="background:#C9C2AE">+</span><span>${esc(h.t)}</span>`); b.addEventListener("click", () => { pool = pool.filter(x => x !== h); seq.push(h); draw(); }); P.appendChild(b); });
+        seq.forEach((h, n) => { const b = el("button", { class: "item" }, `<span class="num">${n + 1}</span><span>${esc(h.t)}</span>`); b.addEventListener("click", () => { seq = seq.filter(x => x !== h); pool.push(h); draw(); }); Q.appendChild(b); });
+        $("#check", w).disabled = pool.length > 0;
+      };
+      draw();
+      $("#reset", w).addEventListener("click", () => { pool = shuffle(A.hechos); seq = []; draw(); });
+      $("#check", w).addEventListener("click", () => {
+        const ok = seq.every((h, n) => h.id === A.hechos[n].id);
+        if (!ok) errores++;
+        [...$("#seq", w).querySelectorAll(".item")].forEach((b, n) => { b.disabled = true; b.classList.add(seq[n].id === A.hechos[n].id ? "ok" : "bad"); });
+        $("#reset", w).remove(); $("#check", w).remove(); beep(ok);
+        if (!ok) w.insertAdjacentHTML("beforeend", `<div class="model"><span class="t">El orden real</span><ol style="margin:0;padding-left:20px">${A.hechos.map(h => `<li>${esc(h.t)}${h.fecha ? ` <span class="muted small">(${esc(h.fecha)})</span>` : ""}</li>`).join("")}</ol></div>`);
+        w.insertAdjacentHTML("beforeend", `<div class="fb show ${ok ? "ok" : "bad"}"><div style="font-size:26px">${ok ? "🎉" : "💡"}</div><div><span class="t">${ok ? "¡Orden correcto!" : "Mira el orden real"}</span><div class="why">Ahora viene lo importante: el orden no explica nada por sí solo. Toca saber qué provocó qué.</div></div></div>`);
+        w.appendChild(contBtn(conectar, "Unir las causas →"));
+      });
+    }
+
+    /* paso 2 · unir causa y consecuencia */
+    function conectar() {
+      paso = 2; sel = null;
+      w.innerHTML = cabecera("Toca primero la causa y después lo que provocó. Si la flecha no corresponde, te lo digo.", "Encuentra las " + total + " uniones verdaderas. Cuidado: que un hecho venga después de otro no significa que lo haya causado.") +
+        `<div class="causas" id="red"><svg class="hilos" id="hilos" aria-hidden="true"></svg>
+          ${A.hechos.map(h => `<button class="hecho" data-h="${h.id}"><span class="fecha">${esc(h.fecha || "·")}</span><span class="txt">${esc(h.t)}</span></button>`).join("")}</div>
+         <div class="contador small muted" id="cnt">0 de ${total} uniones</div>
+         <div id="exp"></div>`;
+      salir();
+      const red = $("#red", w), svg = $("#hilos", w);
+
+      function pintar() {
+        const rb = red.getBoundingClientRect();
+        svg.setAttribute("viewBox", `0 0 ${rb.width} ${red.scrollHeight}`);
+        svg.setAttribute("width", rb.width); svg.setAttribute("height", red.scrollHeight);
+        svg.innerHTML = `<defs><marker id="pta" markerWidth="8" markerHeight="8" refX="6" refY="3" orient="auto"><path d="M0,0 L6,3 L0,6 Z" fill="var(--jungle)"/></marker></defs>` +
+          hechas.map(e => {
+            const a = $(`[data-h="${e.de}"]`, red), b = $(`[data-h="${e.a}"]`, red);
+            if (!a || !b) return "";
+            const ar = a.getBoundingClientRect(), br = b.getBoundingClientRect();
+            const y1 = ar.top - rb.top + ar.height / 2, y2 = br.top - rb.top + br.height / 2;
+            const x = 16, curva = Math.min(30, 8 + Math.abs(y2 - y1) / 5);
+            return `<path d="M${x},${y1} C${x - curva},${y1} ${x - curva},${y2} ${x},${y2}" fill="none" stroke="var(--jungle)" stroke-width="3" stroke-linecap="round" marker-end="url(#pta)"/>`;
+          }).join("");
+      }
+      const repintar = () => requestAnimationFrame(pintar);
+      repintar(); window.addEventListener("resize", repintar);
+
+      function explicar(clase, titulo, texto) {
+        $("#exp", w).innerHTML = `<div class="fb show ${clase}"><div style="font-size:26px">${clase === "ok" ? "🧵" : "💡"}</div><div><span class="t">${esc(titulo)}</span><div class="why">${esc(texto)}</div></div></div>`;
+      }
+      function limpiar() { [...red.querySelectorAll(".hecho")].forEach(b => b.classList.remove("sel")); sel = null; }
+
+      red.addEventListener("click", ev => {
+        const b = ev.target.closest(".hecho"); if (!b) return;
+        const id = b.dataset.h;
+        if (!sel) { limpiar(); sel = id; b.classList.add("sel"); $("#exp", w).innerHTML = `<div class="pista small">Ahora toca lo que esto provocó. Toca de nuevo el mismo para soltarlo.</div>`; return; }
+        if (sel === id) { limpiar(); $("#exp", w).innerHTML = ""; return; }
+        const de = sel, a = id; limpiar();
+        if (hechas.some(e => e.de === de && e.a === a)) { explicar("ok", "Esa flecha ya la tienes", "Prueba con otra unión."); return; }
+        const bueno = A.enlaces.find(e => e.de === de && e.a === a);
+        if (bueno) {
+          hechas.push(bueno); beep(true); repintar();
+          $("#cnt", w).textContent = `${hechas.length} de ${total} uniones`;
+          $("#mp", w).style.width = (30 + (hechas.length / total) * 55) + "%";
+          explicar("ok", "¡Sí, esto provocó aquello!", bueno.por);
+          if (hechas.length === total) { jingle("stamp"); setTimeout(escribir, 1400); }
+          return;
+        }
+        const trampa = (A.trampas || []).find(e => e.de === de && e.a === a);
+        errores++; beep(false);
+        if (trampa) explicar("bad", "Cuidado con esa flecha", trampa.por);
+        else {
+          const alReves = A.enlaces.find(e => e.de === a && e.a === de);
+          explicar("bad", "Esa unión no va", alReves ? "Tienes los dos hechos correctos, pero la flecha está al revés: prueba tocando primero el otro." : "Esos dos hechos no se causan entre sí. Busca cuál explica al otro.");
+        }
+      });
+    }
+
+    /* paso 3 · escribir nombrando más de una causa */
+    function escribir() {
+      paso = 3;
+      w.innerHTML = cabecera("Ahora dímelo con tus palabras. Eso es lo que te van a pedir en la prueba.") +
+        `<div class="qcard"><h2>${esc(A.cierre.q)}</h2>
+          ${campoVoz("tx", "Escribe aquí con tus palabras… o toca el micrófono")}
+          <div class="actions"><button class="btn g" id="listo" disabled>Listo, compara →</button></div></div>`;
+      salir();
+      const tx = $("#tx", w);
+      tx.addEventListener("input", () => { $("#listo", w).disabled = tx.value.trim().length < 10; });
+      $("#listo", w).addEventListener("click", () => {
+        const mio = (tx.value || "").trim(); cerrarVoz(w);
+        w.innerHTML = cabecera("Compara lo tuyo con el modelo y marca honestamente qué incluiste.") +
+          `<div class="qcard">
+            <div class="model"><span class="t">Lo que escribiste</span><p style="margin:0;white-space:pre-wrap">${mio ? esc(mio) : "<em>No escribiste nada.</em>"}</p></div>
+            <div class="model" style="background:#E6F6EC;border-color:var(--ok)"><span class="t" style="color:var(--jungle)">Una buena respuesta</span><p style="margin:0">${esc(A.cierre.modelo)}</p></div>
+            <p style="font-weight:800;margin:16px 0 0">¿Qué de esto aparece en lo tuyo?</p>
+            <div class="rubrica" id="ru">${A.cierre.rubrica.map((r, k) => `<label><input type="checkbox" data-k="${k}"><span>${esc(r)}</span></label>`).join("")}</div>
+            <div class="actions"><button class="btn g" id="fin">Terminar</button></div></div>`;
+        salir();
+        $("#fin", w).addEventListener("click", () => {
+          const cajas = [...$("#ru", w).querySelectorAll("input")];
+          const faltantes = cajas.map((i, k) => i.checked ? -1 : k).filter(k => k >= 0);
+          fin(cajas.length - faltantes.length, cajas.length, faltantes);
+        });
+      });
+    }
+
+    function fin(marcadas, tot, faltantes) {
+      const faltan = tot - marcadas;
+      const est = errores <= 2 && faltan === 0 ? 3 : errores <= 5 && faltan <= 1 ? 2 : 1;
+      const xp = 30 + marcadas * 8 + (errores <= 2 ? 15 : 0);
+      addXP(xp);
+      S.causas = S.causas || {};
+      const prev = S.causas[A.id];
+      S.causas[A.id] = { estrellas: Math.max(est, prev ? prev.estrellas : 0), marcadas: Math.max(marcadas, prev ? prev.marcadas || 0 : 0), fecha: todayKey() };
+      stat(c.topic, faltan === 0);
+      if (est === 3) stamp("causas-" + c.id);
+      save(); confetti(); jingle("win");
+      w.innerHTML = `<div class="result">${monkey(guia, "party", 120)}
+        <h2>${faltan === 0 ? "¡Explicaste la causa completa!" : "Buen hilo, casi completo"}</h2>
+        <p class="muted">Uniste las ${hechas.length} causas y marcaste ${marcadas} de ${tot} ideas clave.</p>
+        <div class="xp">+${xp} XP</div><div class="stars">${starStr(est)}</div>
+        ${faltan ? `<div class="model" style="text-align:left"><span class="t">Para la prueba, repasa esto</span><ul style="margin:0;padding-left:20px">${faltantes.map(k => `<li>${esc(A.cierre.rubrica[k])}</li>`).join("")}</ul></div>` : ""}
+        <div class="actions" style="justify-content:center"><button class="btn ghost" id="again">Repetir</button><button class="btn g" id="back">Volver a la selva</button></div></div>`;
+      $("#again", w).addEventListener("click", () => go("causas", { camp: c.id }));
+      $("#back", w).addEventListener("click", () => go("camp", { camp: c.id }));
+    }
+
+    ordenar();
   }
 
   /* ── arranque ── */
