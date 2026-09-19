@@ -27,12 +27,25 @@
   function addXP(n) { S.xp += n; save(); renderTop(); }
   function stat(topic, ok) { const s = S.stats[topic] || (S.stats[topic] = { ok: 0, n: 0 }); s.n++; if (ok) s.ok++; }
   function markWrong(key, q, camp, ok) { if (ok) { if (S.wrong[key] && --S.wrong[key].n <= 0) delete S.wrong[key]; } else { const w = S.wrong[key] || (S.wrong[key] = { n: 0, q: "", camp: "" }); w.n = Math.min(w.n + 2, 4); w.q = q; w.camp = camp; } }
-  function stamp(id) { if (!S.stamps.includes(id)) { S.stamps.push(id); save(); toast("🏅 ¡Nuevo sello en tu pasaporte!"); } }
+  function stamp(id) { if (!S.stamps.includes(id)) { S.stamps.push(id); save(); toast("🏅 ¡Nuevo sello en tu pasaporte!"); setTimeout(() => jingle("stamp"), 700); } }
 
   /* ── utilidades UI ── */
   let toastT; function toast(m) { const t = $("#toast"); t.textContent = m; t.classList.add("show"); clearTimeout(toastT); toastT = setTimeout(() => t.classList.remove("show"), 2200); }
   const AC = window.AudioContext || window.webkitAudioContext; let actx;
   function beep(ok) { if (!S.sound || !AC) return; try { actx = actx || new AC(); const o = actx.createOscillator(), g = actx.createGain(); o.connect(g); g.connect(actx.destination); o.type = "sine"; const t = actx.currentTime; if (ok) { o.frequency.setValueAtTime(660, t); o.frequency.setValueAtTime(880, t + .09); } else { o.frequency.setValueAtTime(220, t); o.frequency.setValueAtTime(180, t + .12); } g.gain.setValueAtTime(.12, t); g.gain.exponentialRampToValueAtTime(.001, t + .25); o.start(t); o.stop(t + .26); } catch (e) { } }
+  function jingle(kind) {
+    if (!S.sound || !AC) return; try { actx = actx || new AC(); const t0 = actx.currentTime;
+      const seq = kind === "win" ? [[523, 0], [659, .12], [784, .24], [1047, .36], [784, .5], [1047, .62]] : kind === "stamp" ? [[880, 0], [1175, .1], [1568, .2]] : [[392, 0], [330, .15], [262, .3]];
+      seq.forEach(([f, dt]) => { const o = actx.createOscillator(), g = actx.createGain(); o.type = kind === "win" ? "triangle" : "sine"; o.frequency.value = f; o.connect(g); g.connect(actx.destination); g.gain.setValueAtTime(.0001, t0 + dt); g.gain.exponentialRampToValueAtTime(.14, t0 + dt + .02); g.gain.exponentialRampToValueAtTime(.0001, t0 + dt + .28); o.start(t0 + dt); o.stop(t0 + dt + .3); });
+    } catch (e) { }
+  }
+  const SAY = { ovaya: ["¡Uy! ¿Qué será eso?", "¡Me encanta explorar contigo!", "¡Mira, mira, una carabela!", "¿Sabías que soy el más curioso de Los Ayas?"], chupaya: ["¿Dónde estoy?", "Creo que me perdí… otra vez.", "¡Ahí estás! Ya me sentía perdido.", "¿Este camino lleva a Tenochtitlan?"], estaya: ["♪ La la la… ¿cómo seguía? ♪", "Tranquila, todo fluye.", "Te compuse una canción… pero la olvidé.", "♪ Colón, Colón, navegó al oeste ♪"] };
+  document.addEventListener("click", e => {
+    const mk = e.target.closest(".mk"); if (!mk) return;
+    const id = mk.dataset.char; const prev = (mk.className.match(/mood-(\w+)/) || [])[1] || "happy";
+    setMood(mk, "surprised"); beep(true); toast(`${CH[id].name}: ${SAY[id][Math.floor(Math.random() * SAY[id].length)]}`);
+    setTimeout(() => setMood(mk, prev === "sad" ? "happy" : prev), 800);
+  });
   function confetti() {
     const cv = $("#confetti"), ctx = cv.getContext("2d"); cv.width = innerWidth; cv.height = innerHeight;
     const cols = ["#F2603E", "#F2B134", "#3FA66B", "#4FB3C9", "#8E6BC7", "#fff"]; const ps = [];
@@ -183,7 +196,7 @@
     function head() { return `<div class="mhead"><button class="close" id="quit" aria-label="Salir">✕</button><div class="pbar"><b style="width:${(i / qs.length) * 100}%"></b></div><div class="hearts">${"❤".repeat(hearts)}${"♡".repeat(5 - hearts)}</div></div>`; }
     function next() { i++; if (i >= qs.length) return finish(); show(); }
     function finish() {
-      const r = cfg.onDone(errors); confetti(); beep(true);
+      const r = cfg.onDone(errors); confetti(); jingle("win");
       const st = r.stars;
       w.innerHTML = `<div class="result fade"><div class="chars">${monkey("ovaya", "party", 90)}${monkey(cfg.char === "ovaya" ? "chupaya" : cfg.char, "party", 110)}${monkey("estaya", "party", 90)}</div>
         <div class="eyebrow">${esc(cfg.topic || "")}</div><h2>${st === 3 ? "¡Misión perfecta!" : st === 2 ? "¡Misión cumplida!" : "¡Lo lograste!"}</h2>
@@ -202,7 +215,7 @@
       const done = ok => {
         stat(cfg.topic, ok); markWrong(key, q.q, cfg.camp ? cfg.camp.id : "", ok);
         if (!ok) { errors++; hearts = Math.max(0, hearts - 1); $(".hearts", w).textContent = "❤".repeat(hearts) + "♡".repeat(5 - hearts); $("#qc", w).classList.add("shake"); }
-        beep(ok); setMood($(".char .mk", w), ok ? "party" : "sad"); save();
+        if (ok) beep(true); else jingle("lose"); setMood($(".char .mk", w), ok ? "party" : "sad"); save();
       };
       ({ mc: qMC, fill: qMC, tf: qTF, order: qOrder, match: qMatch, classify: qClassify, write: qWrite })[q.t](qc, q, done, next);
     }

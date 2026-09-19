@@ -261,3 +261,5 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .map-monkey{position:absolute;pointer-events:none;z-index:2}
 .map-monkey .mk{filter:drop-shadow(0 4px 3px rgba(0,0,0,.3))}
 .liana{position:absolute;width:4px;background:linear-gradient(#5B7A3A,#3E5A26);border-radius:2px;pointer-events:none}
+.mk{cursor:pointer}
+.toast{max-width:min(92vw,520px);text-align:center;font-size:15px}
