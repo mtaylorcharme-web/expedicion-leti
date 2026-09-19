@@ -5,7 +5,8 @@
   const $ = (s, r) => (r || document).querySelector(s);
   const el = (tag, attrs, html) => { const e = document.createElement(tag); if (attrs) for (const k in attrs) { if (k === "class") e.className = attrs[k]; else if (k.startsWith("on")) e.addEventListener(k.slice(2), attrs[k]); else e.setAttribute(k, attrs[k]); } if (html != null) e.innerHTML = html; return e; };
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
-  const todayKey = () => new Date().toISOString().slice(0, 10);
+  const localKey = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  const todayKey = () => localKey(new Date());
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
   /* ── estado ── */
@@ -18,7 +19,7 @@
     const t = todayKey();
     if (S.streak.last !== t) {
       const y = new Date(); y.setDate(y.getDate() - 1);
-      S.streak.count = (S.streak.last === y.toISOString().slice(0, 10)) ? S.streak.count + 1 : 1;
+      S.streak.count = (S.streak.last === localKey(y)) ? S.streak.count + 1 : 1;
       S.streak.last = t;
       if (!S.days.includes(t)) S.days.push(t);
       save();
@@ -70,7 +71,7 @@
   const campUnlocked = c => c.n === 1 || campDone(C.camps[c.n - 2]) >= 1;
   const missionUnlocked = (c, i) => i === 0 || !!S.done[c.missions[i - 1].id];
   const totalMissions = C.camps.reduce((a, c) => a + c.missions.length, 0);
-  const doneMissions = () => Object.keys(S.done).length;
+  const doneMissions = () => C.camps.reduce((a, c) => a + campDone(c), 0);
   const level = () => Math.floor(S.xp / 250) + 1;
 
   /* ── navegación ── */
@@ -436,7 +437,7 @@
     const ST = [["first", "🧭", "Primera misión"], ...C.camps.map(c => [c.id, c.icon, c.name]), ["boss", "🏆", "Templo conquistado"], ["streak3", "🔥", "3 días seguidos"], ...C.camps.map(c => ["flash-" + c.id, "🃏", "Tarjetas " + c.n]), ...C.camps.map(c => ["liana-" + c.id, "🐒", "Lianas " + c.n]), ...C.camps.map(c => ["memo-" + c.id, "🎵", "Memorice " + c.n])];
     if (S.streak.count >= 3) stamp("streak3");
     const dn = ["L", "M", "X", "J", "V", "S", "D"]; const now = new Date(); const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay() + 6) % 7)); mon.setHours(0, 0, 0, 0);
-    const week = [...Array(7)].map((_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); const k = d.toISOString().slice(0, 10); return `<span class="${S.days.includes(k) ? "d" : ""} ${k === todayKey() ? "t" : ""}">${dn[i]}</span>`; }).join("");
+    const week = [...Array(7)].map((_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); const k = localKey(d); return `<span class="${S.days.includes(k) ? "d" : ""} ${k === todayKey() ? "t" : ""}">${dn[i]}</span>`; }).join("");
     const w = el("div");
     w.innerHTML = `<div class="card"><div class="row"><div class="avatar" style="width:72px;height:72px;font-size:30px;border-radius:24px">${esc(S.name[0] || "L")}</div><div><h2 style="font-size:26px;font-weight:600">${esc(S.name)}, exploradora nivel ${level()}</h2><div class="muted">${S.xp} XP · ${S.streak.count} día${S.streak.count === 1 ? "" : "s"} seguidos 🔥 · ${doneMissions()}/${totalMissions} misiones</div></div></div>
       <div class="bars" style="margin-top:10px"><div class="r"><span>Nivel ${level()}</span><div class="bar"><b style="width:${((S.xp % 250) / 250) * 100}%;background:var(--jungle)"></b></div><span class="n">${S.xp % 250}/250</span></div></div></div>
