@@ -1,7 +1,7 @@
 {
   "name": "Misión Aya",
   "short_name": "Misión Aya",
-  "description": "Ovaya, Chupaya y Estaya te acompañan a estudiar 5º básico.",
+  "description": "Los Ayas buscan la Ciudad Aya saltando de rama en rama por selvas de otros países y épocas.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

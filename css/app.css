@@ -429,3 +429,12 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .micdiag span{color:var(--ink-2);font-weight:700}
 .micdiag b{text-align:right}
 .micdiag b.mal{color:var(--bad)}
+
+/* ── Selva de ramas y lianas ── */
+.camp .name{display:block;line-height:1.15}
+.camp .name small{display:block;font-weight:700;font-size:10px;color:#5C6656;margin-top:1px;letter-spacing:.01em}
+.camp.locked .name small{color:#8A9184}
+.camp.boss .land{background:linear-gradient(180deg,#FFE9A8,#F2B134);box-shadow:0 7px 0 rgba(0,0,0,.14),0 0 26px rgba(242,177,52,.85)}
+.camp.boss .name{background:rgba(255,255,255,.96)}
+.camp.boss .name small{color:#8A6A12;font-weight:800}
+.hero-jungle p b{color:#FFE9A8}

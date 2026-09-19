@@ -91,13 +91,14 @@
   /* ── BIENVENIDA (primera vez) ── */
   function welcome(m) {
     const steps = [
-      { id: "ovaya", mood: "surprised", t: "¡Hola! Soy Ovaya, el más curioso de Los Ayas, y esta es mi misión: cruzar una selva llena de secretos de Historia. ¿Me acompañas?" },
-      { id: "chupaya", mood: "think", t: "Yo soy Chupaya… y ya me perdí. Si Ovaya y tú responden bien las preguntas, me van a encontrar en cada campamento." },
-      { id: "estaya", mood: "happy", t: "♪ Y yo soy Estaya ♪. Traigo tarjetas, canciones y juegos para que todo se te quede en la memoria." },
-      { id: "ovaya", mood: "party", t: "Cada campamento es un tema de tu prueba. Ganamos estrellas, sellos y XP juntos. ¿Empezamos la Misión Aya?" }
+      { id: "ovaya", mood: "surprised", t: "¡Hola! Somos Los Ayas. Venimos de muy lejos: nacimos en la Ciudad Aya, allá arriba en el Himalaya, entre las montañas más altas del mundo." },
+      { id: "chupaya", mood: "think", t: "Hasta que un día nuestra nave falló en pleno vuelo y caímos en una selva. Y no en cualquier selva: caímos en otra época. Yo me perdí primero, como siempre." },
+      { id: "estaya", mood: "think", t: "♪ La nave se rompió, el tiempo se enredó ♪. Ahora saltamos de rama en rama, y cada selva nos deja en otro país y en otro siglo." },
+      { id: "ovaya", mood: "think", t: "Para volver a casa necesitamos el mapa de regreso, y está partido en cinco fragmentos. Cada selva que logramos entender nos entrega uno." },
+      { id: "ovaya", mood: "party", t: "Con los cinco fragmentos veremos otra vez la Ciudad Aya entre las montañas. ¿Nos ayudas a llegar a casa?" }
     ];
     let i = 0; const w = el("div", { class: "welcome" }); m.appendChild(w);
-    const draw = () => { const st = steps[i]; w.innerHTML = `<div class="wl-stage">${i === steps.length - 1 ? `<img class="trio" src="assets/chars/trio.png" alt="Los Ayas">` : monkey(st.id, st.mood, 150)}</div><div class="bubble wl"><span class="who">${CH[st.id].name}</span><span class="tw">${st.t}</span>${SAYBTN}</div><div class="actions" style="justify-content:center"><button class="btn ${i === steps.length - 1 ? "" : "g"}" id="nx">${i === steps.length - 1 ? "¡Sí, vamos! ⛵" : "Siguiente →"}</button></div><div class="dots">${steps.map((_, k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</div>`; typewrite($(".tw", w)); beep(true); $("#nx", w).addEventListener("click", () => { i++; if (i >= steps.length) { S.welcomed = true; save(); confetti(); jingle("win"); go("home"); } else draw(); }); };
+    const draw = () => { const st = steps[i]; w.innerHTML = `<div class="wl-stage">${i === steps.length - 1 ? `<img class="trio" src="assets/chars/trio.png" alt="Los Ayas">` : monkey(st.id, st.mood, 150)}</div><div class="bubble wl"><span class="who">${CH[st.id].name}</span><span class="tw">${st.t}</span>${SAYBTN}</div><div class="actions" style="justify-content:center"><button class="btn ${i === steps.length - 1 ? "" : "g"}" id="nx">${i === steps.length - 1 ? "¡Vamos a casa! 🏔️" : "Siguiente →"}</button></div><div class="dots">${steps.map((_, k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</div>`; typewrite($(".tw", w)); beep(true); $("#nx", w).addEventListener("click", () => { i++; if (i >= steps.length) { S.welcomed = true; save(); confetti(); jingle("win"); go("home"); } else draw(); }); };
     draw();
   }
 
@@ -109,56 +110,74 @@
     const cur = C.camps.find(c => campUnlocked(c) && campDone(c) < c.missions.length) || C.camps[C.camps.length - 1];
     const guide = cur.guide;
     const allDone = C.camps.every(c => campDone(c) === c.missions.length);
-    const positions = [[20, 11], [64, 24], [24, 40], [68, 55], [26, 71], [68, 86]];
-    const mapH = 820;
-    const pts = positions.map(([x, y]) => [x * 6, y * mapH / 100]);
-    const river = (() => { let d = `M -30 ${pts[0][1] - 30} L ${pts[0][0]} ${pts[0][1]}`; for (let k = 1; k < pts.length; k++) { const [x0, y0] = pts[k - 1], [x1, y1] = pts[k]; const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2; d += ` Q ${x0} ${cy} ${cx} ${cy} T ${x1} ${y1}`; } return d + ` L 640 ${pts[5][1] + 60}`; })();
+    const positions = [[22, 10], [66, 24], [24, 39], [68, 54], [26, 69], [56, 88]];
+    const mapH = 900;
+    const P = positions.map(([x, y]) => [x * 6, y * mapH / 100]);
+    const fragmentos = C.camps.filter(c => campDone(c) === c.missions.length).length;
     const wrap = el("div", { class: "home" });
     const map = el("div", { class: "mapwrap" });
+    const ramas = P.map(([x, y], i) => {
+      const izq = positions[i][0] < 50; const by = y + 48;
+      const hojas = [...Array(4)].map((_, k) => { const hx = izq ? 60 + k * ((x - 70) / 4) : x + 30 + k * ((540 - x) / 4); return `<ellipse cx="${hx}" cy="${by - 7}" rx="16" ry="8" fill="#3FA66B" transform="rotate(${izq ? -18 : 18} ${hx} ${by - 7})"/>`; }).join("");
+      return izq ? `<rect x="20" y="${by}" width="${x - 8}" height="22" rx="11" fill="#3B2A1C"/><rect x="20" y="${by + 2}" width="${x - 8}" height="8" rx="4" fill="#6B4C33"/>${hojas}`
+                 : `<rect x="${x + 8}" y="${by}" width="${572 - x}" height="22" rx="11" fill="#3B2A1C"/><rect x="${x + 8}" y="${by + 2}" width="${572 - x}" height="8" rx="4" fill="#6B4C33"/>${hojas}`;
+    }).join("");
+    const lianas = P.slice(0, -1).map(([x0, y0], i) => {
+      const [x1, y1] = P[i + 1];
+      const d = `M ${x0} ${y0 + 56} C ${x0} ${y0 + 190}, ${x1} ${y1 - 190}, ${x1} ${y1 - 44}`;
+      return `<path d="${d}" stroke="#2E4A1C" stroke-width="12" fill="none" stroke-linecap="round"/><path d="${d}" stroke="#6B9E43" stroke-width="6" fill="none" stroke-linecap="round"/><path class="flow" d="${d}" stroke="#DFF3BC" stroke-width="4" fill="none" stroke-dasharray="3 18" stroke-linecap="round" opacity=".9"/>`;
+    }).join("");
     map.innerHTML = `<svg class="jungle" viewBox="0 0 600 ${mapH}" aria-hidden="true">
-      <defs><linearGradient id="g1" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#B7DE99"/><stop offset="1" stop-color="#7DBB6E"/></linearGradient></defs>
-      <rect width="600" height="${mapH}" fill="url(#g1)"/>
-      ${[...Array(30)].map((_, i) => { const x = (i * 137) % 600, y = (i * 211) % mapH, r = 26 + (i % 4) * 10; return `<circle cx="${x}" cy="${y}" r="${r}" fill="${i % 2 ? "#5FA95F" : "#4E9A52"}" opacity=".5"/>`; }).join("")}
-      ${[...Array(12)].map((_, i) => { const x = (i * 97 + 40) % 600, y = (i * 173 + 90) % mapH; return `<text x="${x}" y="${y}" font-size="30" opacity=".85">${["🌴", "🌿", "🦜", "🌺", "🐒", "🌳"][i % 6]}</text>`; }).join("")}
-      <path d="${river}" stroke="#3A97AD" stroke-width="34" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>
-      <path d="${river}" stroke="#4FB3C9" stroke-width="26" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      <path class="flow" d="${river}" stroke="#fff" stroke-width="3" fill="none" stroke-dasharray="8 12" opacity=".75" stroke-linecap="round"/>
+      <defs>
+        <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CBE8B4"/><stop offset=".55" stop-color="#8CC47A"/><stop offset="1" stop-color="#6FB56A"/></linearGradient>
+        <linearGradient id="nieve" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#BBD4E8"/></linearGradient>
+        <linearGradient id="ciudad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE9A8"/><stop offset="1" stop-color="#F2B134"/></linearGradient>
+      </defs>
+      <rect width="600" height="${mapH}" fill="url(#cielo)"/>
+      ${[...Array(34)].map((_, i) => { const x = (i * 137) % 600, y = (i * 211) % (mapH * .82), r = 28 + (i % 4) * 12; return `<circle cx="${x}" cy="${y}" r="${r}" fill="${i % 3 ? "#5FA95F" : "#4E9A52"}" opacity=".32"/>`; }).join("")}
+      <rect x="2" y="-20" width="84" height="${mapH * .82}" rx="26" fill="#3B2A1C"/><rect x="14" y="-20" width="30" height="${mapH * .82}" rx="15" fill="#6B4C33"/><rect x="58" y="-20" width="12" height="${mapH * .82}" rx="6" fill="#2E2116" opacity=".7"/>
+      <rect x="514" y="-20" width="84" height="${mapH * .82}" rx="26" fill="#3B2A1C"/><rect x="556" y="-20" width="30" height="${mapH * .82}" rx="15" fill="#6B4C33"/><rect x="530" y="-20" width="12" height="${mapH * .82}" rx="6" fill="#2E2116" opacity=".7"/>
+      ${ramas}
+      ${lianas}
+      ${[...Array(14)].map((_, i) => { const x = (i * 97 + 46) % 600, y = (i * 173 + 70) % (mapH * .8); return `<text x="${x}" y="${y}" font-size="30" opacity=".8">${["🌴", "🌿", "🦜", "🌺", "🍃", "🌳"][i % 6]}</text>`; }).join("")}
+      <path d="M -20 ${mapH * .86} L 90 ${mapH * .74} L 190 ${mapH * .84} L 300 ${mapH * .66} L 420 ${mapH * .82} L 520 ${mapH * .72} L 620 ${mapH * .86} L 620 ${mapH} L -20 ${mapH} Z" fill="url(#nieve)" opacity=".97"/>
+      <path d="M 300 ${mapH * .66} L 268 ${mapH * .72} L 332 ${mapH * .72} Z" fill="#fff"/>
+      <circle cx="${P[5][0]}" cy="${P[5][1]}" r="86" fill="url(#ciudad)" opacity=".35"/>
+      <text x="300" y="${mapH * .805}" font-size="22" font-weight="800" text-anchor="middle" fill="#5B7089" font-family="Nunito,sans-serif">Cordillera del Himalaya</text>
     </svg>`;
     C.camps.forEach((c, i) => {
       const [x, y] = positions[i]; const un = campUnlocked(c); const full = campDone(c) === c.missions.length;
       const node = el("button", { class: `camp ${un ? "" : "locked"} ${c === cur && !allDone ? "here" : ""}`, style: `left:${x}%;top:${y}%`, "aria-label": c.name });
-      node.innerHTML = `<div class="land" style="background:${c.color}"><span class="n">${c.n}</span>${un ? c.icon : "🔒"}${campDone(c) ? `<span class="stars">${"★".repeat(Math.min(3, Math.round(campStars(c) / c.missions.length)))}${full ? " ✓" : ""}</span>` : ""}</div><span class="name">${c.name}</span>`;
-      node.addEventListener("click", () => { if (!un) return toast("Completa una misión del campamento anterior para abrir este."); const lm = $(".leti-marker", map); if (lm) { lm.style.left = `calc(${x}% + 58px)`; lm.style.top = `calc(${y}% + 8px)`; lm.classList.add("walking"); } beep(true); setTimeout(() => go("camp", { camp: c.id }), 650); });
+      node.innerHTML = `<div class="land" style="background:${c.color}"><span class="n">${c.n}</span>${un ? c.icon : "🔒"}${campDone(c) ? `<span class="stars">${"★".repeat(Math.min(3, Math.round(campStars(c) / c.missions.length)))}${full ? " ✓" : ""}</span>` : ""}</div><span class="name">${esc(c.name)}<small>${un ? esc(c.lugar) + " · " + esc(c.epoca) : "selva desconocida"}</small></span>`;
+      node.addEventListener("click", () => { if (!un) return toast("Salta primero por la selva anterior para llegar a esta rama."); const lm = $(".leti-marker", map); if (lm) { lm.style.left = `calc(${x}% + 58px)`; lm.style.top = `calc(${y}% + 8px)`; lm.classList.add("walking"); } beep(true); setTimeout(() => go("camp", { camp: c.id }), 650); });
       map.appendChild(node);
     });
     const [bx, by] = positions[5]; const bossOpen = C.camps.filter(c => campDone(c) >= 1).length >= 3;
     const boss = el("button", { class: `camp boss ${bossOpen ? "" : "locked"}`, style: `left:${bx}%;top:${by}%` });
-    boss.innerHTML = `<div class="land">${bossOpen ? "🏆" : "🔒"}${S.boss ? `<span class="stars">${S.boss.pct}%</span>` : ""}</div><span class="name">Templo de la Prueba</span>`;
-    boss.addEventListener("click", () => { if (!bossOpen) return toast("Abre al menos 3 campamentos para entrar al Templo de la Prueba."); const lm = $(".leti-marker", map); if (lm) { lm.style.left = `calc(${bx}% + 58px)`; lm.style.top = `calc(${by}% + 8px)`; lm.classList.add("walking"); } beep(true); setTimeout(() => go("boss"), 650); });
+    boss.innerHTML = `<div class="land">${bossOpen ? "🏔️" : "🔒"}${S.boss ? `<span class="stars">${S.boss.pct}%</span>` : ""}</div><span class="name">Ciudad Aya<small>${fragmentos}/5 fragmentos del mapa</small></span>`;
+    boss.addEventListener("click", () => { if (!bossOpen) return toast("Los Ayas necesitan al menos 3 selvas recorridas para ver el camino a casa."); const lm = $(".leti-marker", map); if (lm) { lm.style.left = `calc(${bx}% + 58px)`; lm.style.top = `calc(${by}% + 8px)`; lm.classList.add("walking"); } beep(true); setTimeout(() => go("boss"), 650); });
     map.appendChild(boss);
     const idx = allDone ? 5 : C.camps.indexOf(cur); const [lx, ly] = positions[idx];
     map.appendChild(el("div", { class: "leti-marker", style: `left:calc(${lx}% + 58px);top:calc(${ly}% + 8px)` }, `<img src="assets/chars/ovaya.png" alt="Ovaya">`));
     map.insertAdjacentHTML("beforeend", `<img class="map-tree" src="assets/chars/trio-arbol.png" alt="" aria-hidden="true">`);
-    // animales que cruzan la selva
-    map.insertAdjacentHTML("beforeend", `<div class="critter fly" style="top:18%;animation-duration:14s">🦜</div><div class="critter fly" style="top:52%;animation-duration:22s;animation-delay:-9s;font-size:22px">🦋</div><div class="critter walk" style="top:66%;animation-duration:30s;animation-delay:-12s">🐢</div>`);
-    // monos columpiándose en lianas del mapa
-    [["ovaya", 42, 7, "swing"], ["chupaya", 89, 46, "swing"], ["estaya", 9, 88, "hang"]].forEach(([id, x, y, md]) => {
+    map.insertAdjacentHTML("beforeend", `<div class="critter fly" style="top:14%;animation-duration:14s">🦜</div><div class="critter fly" style="top:46%;animation-duration:22s;animation-delay:-9s;font-size:22px">🦋</div><div class="critter walk" style="top:62%;animation-duration:30s;animation-delay:-12s">🐢</div>`);
+    [["chupaya", 86, 40, "swing"], ["estaya", 10, 74, "hang"]].forEach(([id, x, y, md]) => {
       if (md === "swing") { const l = el("div", { class: "liana", style: `left:calc(${x}% + 25px);top:0;height:${y}%` }); map.appendChild(l); }
       const mm = el("div", { class: "map-monkey", style: `left:${x}%;top:${y}%` }, monkey(id, md, 52)); map.appendChild(mm);
     });
-    const hero = el("div", { class: "hero-jungle" }, `<div class="txt"><div class="eyebrow" style="color:#CFEFD8">Los Ayas te acompañan</div><h1>Misión Aya</h1><p>${esc(C.unit.subject)} · ${esc(C.unit.title)} · ${C.unit.test.label.split("·")[1] ? "prueba el" + C.unit.test.label.split("·")[1] : ""}</p></div>`);
+    const hero = el("div", { class: "hero-jungle" }, `<div class="txt"><div class="eyebrow" style="color:#CFEFD8">De rama en rama, de vuelta a casa</div><h1>Misión Aya</h1><p>Los Ayas buscan la Ciudad Aya, en el Himalaya. Llevan <b>${fragmentos} de 5</b> fragmentos del mapa.</p></div></div>`);
     const shell = el("div"); shell.appendChild(hero); shell.appendChild(wrap); m.appendChild(shell);
     wrap.appendChild(map);
 
     const side = el("div", { style: "display:grid;gap:14px" });
     const nextM = cur.missions.find(x => !S.done[x.id]);
-    const msg = allDone ? `¡Recorrimos toda la selva! Ahora toca el Templo de la Prueba y repasar tus errores. ¡Tú puedes!` : campDone(cur) === 0 && !S.done[cur.id + "-notes"] ? cur.intro : nextM ? `Siguiente misión en ${cur.name}: «${nextM.title}». ${nextM.story}` : cur.intro;
-    side.innerHTML = `<div class="card"><div class="today"><div class="char">${monkey(guide, allDone ? "party" : "happy", 96)}</div><div class="bubble"><span class="who">${CH[guide].name}</span><span class="tw">${esc(msg)}</span>${SAYBTN}</div></div><div class="actions" style="justify-content:flex-start"><button class="btn" id="goNext">${allDone ? "Ir al Templo 🏆" : "¡Vamos! ⛵"}</button><button class="btn ghost" data-go="review">Repaso 🎯</button></div></div>`;
+    const msg = allDone ? `¡Tenemos los cinco fragmentos del mapa! Ya se ve la Ciudad Aya entre las montañas. Solo falta el último salto.` : campDone(cur) === 0 && !S.done[cur.id + "-notes"] ? cur.intro : nextM ? `Estamos en ${cur.name}, ${cur.lugar}, ${cur.epoca}. Siguiente salto: «${nextM.title}». ${nextM.story}` : cur.intro;
+    side.innerHTML = `<div class="card"><div class="today"><div class="char">${monkey(guide, allDone ? "party" : "happy", 96)}</div><div class="bubble"><span class="who">${CH[guide].name}</span><span class="tw">${esc(msg)}</span>${SAYBTN}</div></div><div class="actions" style="justify-content:flex-start"><button class="btn" id="goNext">${allDone ? "Ir a la Ciudad Aya 🏔️" : "¡A saltar! 🐒"}</button><button class="btn ghost" data-go="review">Repaso 🎯</button></div></div>`;
     $("#goNext", side).addEventListener("click", () => allDone ? go("boss") : go("camp", { camp: cur.id }));
 
     const dailyDone = S.daily && S.daily.date === todayKey();
     const dc = el("div", { class: "card daily" + (dailyDone ? " done" : "") });
-    dc.innerHTML = `<div class="row" style="justify-content:space-between;gap:10px"><div><div class="eyebrow">Reto del día</div><b style="font-family:Fredoka;font-size:18px;font-weight:600">${dailyDone ? "¡Reto de hoy superado! ✅" : "5 preguntas sorpresa · +30 XP"}</b><div class="muted small">${dailyDone ? `Sacaste ${S.daily.score}/5. Mañana hay uno nuevo.` : "De los campamentos que ya abriste. ¡Mantén tu racha!"}</div></div>${dailyDone ? "" : `<button class="btn y sm" id="goDaily">¡Jugar! 🎲</button>`}</div>`;
+    dc.innerHTML = `<div class="row" style="justify-content:space-between;gap:10px"><div><div class="eyebrow">Reto del día</div><b style="font-family:Fredoka;font-size:18px;font-weight:600">${dailyDone ? "¡Reto de hoy superado! ✅" : "5 preguntas sorpresa · +30 XP"}</b><div class="muted small">${dailyDone ? `Sacaste ${S.daily.score}/5. Mañana hay uno nuevo.` : "De las selvas que ya recorriste. ¡Mantén tu racha!"}</div></div>${dailyDone ? "" : `<button class="btn y sm" id="goDaily">¡Jugar! 🎲</button>`}</div>`;
     if (!dailyDone) $("#goDaily", dc).addEventListener("click", () => go("daily"));
     side.appendChild(dc);
     const fx = FUENTES.filter(f => campUnlocked(C.camps.find(c => c.id === f.camp))); const fxh = fx.filter(fuenteHecha).length;
@@ -173,7 +192,7 @@
     const plan = el("div", { class: "card" }); const t0 = new Date(); t0.setHours(0, 0, 0, 0);
     const start = new Date(C.unit.test.date + "T00:00:00"); start.setDate(start.getDate() - C.plan.length);
     const dn = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
-    plan.innerHTML = `<h3 style="font-size:19px;font-weight:600">Plan de expedición hasta la prueba</h3><div class="plan" style="margin-top:10px">${C.plan.map(p => { const dt = new Date(start); dt.setDate(dt.getDate() + p.day); const isT = dt.getTime() === t0.getTime(), past = dt < t0; const camps = p.camps.map(id => C.camps.find(c => c.id === id)); const ok = camps.every(c => campDone(c) === c.missions.length); return `<div class="d ${isT ? "today" : past ? "past" : ""}"><div class="dn">${dn[dt.getDay()]}<b>${dt.getDate()}</b></div><div><b>${esc(p.label)}</b><div class="muted small">${camps.map(c => c.icon + " " + esc(c.name)).join(", ")} · ${esc(p.extra)}</div></div><div class="st">${ok ? "✅" : isT ? "👉" : ""}</div></div>`; }).join("")}</div>`;
+    plan.innerHTML = `<h3 style="font-size:19px;font-weight:600">Ruta de regreso hasta la prueba</h3><div class="plan" style="margin-top:10px">${C.plan.map(p => { const dt = new Date(start); dt.setDate(dt.getDate() + p.day); const isT = dt.getTime() === t0.getTime(), past = dt < t0; const camps = p.camps.map(id => C.camps.find(c => c.id === id)); const ok = camps.every(c => campDone(c) === c.missions.length); return `<div class="d ${isT ? "today" : past ? "past" : ""}"><div class="dn">${dn[dt.getDay()]}<b>${dt.getDate()}</b></div><div><b>${esc(p.label)}</b><div class="muted small">${camps.map(c => c.icon + " " + esc(c.name)).join(", ")} · ${esc(p.extra)}</div></div><div class="st">${ok ? "✅" : isT ? "👉" : ""}</div></div>`; }).join("")}</div>`;
     side.appendChild(plan);
     wrap.appendChild(side);
   }
@@ -183,10 +202,10 @@
     const c = C.camps.find(x => x.id === ctx.camp); const notesDone = !!S.done[c.id + "-notes"];
     const h = el("div");
     h.innerHTML = `<button class="btn ghost sm" data-go="home">← Selva</button>
-      <div class="camphead" style="margin-top:12px"><div class="icon" style="background:${c.color}">${c.icon}</div><div><div class="eyebrow">Campamento ${c.n} · ${esc(c.topic)}</div><h2 style="font-size:26px;font-weight:600">${esc(c.name)}</h2></div></div>
+      <div class="camphead" style="margin-top:12px"><div class="icon" style="background:${c.color}">${c.icon}</div><div><div class="eyebrow">Selva ${c.n} de 5 · ${esc(c.lugar)} · ${esc(c.epoca)}</div><h2 style="font-size:26px;font-weight:600">${esc(c.name)}</h2><div class="muted small">${esc(c.topic)}</div></div></div>
       <div class="today card"><div class="char">${monkey(c.guide, "happy", 84)}</div><div class="bubble"><span class="who">${CH[c.guide].name}</span><span class="tw">${esc(c.intro)}</span>${SAYBTN}</div></div>`;
     const steps = el("div", { class: "steps" });
-    const s0 = el("button", { class: `step ${notesDone ? "done" : ""}` }); s0.innerHTML = `<div class="ic">📖</div><div><b>Bitácora del campamento</b><span class="sub">${c.notes.length} páginas para leer antes de las misiones · 5 min</span></div><div class="right">${notesDone ? "✅" : "→"}</div>`;
+    const s0 = el("button", { class: `step ${notesDone ? "done" : ""}` }); s0.innerHTML = `<div class="ic">📖</div><div><b>Bitácora de esta selva</b><span class="sub">${c.notes.length} páginas sobre ${esc(c.lugar)}, ${esc(c.epoca)} · léelas antes de saltar · 5 min</span></div><div class="right">${notesDone ? "✅" : "→"}</div>`;
     s0.addEventListener("click", () => go("notes", { camp: c.id })); steps.appendChild(s0);
     c.missions.forEach((ms, i) => {
       const un = missionUnlocked(c, i) && (notesDone || i > 0 || true); const dn = S.done[ms.id];
@@ -201,9 +220,9 @@
       se.addEventListener("click", () => go("ensenar", { camp: c.id })); steps.appendChild(se); }
     const sf = el("button", { class: "step" }); sf.innerHTML = `<div class="ic">🃏</div><div><b>Tarjetas de memoria</b><span class="sub">${c.flashcards.length} tarjetas para repasar rápido · ideal antes de dormir</span></div><div class="right">→</div>`;
     sf.addEventListener("click", () => go("flash", { camp: c.id })); steps.appendChild(sf);
-    const sg = el("button", { class: "step" }); sg.innerHTML = `<div class="ic">🐒</div><div><b>Minijuego: Salto de lianas</b><span class="sub">Verdadero o falso contra el reloj · ayuda a Chupaya a cruzar la selva · 2 min</span></div><div class="right">${S.games && S.games["liana-" + c.id] ? "🏆 " + S.games["liana-" + c.id] : "→"}</div>`;
+    const sg = el("button", { class: "step" }); sg.innerHTML = `<div class="ic">🐒</div><div><b>Salto de lianas</b><span class="sub">Verdadero o falso contra el reloj · cruza esta selva con Chupaya · 2 min</span></div><div class="right">${S.games && S.games["liana-" + c.id] ? "🏆 " + S.games["liana-" + c.id] : "→"}</div>`;
     sg.addEventListener("click", () => go("game", { camp: c.id })); steps.appendChild(sg);
-    const sm = el("button", { class: "step" }); sm.innerHTML = `<div class="ic">🎵</div><div><b>Minijuego: Memorice de Los Ayas</b><span class="sub">Encuentra las parejas concepto y definición con Estaya · 3 min</span></div><div class="right">${S.games && S.games["memo-" + c.id] ? "🏆 " + S.games["memo-" + c.id] + " mov." : "→"}</div>`;
+    const sm = el("button", { class: "step" }); sm.innerHTML = `<div class="ic">🎵</div><div><b>Piezas de la nave</b><span class="sub">Empareja concepto y definición con Estaya y recupera piezas · 3 min</span></div><div class="right">${S.games && S.games["memo-" + c.id] ? "🏆 " + S.games["memo-" + c.id] + " mov." : "→"}</div>`;
     sm.addEventListener("click", () => go("memo", { camp: c.id })); steps.appendChild(sm);
     const fxc = FUENTES.filter(f => f.camp === c.id);
     if (fxc.length) { const sfx = el("button", { class: "step" }); const hh = fxc.filter(fuenteHecha).length;
@@ -255,7 +274,7 @@
       const st = stars(errors); const prev = S.done[ms.id]; const first = !prev;
       S.done[ms.id] = { stars: Math.max(st, prev ? prev.stars : 0), errors };
       const xp = first ? 40 + st * 10 : 15 + st * 5; addXP(xp);
-      if (campDone(c) === c.missions.length) stamp(c.id);
+      if (campDone(c) === c.missions.length) { stamp(c.id); setTimeout(() => toast("🧭 ¡Fragmento del mapa conseguido! " + C.camps.filter(x => campDone(x) === x.missions.length).length + " de 5"), 1400); }
       if (doneMissions() === 1) stamp("first");
       save();
       return { xp, stars: st, back: () => go("camp", { camp: c.id }) };
@@ -662,7 +681,7 @@
         ${barra()}
         <div class="stars" aria-label="${estrellas} estrellas">${starStr(estrellas)}</div><div class="xp">+${xp} XP</div>
         <div class="bubble wl" style="text-align:left;margin-top:14px"><span class="who">Chupaya</span>${esc(pct >= 65 ? L.final : "Creo que me falta un poquito… ¿me lo explicas otra vez?")}</div>
-        <div class="actions" style="justify-content:center"><button class="btn ghost" id="otra">Explicárselo de nuevo</button><button class="btn g" id="volver">Volver al campamento</button></div></div>`;
+        <div class="actions" style="justify-content:center"><button class="btn ghost" id="otra">Explicárselo de nuevo</button><button class="btn g" id="volver">Volver a la selva</button></div></div>`;
       $("#otra", w).addEventListener("click", () => go("ensenar", { camp: c.id }));
       $("#volver", w).addEventListener("click", () => go("camp", { camp: c.id }));
     }
@@ -837,7 +856,7 @@
   /* ── SIMULACRO (jefe) ── */
   function boss(m) {
     const intro = el("div", { class: "mission" });
-    intro.innerHTML = `<button class="btn ghost sm" data-go="home">← Selva</button><div class="result"><div style="font-size:64px">🏆</div><h2>Templo de la Prueba</h2><p class="muted">Un simulacro de 20 preguntas mezcladas de los cinco campamentos, igual que la prueba del jueves. Sin ayuda de la bitácora. Al final verás qué temas repasar.</p>${S.boss ? `<p><b>Tu mejor resultado:</b> ${S.boss.pct}% ${S.boss.pct >= 80 ? "🏅" : ""}</p>` : ""}${S.bossLast ? `<div class="card bars" style="text-align:left;margin-bottom:12px"><div class="eyebrow">Último simulacro · ${S.bossLast.pct}%</div>${C.camps.map(c => { const t = S.bossLast.perTopic[c.topic]; const p = t ? Math.round(t.ok / t.n * 100) : null; return `<div class="r"><span>${c.icon} ${esc(c.topic)}</span><div class="bar"><b style="width:${p || 0}%;background:${p == null ? "#ccc" : p >= 75 ? "var(--ok)" : p >= 50 ? "var(--gold)" : "var(--coral)"}"></b></div><span class="n">${p == null ? "—" : p + "%"}</span></div>`; }).join("")}${(() => { const weak = C.camps.filter(c => { const t = S.bossLast.perTopic[c.topic]; return t && t.ok / t.n < .75; }); return weak.length ? `<div class="alert" style="margin-top:10px"><b>Consejo de Ovaya:</b> repasa ${weak.map(c => `<button class="btn ghost sm" data-camp="${c.id}" style="margin:3px 4px 0 0">${c.icon} ${esc(c.name)}</button>`).join("")}</div>` : `<div class="alert" style="margin-top:10px;background:var(--ok-bg);border-color:var(--ok)"><b>¡Todos los temas sobre 75%!</b> Estás lista para la prueba.</div>`; })()}</div>` : ""}<div class="today card" style="text-align:left"><div class="char">${monkey("ovaya", "surprised", 84)}</div><div class="bubble"><span class="who">Ovaya</span>¡Este es el gran desafío! Respira hondo. Si sacamos 80% o más, ganamos el sello del Templo.</div></div><div class="actions" style="justify-content:center"><button class="btn" id="start">¡Empezar simulacro!</button></div></div>`;
+    intro.innerHTML = `<button class="btn ghost sm" data-go="home">← Selva</button><div class="result"><div style="font-size:64px">🏔️</div><h2>Ciudad Aya</h2><p class="muted">El último salto. Veinte preguntas de las cinco selvas, igual que la prueba del jueves y sin ayuda de la bitácora. Si Los Ayas recuerdan todo lo que vivieron, el mapa los lleva a casa. Al final verás qué te conviene repasar.</p>${S.boss ? `<p><b>Tu mejor resultado:</b> ${S.boss.pct}% ${S.boss.pct >= 80 ? "🏅" : ""}</p>` : ""}${S.bossLast ? `<div class="card bars" style="text-align:left;margin-bottom:12px"><div class="eyebrow">Último simulacro · ${S.bossLast.pct}%</div>${C.camps.map(c => { const t = S.bossLast.perTopic[c.topic]; const p = t ? Math.round(t.ok / t.n * 100) : null; return `<div class="r"><span>${c.icon} ${esc(c.topic)}</span><div class="bar"><b style="width:${p || 0}%;background:${p == null ? "#ccc" : p >= 75 ? "var(--ok)" : p >= 50 ? "var(--gold)" : "var(--coral)"}"></b></div><span class="n">${p == null ? "—" : p + "%"}</span></div>`; }).join("")}${(() => { const weak = C.camps.filter(c => { const t = S.bossLast.perTopic[c.topic]; return t && t.ok / t.n < .75; }); return weak.length ? `<div class="alert" style="margin-top:10px"><b>Consejo de Ovaya:</b> repasa ${weak.map(c => `<button class="btn ghost sm" data-camp="${c.id}" style="margin:3px 4px 0 0">${c.icon} ${esc(c.name)}</button>`).join("")}</div>` : `<div class="alert" style="margin-top:10px;background:var(--ok-bg);border-color:var(--ok)"><b>¡Todos los temas sobre 75%!</b> Estás lista para la prueba.</div>`; })()}</div>` : ""}<div class="today card" style="text-align:left"><div class="char">${monkey("ovaya", "surprised", 84)}</div><div class="bubble"><span class="who">Ovaya</span>Este es el salto más largo de todos, y va sin red. Respira hondo: con 80% o más, el mapa nos abre el camino a la Ciudad Aya.</div></div><div class="actions" style="justify-content:center"><button class="btn" id="start">¡Saltar a casa! 🏔️</button></div></div>`;
     m.appendChild(intro);
     intro.querySelectorAll("[data-camp]").forEach(b => b.addEventListener("click", () => go("camp", { camp: b.dataset.camp })));
     $("#start", intro).addEventListener("click", () => {
@@ -845,7 +864,7 @@
       let pool = []; C.camps.forEach(c => c.missions.forEach(ms => ms.questions.forEach((q, i) => { if (q.t !== "write") pool.push({ q, key: `${ms.id}:${i}`, topic: c.topic, camp: c }); })));
       const per = {}; C.camps.forEach(c => per[c.id] = shuffle(pool.filter(p => p.camp === c)).slice(0, 4)); const qs = shuffle([].concat(...Object.values(per)));
       const topicErr = {};
-      runQuiz(m, { title: "Simulacro de la prueba", char: "ovaya", story: "20 preguntas de toda la unidad. ¡Tú puedes!", topic: "Simulacro", camp: C.camps[0], questions: qs.map(p => ({ q: p.q, key: p.key, topic: p.topic, campId: p.camp.id })), quit: () => go("home"), onDone: (errors, perTopic) => {
+      runQuiz(m, { title: "El salto a la Ciudad Aya", char: "ovaya", story: "Veinte preguntas de las cinco selvas. Todo lo que aprendimos, en un solo salto. ¡Tú puedes!", topic: "Simulacro", camp: C.camps[0], questions: qs.map(p => ({ q: p.q, key: p.key, topic: p.topic, campId: p.camp.id })), quit: () => go("home"), onDone: (errors, perTopic) => {
           const pct = Math.round(((qs.length - errors) / qs.length) * 100);
           if (!S.boss || pct > S.boss.pct) S.boss = { pct, date: todayKey() };
           S.bossLast = { pct, perTopic, date: todayKey() };
@@ -872,7 +891,7 @@
 
   /* ── PASAPORTE ── */
   function passport(m) {
-    const ST = [["first", "🧭", "Primera misión"], ...C.camps.map(c => [c.id, c.icon, c.name]), ["boss", "🏆", "Templo conquistado"], ["streak3", "🔥", "3 días seguidos"], ["daily5", "🎲", "Reto del día perfecto"], ["maestra", "🧠", "Le enseñaste a Chupaya"], ["maestra-max", "🎓", "Maestra de Chupaya"], ["detective", "🔍", "Detective de fuentes"], ["detective-max", "📜", "Todas las fuentes"], ...C.camps.map(c => ["flash-" + c.id, "🃏", "Tarjetas " + c.n]), ...C.camps.map(c => ["liana-" + c.id, "🐒", "Lianas " + c.n]), ...C.camps.map(c => ["memo-" + c.id, "🎵", "Memorice " + c.n])];
+    const ST = [["first", "🧭", "Primera misión"], ...C.camps.map(c => [c.id, c.icon, c.name]), ["boss", "🏔️", "Llegaron a casa"], ["streak3", "🔥", "3 días seguidos"], ["daily5", "🎲", "Reto del día perfecto"], ["maestra", "🧠", "Le enseñaste a Chupaya"], ["maestra-max", "🎓", "Maestra de Chupaya"], ["detective", "🔍", "Detective de fuentes"], ["detective-max", "📜", "Todas las fuentes"], ...C.camps.map(c => ["flash-" + c.id, "🃏", "Tarjetas " + c.n]), ...C.camps.map(c => ["liana-" + c.id, "🐒", "Lianas " + c.n]), ...C.camps.map(c => ["memo-" + c.id, "🎵", "Memorice " + c.n])];
     if (S.streak.count >= 3) stamp("streak3");
     const dn = ["L", "M", "X", "J", "V", "S", "D"]; const now = new Date(); const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay() + 6) % 7)); mon.setHours(0, 0, 0, 0);
     const week = [...Array(7)].map((_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); const k = localKey(d); return `<span class="${S.days.includes(k) ? "d" : ""} ${k === todayKey() ? "t" : ""}">${dn[i]}</span>`; }).join("");
@@ -880,7 +899,7 @@
     w.innerHTML = `<div class="card"><div class="row"><div class="avatar" style="width:72px;height:72px;border-radius:24px"><img src="assets/chars/ovaya.png" alt="Ovaya"></div><div><h2 style="font-size:26px;font-weight:600">Ovaya, explorador nivel ${level()}</h2><div class="muted">${S.xp} XP · ${S.streak.count} día${S.streak.count === 1 ? "" : "s"} seguidos 🔥 · ${doneMissions()}/${totalMissions} misiones</div></div></div>
       <div class="bars" style="margin-top:10px"><div class="r"><span>Nivel ${level()}</span><div class="bar"><b style="width:${((S.xp % 250) / 250) * 100}%;background:var(--jungle)"></b></div><span class="n">${S.xp % 250}/250</span></div></div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:8px">Esta semana</h3><div class="week">${week}</div></div>
-      <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:10px">Sellos del pasaporte</h3><div class="stamps">${ST.map(([id, ic, t]) => `<div class="stamp ${S.stamps.includes(id) ? "got" : ""}"><div><span class="big">${S.stamps.includes(id) ? ic : "·"}</span>${esc(t)}</div></div>`).join("")}</div></div>
+      <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:10px">Sellos de cada selva</h3><div class="stamps">${ST.map(([id, ic, t]) => `<div class="stamp ${S.stamps.includes(id) ? "got" : ""}"><div><span class="big">${S.stamps.includes(id) ? ic : "·"}</span>${esc(t)}</div></div>`).join("")}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:4px">Álbum de Los Ayas</h3><p class="muted small" style="margin:0 0 10px">Cada campamento completo desbloquea una foto real de la tripulación.</p><div class="album">${[["c1", "Concierto en el piano"], ["c2", "Trepando el árbol"], ["c3", "La casa de Los Ayas"], ["c4", "Paseo en bote"], ["c5", "Colgados en la cocina"], ["boss", "Abrazo de campeones"]].map(([k, t]) => { const un = k === "boss" ? S.stamps.includes("boss") : S.stamps.includes(k); return `<figure class="photo ${un ? "" : "locked"}"><img src="assets/album/${k}.jpg" alt="${esc(t)}" loading="lazy"><figcaption>${un ? esc(t) : "🔒 " + (k === "boss" ? "Templo de la Prueba" : "Campamento " + k.slice(1))}</figcaption></figure>`; }).join("")}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:10px">Tu tripulación: Los Ayas</h3><img class="trio-wide" src="assets/chars/trio.png" alt="Ovaya, Chupaya y Estaya"><div class="crew">${Object.keys(CH).map(k => `<div class="c">${monkey(k, "happy", 90)}<b>${CH[k].name}</b><p>${esc(CH[k].desc)}</p></div>`).join("")}</div></div>`;
     m.appendChild(w);
