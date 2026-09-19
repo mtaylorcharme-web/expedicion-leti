@@ -97,7 +97,7 @@
       { id: "ovaya", mood: "party", t: "Cada campamento es un tema de tu prueba. Gana estrellas, sellos y XP. ¿Lista para zarpar?" }
     ];
     let i = 0; const w = el("div", { class: "welcome" }); m.appendChild(w);
-    const draw = () => { const st = steps[i]; w.innerHTML = `<div class="wl-stage">${monkey(st.id, st.mood, 150)}</div><div class="bubble wl"><span class="who">${CH[st.id].name}</span><span class="tw">${st.t}</span>${SAYBTN}</div><div class="actions" style="justify-content:center"><button class="btn ${i === steps.length - 1 ? "" : "g"}" id="nx">${i === steps.length - 1 ? "¡Sí, vamos! ⛵" : "Siguiente →"}</button></div><div class="dots">${steps.map((_, k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</div>`; typewrite($(".tw", w)); beep(true); $("#nx", w).addEventListener("click", () => { i++; if (i >= steps.length) { S.welcomed = true; save(); confetti(); jingle("win"); go("home"); } else draw(); }); };
+    const draw = () => { const st = steps[i]; w.innerHTML = `<div class="wl-stage">${i === steps.length - 1 ? `<img class="trio" src="assets/chars/trio.png" alt="Los Ayas">` : monkey(st.id, st.mood, 150)}</div><div class="bubble wl"><span class="who">${CH[st.id].name}</span><span class="tw">${st.t}</span>${SAYBTN}</div><div class="actions" style="justify-content:center"><button class="btn ${i === steps.length - 1 ? "" : "g"}" id="nx">${i === steps.length - 1 ? "¡Sí, vamos! ⛵" : "Siguiente →"}</button></div><div class="dots">${steps.map((_, k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</div>`; typewrite($(".tw", w)); beep(true); $("#nx", w).addEventListener("click", () => { i++; if (i >= steps.length) { S.welcomed = true; save(); confetti(); jingle("win"); go("home"); } else draw(); }); };
     draw();
   }
 
@@ -138,6 +138,7 @@
     map.appendChild(boss);
     const idx = allDone ? 5 : C.camps.indexOf(cur); const [lx, ly] = positions[idx];
     map.appendChild(el("div", { class: "leti-marker", style: `left:calc(${lx}% + 58px);top:calc(${ly}% + 8px)` }, esc(S.name[0] || "L")));
+    map.insertAdjacentHTML("beforeend", `<img class="map-tree" src="assets/chars/trio-arbol.png" alt="" aria-hidden="true">`);
     // animales que cruzan la selva
     map.insertAdjacentHTML("beforeend", `<div class="critter fly" style="top:18%;animation-duration:14s">🦜</div><div class="critter fly" style="top:52%;animation-duration:22s;animation-delay:-9s;font-size:22px">🦋</div><div class="critter walk" style="top:66%;animation-duration:30s;animation-delay:-12s">🐢</div>`);
     // monos columpiándose en lianas del mapa
@@ -456,7 +457,7 @@
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:8px">Esta semana</h3><div class="week">${week}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:10px">Sellos del pasaporte</h3><div class="stamps">${ST.map(([id, ic, t]) => `<div class="stamp ${S.stamps.includes(id) ? "got" : ""}"><div><span class="big">${S.stamps.includes(id) ? ic : "·"}</span>${esc(t)}</div></div>`).join("")}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:4px">Álbum de Los Ayas</h3><p class="muted small" style="margin:0 0 10px">Cada campamento completo desbloquea una foto real de la tripulación.</p><div class="album">${[["c1", "Concierto en el piano"], ["c2", "Trepando el árbol"], ["c3", "La casa de Los Ayas"], ["c4", "Paseo en bote"], ["c5", "Colgados en la cocina"], ["boss", "Abrazo de campeones"]].map(([k, t]) => { const un = k === "boss" ? S.stamps.includes("boss") : S.stamps.includes(k); return `<figure class="photo ${un ? "" : "locked"}"><img src="assets/album/${k}.jpg" alt="${esc(t)}" loading="lazy"><figcaption>${un ? esc(t) : "🔒 " + (k === "boss" ? "Templo de la Prueba" : "Campamento " + k.slice(1))}</figcaption></figure>`; }).join("")}</div></div>
-      <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:10px">Tu tripulación</h3><div class="crew">${Object.keys(CH).map(k => `<div class="c">${monkey(k, "happy", 90)}<b>${CH[k].name}</b><p>${esc(CH[k].desc)}</p></div>`).join("")}</div></div>`;
+      <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:10px">Tu tripulación: Los Ayas</h3><img class="trio-wide" src="assets/chars/trio.png" alt="Ovaya, Chupaya y Estaya"><div class="crew">${Object.keys(CH).map(k => `<div class="c">${monkey(k, "happy", 90)}<b>${CH[k].name}</b><p>${esc(CH[k].desc)}</p></div>`).join("")}</div></div>`;
     m.appendChild(w);
   }
 
