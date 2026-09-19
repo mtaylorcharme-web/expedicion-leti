@@ -238,7 +238,7 @@
     if (fxc.length) { const sfx = el("button", { class: "step" }); const hh = fxc.filter(fuenteHecha).length;
       sfx.innerHTML = `<div class="ic">🔍</div><div><b>Taller de fuentes</b><span class="sub">${fxc.length} fuente${fxc.length === 1 ? "" : "s"} real${fxc.length === 1 ? "" : "es"} de este tema · analízalas con la guía de tu clase</span></div><div class="right">${hh === fxc.length ? "✅" : hh ? hh + "/" + fxc.length : "→"}</div>`;
       sfx.addEventListener("click", () => go("fuentes")); steps.appendChild(sfx); }
-    const ss = el("button", { class: "step" }); ss.innerHTML = `<div class="ic">🎤</div><div><b>La canción de Estaya</b><span class="sub">Karaoke con los datos clave y "completa la letra" · 3 min</span></div><div class="right">${S.games && S.games["song-" + c.id] ? "🏆" : "→"}</div>`;
+    const ss = el("button", { class: "step" }); ss.innerHTML = `<div class="ic">🎤</div><div><b>La canción de Estaya</b><span class="sub">${esc((cancionDe(c.id) || {}).titulo || "Karaoke")} · escúchala, cántala y completa la letra · 3 min</span></div><div class="right">${S.games && S.games["song-" + c.id] ? "🏆" : "→"}</div>`;
     ss.addEventListener("click", () => go("song", { camp: c.id })); steps.appendChild(ss);
     h.appendChild(steps); m.appendChild(h);
   }
@@ -437,33 +437,119 @@
       $("#again", w).addEventListener("click", () => go("memo", { camp: c.id })); $("#back", w).addEventListener("click", () => go("camp", { camp: c.id })); }
   }
 
-  /* ── CANCIÓN DE ESTAYA (karaoke) ── */
-  let beatTimer = null;
-  function beat(on) { clearInterval(beatTimer); if (!on || !S.sound || !AC) return; try { actx = actx || new AC(); let n = 0; beatTimer = setInterval(() => { const t = actx.currentTime; const o = actx.createOscillator(), g = actx.createGain(); o.connect(g); g.connect(actx.destination); const strong = n % 4 === 0; o.frequency.setValueAtTime(strong ? 160 : 110, t); o.frequency.exponentialRampToValueAtTime(50, t + .12); g.gain.setValueAtTime(strong ? .25 : .12, t); g.gain.exponentialRampToValueAtTime(.001, t + .15); o.start(t); o.stop(t + .16); n++; }, 480); } catch (e) { } }
+  /* ── EL CANCIONERO DE ESTAYA ── */
+  const cancionDe = campId => (window.CANCIONES || []).find(x => x.camp === campId);
+  const mp3De = s => `assets/musica/${s.id}.mp3`;
+  const esEtiqueta = l => /^\[.*\]$/.test(l.trim());
+  function copiar(txt, msg) {
+    const ok = () => toast(msg || "Copiado");
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(ok).catch(() => fallback());
+    else fallback();
+    function fallback() { const ta = document.createElement("textarea"); ta.value = txt; ta.style.position = "fixed"; ta.style.opacity = "0"; document.body.appendChild(ta); ta.select(); try { document.execCommand("copy"); ok(); } catch (e) { toast("Copia el texto a mano."); } ta.remove(); }
+  }
+
   function song(m) {
     const c = C.camps.find(x => x.id === ctx.camp);
-    const short = t => { let x = t.split(/[.;]/)[0]; if (x.length > 70) x = x.slice(0, 68).replace(/\s\S*$/, "") + "…"; return x; };
-    const lines = shuffle(c.flashcards).slice(0, 6).map(([f, b]) => `${f}: ${short(b)}`);
-    const w = el("div", { class: "mission" }); m.appendChild(w); let li = 0, playing = false;
-    const draw = () => { w.innerHTML = `<div class="mhead"><button class="close" id="quit" aria-label="Salir">✕</button><div class="pbar"><b id="sp" style="width:0%;background:linear-gradient(90deg,#8E6BC7,#E9A0B4)"></b></div><span class="small muted" style="min-width:60px;text-align:right">🎵</span></div>
-      <div class="today" style="margin-bottom:12px"><div class="char">${monkey("estaya", "happy", 76)}</div><div class="bubble"><span class="who">Estaya</span><span class="tw">Compuse una canción con lo más importante de ${esc(c.name)}. Escúchala, síguela y después… ¡completa la letra!</span>${SAYBTN}</div></div>
-      <div class="lyrics" id="ly">${lines.map((l, k) => `<div class="line" data-k="${k}">♪ ${esc(l)}</div>`).join("")}</div>
-      <div class="actions" style="justify-content:center"><button class="btn" id="play">▶ Cantar</button><button class="btn g" id="fill">Completar la letra →</button></div>`;
-      $("#quit", w).addEventListener("click", () => { stop(); go("camp", { camp: c.id }); });
-      $("#play", w).addEventListener("click", () => playing ? stop() : play());
-      $("#fill", w).addEventListener("click", () => { stop(); fillGame(); }); };
-    const stop = () => { playing = false; beat(false); try { speechSynthesis.cancel(); } catch (e) { } const b = $("#play", w); if (b) b.textContent = "▶ Cantar"; };
-    const play = () => { playing = true; li = 0; beat(true); $("#play", w).textContent = "⏸ Pausar"; const mk = $(".today .mk", w); setMood(mk, "party"); next(); };
-    const next = () => { if (!playing) return; if (li >= lines.length) { stop(); setMood($(".today .mk", w), "happy"); toast("🎶 ¡Fin de la canción! Ahora completa la letra."); return; } [...w.querySelectorAll(".line")].forEach((x, k) => x.classList.toggle("on", k === li)); $("#sp", w).style.width = ((li + 1) / lines.length * 100) + "%"; const txt = lines[li]; li++;
-      if ("speechSynthesis" in window) { try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(txt); u.lang = voiceEs ? voiceEs.lang : "es-ES"; if (voiceEs) u.voice = voiceEs; u.rate = .9; u.pitch = 1.25; u.onend = () => setTimeout(next, 350); u.onerror = () => setTimeout(next, 1800); speechSynthesis.speak(u); } catch (e) { setTimeout(next, 2200); } } else setTimeout(next, 2200); };
-    const fillGame = () => { const qs = shuffle(lines).slice(0, 4).map(l => { const words = l.split(": ")[1].split(" ").filter(x => x.length > 4 && /^[a-záéíóúñ]+$/i.test(x)); const key = words[Math.floor(Math.random() * words.length)] || l.split(": ")[0]; const wrong = shuffle(C.camps.flatMap(x => x.flashcards).flatMap(f => f[1].split(" ")).filter(x => x.length > 4 && /^[a-záéíóúñ]+$/i.test(x) && x.toLowerCase() !== key.toLowerCase())).slice(0, 2); return { l, key, opts: shuffle([key, ...wrong]) }; }); let i = 0, score = 0;
-      const step = () => { if (i >= qs.length) { const xp = 15 + score * 5; addXP(xp); S.games = S.games || {}; S.games["song-" + c.id] = Math.max(S.games["song-" + c.id] || 0, score); if (score === qs.length) stamp("song-" + c.id); save(); confetti(); jingle("win"); w.innerHTML = `<div class="result">${monkey("estaya", "party", 120)}<h2>${score === qs.length ? "¡Te la sabes entera!" : "¡Buen ritmo!"}</h2><p class="muted">Completaste ${score} de ${qs.length} versos.</p><div class="xp">+${xp} XP</div><div class="actions" style="justify-content:center"><button class="btn ghost" id="again">Cantar otra vez</button><button class="btn g" id="back">Volver</button></div></div>`; $("#again", w).addEventListener("click", () => go("song", { camp: c.id })); $("#back", w).addEventListener("click", () => go("camp", { camp: c.id })); return; }
+    const CAN = cancionDe(c.id);
+    const w = el("div", { class: "mission" }); m.appendChild(w);
+    if (!CAN) { w.innerHTML = `<button class="btn ghost sm" id="back">← ${esc(c.name)}</button><p class="muted" style="margin-top:14px">Esta selva todavía no tiene canción.</p>`; $("#back", w).addEventListener("click", () => go("camp", { camp: c.id })); return; }
+    const versos = CAN.letra.filter(l => !esEtiqueta(l));
+    let audio = null, hayAudio = null, offset = (S.offsets && S.offsets[CAN.id]) || 0;
+
+    function pantalla() {
+      w.innerHTML = `<button class="btn ghost sm" id="back">← ${esc(c.name)}</button>
+        <div class="camphead" style="margin-top:12px"><div class="icon" style="background:#8E6BC7">🎤</div><div><div class="eyebrow">Cancionero de Estaya</div><h2 style="font-size:24px;font-weight:600">${esc(CAN.titulo)}</h2><div class="muted small">${esc(c.name)} · ${esc(c.lugar)}</div></div></div>
+        <div class="today card" style="margin-top:12px"><div class="char">${monkey("estaya", "happy", 72)}</div><div class="bubble"><span class="who">Estaya</span><span class="tw">Esta canción tiene adentro toda la materia de esta selva. Escúchala, cántala y después te tapo palabras para ver si te la sabes.</span>${SAYBTN}</div></div>
+        <div id="reproductor"></div>
+        <div class="card" style="margin-top:14px"><div class="row" style="justify-content:space-between"><h3 style="font-size:18px;font-weight:600">Letra</h3><button class="btn ghost sm" id="copiarLetra">Copiar letra</button></div>
+          <div class="letra" id="letra">${CAN.letra.map((l, k) => esEtiqueta(l) ? `<div class="tag-letra">${esc(l.replace(/[\[\]]/g, ""))}</div>` : `<div class="verso" data-v="${versos.indexOf(l)}">${esc(l)}</div>`).join("")}</div></div>
+        <div class="actions" style="justify-content:center"><button class="btn g" id="jugar">Completa la letra →</button></div>`;
+      $("#back", w).addEventListener("click", () => { if (audio) audio.pause(); go("camp", { camp: c.id }); });
+      $("#copiarLetra", w).addEventListener("click", () => copiar(CAN.letra.join("\n"), "Letra copiada. Pégala en Suno."));
+      $("#jugar", w).addEventListener("click", () => { if (audio) audio.pause(); juego(); });
+      montarReproductor();
+    }
+
+    function montarReproductor() {
+      const cont = $("#reproductor", w);
+      cont.innerHTML = `<div class="player card" id="pl"><div class="muted small">Buscando la grabación…</div></div>`;
+      const a = new Audio(mp3De(CAN)); a.preload = "metadata";
+      a.addEventListener("canplay", () => { hayAudio = true; audio = a; conAudio(cont, a); }, { once: true });
+      a.addEventListener("error", () => { if (hayAudio === null) { hayAudio = false; sinAudio(cont); } }, { once: true });
+      setTimeout(() => { if (hayAudio === null) { hayAudio = false; sinAudio(cont); } }, 3500);
+    }
+
+    function conAudio(cont, a) {
+      cont.innerHTML = `<div class="player card">
+        <div class="row"><button class="btn" id="pp" style="width:64px;height:64px;border-radius:50%;padding:0;font-size:26px">▶</button>
+          <div style="flex:1"><div class="pbar" id="barra"><b style="width:0%"></b></div><div class="row" style="justify-content:space-between;margin-top:6px"><span class="small muted" id="t1">0:00</span><span class="small muted" id="t2">--:--</span></div></div></div>
+        <div class="row" style="margin-top:10px;gap:8px"><span class="small muted">Ajustar la letra</span><button class="btn ghost sm" id="menos">−0,5 s</button><button class="btn ghost sm" id="mas">+0,5 s</button><span class="small muted" id="off">${offset.toFixed(1)} s</span></div></div>`;
+      const pp = $("#pp", cont), barra = $("#barra b", cont);
+      const fmt = s => isFinite(s) ? Math.floor(s / 60) + ":" + String(Math.floor(s % 60)).padStart(2, "0") : "--:--";
+      a.addEventListener("loadedmetadata", () => { $("#t2", cont).textContent = fmt(a.duration); });
+      if (a.duration) $("#t2", cont).textContent = fmt(a.duration);
+      pp.addEventListener("click", () => { if (a.paused) { a.play(); pp.textContent = "⏸"; setMood($(".today .mk", w), "party"); } else { a.pause(); pp.textContent = "▶"; setMood($(".today .mk", w), "happy"); } });
+      a.addEventListener("timeupdate", () => {
+        const d = a.duration || 1; barra.style.width = (a.currentTime / d * 100) + "%"; $("#t1", cont).textContent = fmt(a.currentTime);
+        const i = Math.min(versos.length - 1, Math.max(0, Math.floor(((a.currentTime + offset) / d) * versos.length)));
+        w.querySelectorAll(".verso").forEach(v => v.classList.toggle("on", +v.dataset.v === i));
+        const act = w.querySelector(".verso.on"); if (act && !act.dataset.visto) { act.dataset.visto = "1"; act.scrollIntoView({ block: "nearest", behavior: "smooth" }); }
+      });
+      a.addEventListener("ended", () => { pp.textContent = "▶"; w.querySelectorAll(".verso").forEach(v => v.classList.remove("on")); setMood($(".today .mk", w), "happy"); });
+      const guardar = () => { S.offsets = S.offsets || {}; S.offsets[CAN.id] = offset; save(); $("#off", cont).textContent = offset.toFixed(1) + " s"; };
+      $("#menos", cont).addEventListener("click", () => { offset -= .5; guardar(); });
+      $("#mas", cont).addEventListener("click", () => { offset += .5; guardar(); });
+    }
+
+    function sinAudio(cont) {
+      cont.innerHTML = `<div class="receta card">
+        <div class="eyebrow">Esta canción todavía no está grabada</div>
+        <h3 style="font-size:19px;font-weight:600;margin:2px 0 6px">Crearla en Suno toma dos minutos</h3>
+        <ol class="pasos"><li>Abre <b>suno.com</b> con tu cuenta y entra en <b>Create</b>.</li><li>Activa <b>Custom</b> para poder pegar la letra.</li><li>Copia el <b>estilo</b> y pégalo en «Style of Music».</li><li>Copia la <b>letra</b> y pégala en «Lyrics». El título es <b>${esc(CAN.titulo)}</b>.</li><li>Genera, elige la versión que más te guste y descárgala como MP3.</li><li>Guarda el archivo como <b>${CAN.id}.mp3</b> dentro de la carpeta <b>assets/musica</b> de la app.</li></ol>
+        <div class="bloque-copia"><div class="row" style="justify-content:space-between"><span class="eyebrow">Estilo para Suno</span><button class="btn ghost sm" id="cEstilo">Copiar</button></div><p>${esc(CAN.estilo)}</p></div>
+        <div class="bloque-copia"><div class="row" style="justify-content:space-between"><span class="eyebrow">Letra para Suno</span><button class="btn ghost sm" id="cLetra">Copiar</button></div><p class="mini">${esc(CAN.letra.slice(0, 5).join(" / "))}…</p></div>
+        <p class="muted small" style="margin-top:8px">Mientras tanto puedes jugar igual con la letra escrita.</p></div>`;
+      $("#cEstilo", cont).addEventListener("click", () => copiar(CAN.estilo, "Estilo copiado. Pégalo en «Style of Music»."));
+      $("#cLetra", cont).addEventListener("click", () => copiar(CAN.letra.join("\n"), "Letra copiada. Pégala en «Lyrics»."));
+    }
+
+    function juego() {
+      const util = versos.filter(v => v.split(" ").filter(x => x.length > 4).length >= 2);
+      const qs = shuffle(util).slice(0, 5).map(l => {
+        const pal = l.replace(/[.,;:!¡¿?«»]/g, "").split(" ").filter(x => x.length > 4 && /^[a-záéíóúñü]+$/i.test(x));
+        const key = pal[Math.floor(Math.random() * pal.length)] || l.split(" ")[0];
+        const otras = shuffle(versos.join(" ").replace(/[.,;:!¡¿?«»]/g, "").split(" ").filter(x => x.length > 4 && /^[a-záéíóúñü]+$/i.test(x) && x.toLowerCase() !== key.toLowerCase())).slice(0, 2);
+        return { l, key, opts: shuffle([key, ...otras]) };
+      });
+      let i = 0, score = 0;
+      const paso = () => {
+        if (i >= qs.length) {
+          const xp = 15 + score * 5; addXP(xp); S.games = S.games || {}; S.games["song-" + c.id] = Math.max(S.games["song-" + c.id] || 0, score);
+          if (score === qs.length) stamp("song-" + c.id); save(); confetti(); jingle("win");
+          w.innerHTML = `<div class="result">${monkey("estaya", "party", 120)}<h2>${score === qs.length ? "¡Te la sabes entera!" : "¡Buen ritmo!"}</h2><p class="muted">Completaste ${score} de ${qs.length} versos de «${esc(CAN.titulo)}».</p><div class="xp">+${xp} XP</div><div class="actions" style="justify-content:center"><button class="btn ghost" id="otra">Volver a la canción</button><button class="btn g" id="back2">Volver a la selva</button></div></div>`;
+          $("#otra", w).addEventListener("click", () => go("song", { camp: c.id }));
+          $("#back2", w).addEventListener("click", () => go("camp", { camp: c.id })); return;
+        }
         const q = qs[i]; const shown = q.l.replace(new RegExp(q.key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), "______");
-        w.innerHTML = `<div class="mhead"><button class="close" id="quit">✕</button><div class="pbar"><b style="width:${i / qs.length * 100}%"></b></div><span class="small muted">${i + 1}/${qs.length}</span></div><div class="scene"><div class="char">${monkey("estaya", "think", 80)}<span class="nm">Estaya</span></div><div class="bubble"><span class="who">Se me olvidó una palabra…</span><span class="tw">♪ ${esc(shown)} ♪</span></div></div><div class="qcard"><h2 style="font-size:19px">¿Qué palabra falta?</h2><div class="opts" id="o"></div></div>`;
+        w.innerHTML = `<div class="mhead"><button class="close" id="quit">✕</button><div class="pbar"><b style="width:${i / qs.length * 100}%;background:linear-gradient(90deg,#8E6BC7,#E9A0B4)"></b></div><span class="small muted">${i + 1}/${qs.length}</span></div>
+          <div class="scene"><div class="char">${monkey("estaya", "think", 80)}<span class="nm">Estaya</span></div><div class="bubble"><span class="who">Se me olvidó una palabra…</span><span class="tw">♪ ${esc(shown)} ♪</span></div></div>
+          <div class="qcard"><h2 style="font-size:19px">¿Qué palabra falta?</h2><div class="opts" id="o"></div></div>`;
         $("#quit", w).addEventListener("click", () => go("camp", { camp: c.id }));
-        q.opts.forEach((op, n) => { const b = el("button", { class: "opt" }, `<span class="k">${"ABC"[n]}</span><span>${esc(op)}</span>`); b.addEventListener("click", () => { const ok = op === q.key; if (ok) { score++; beep(true); } else jingle("lose"); [...$("#o", w).children].forEach((x, j) => { x.disabled = true; if (q.opts[j] === q.key) x.classList.add("ok"); else if (x === b) x.classList.add("bad"); }); setMood($(".scene .mk", w), ok ? "party" : "sad"); $(".qcard", w).insertAdjacentHTML("beforeend", fbBox(ok, `♪ ${q.l} ♪`)); $(".qcard", w).appendChild(contBtn(() => { i++; step(); })); }); $("#o", w).appendChild(b); }); };
-      step(); };
-    draw();
+        q.opts.forEach((op, n) => {
+          const b = el("button", { class: "opt" }, `<span class="k">${"ABC"[n]}</span><span>${esc(op)}</span>`);
+          b.addEventListener("click", () => {
+            const ok = op === q.key; if (ok) { score++; beep(true); } else jingle("lose");
+            [...$("#o", w).children].forEach((x, j) => { x.disabled = true; if (q.opts[j] === q.key) x.classList.add("ok"); else if (x === b) x.classList.add("bad"); });
+            setMood($(".scene .mk", w), ok ? "party" : "sad");
+            $(".qcard", w).insertAdjacentHTML("beforeend", fbBox(ok, `♪ ${q.l} ♪`));
+            $(".qcard", w).appendChild(contBtn(() => { i++; paso(); }));
+          });
+          $("#o", w).appendChild(b);
+        });
+      };
+      paso();
+    }
+    pantalla(); typewrite($(".bubble .tw", w));
   }
 
   /* ── RESPONDER HABLANDO (dictado por voz) ── */

@@ -1,0 +1,26 @@
+CANCIONES DE MISIÓN AYA · cómo crearlas en Suno
+
+Hay 5 canciones, una por selva. La app ya trae la letra y el estilo listos.
+
+PASOS (una vez por canción)
+1. En la app entra a la selva y toca "La canción de Estaya".
+2. Ahí aparece la receta con dos botones de copiar.
+3. Abre suno.com con tu cuenta y entra en Create.
+4. Activa el modo Custom.
+5. Pega el ESTILO en "Style of Music".
+6. Pega la LETRA en "Lyrics" y escribe el título.
+7. Genera. Suno crea dos versiones: elige la que más te guste.
+8. Descárgala en MP3.
+9. Renómbrala con el código de la selva y déjala en esta carpeta.
+
+NOMBRES EXACTOS DE LOS ARCHIVOS
+  c1.mp3  Tres causas y un océano      (Selva del Puerto)
+  c2.mp3  Mayas, aztecas e incas       (Selva de los Tres Templos)
+  c3.mp3  Dios, oro y gloria           (Selva de la Hueste)
+  c4.mp3  Mil quinientos diecinueve    (Selva de las Cascadas)
+  c5.mp3  Papas y plata                (Selva de los Dos Mundos)
+
+Apenas el archivo está en esta carpeta, la app lo detecta sola: aparece el
+reproductor con la letra que se va iluminando verso a verso.
+Si la letra se adelanta o se atrasa, en el reproductor hay botones de
+más y menos medio segundo para ajustarla. El ajuste queda guardado.
