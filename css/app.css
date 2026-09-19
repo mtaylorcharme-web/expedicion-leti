@@ -310,3 +310,7 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .dots{display:flex;justify-content:center;gap:8px;margin-top:14px}
 .dots i{width:10px;height:10px;border-radius:50%;background:#CFCAB8}
 .dots i.on{background:var(--jungle)}
+/* burbujas de ancho estable mientras se escribe el texto */
+.scene .bubble,.today .bubble{flex:1;min-height:56px}
+.scene .tw,.today .tw{display:block;min-height:1.4em}
+@media(max-width:600px){.hero-jungle{min-height:220px}.hero-jungle h1{font-size:24px}.camp{width:120px;margin-left:-60px}.camp .land{width:74px;height:74px;font-size:32px}.mhead .hearts{min-width:70px;font-size:14px}}
