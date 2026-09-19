@@ -77,14 +77,14 @@
   /* ── navegación ── */
   let view = "home", ctx = {};
   function go(v, c) { pararVoz(true); view = v; ctx = c || {}; render(); window.scrollTo({ top: 0 }); }
-  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song, daily, fuentes, fuente, ensenar })[view](m); }
+  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song, daily, fuentes, fuente, ensenar, mundo, ciudad })[view](m); }
   function renderTop() {
     const d = daysToTest(); const dl = d > 1 ? `${d} días` : d === 1 ? "¡mañana!" : d === 0 ? "¡hoy!" : "pasó";
     $("#topbar").innerHTML = `<span class="chip streak">🔥 ${S.streak.count} <span class="lbl">día${S.streak.count === 1 ? "" : "s"}</span></span><span class="chip xp">⭐ ${S.xp} <span class="lbl">XP</span></span><span class="chip days">📅 <span class="lbl">Prueba:</span> ${dl}</span><span class="spacer"></span><button class="avatar" data-go="passport" aria-label="Pasaporte"><img src="assets/chars/ovaya.png" alt="Ovaya"></button>`;
   }
   function renderNav() {
-    const items = [["home", "🌴", "Selva"], ["review", "🎯", "Repaso"], ["passport", "🛂", "Pasaporte"], ["parent", "👨‍👩‍👧", "Papás"]];
-    $("#navbar").innerHTML = `<div class="inner">${items.map(([v, i, l]) => `<button class="${view === v || (v === "home" && ["camp", "notes", "mission", "flash", "boss", "game", "memo", "song", "fuentes", "fuente", "ensenar"].includes(view)) ? "on" : ""}" data-go="${v}"><span class="ic">${i}</span>${l}</button>`).join("")}</div>`;
+    const items = [["home", "🌴", "Selva"], ["mundo", "🌍", "Mundo"], ["review", "🎯", "Repaso"], ["passport", "🛂", "Pasaporte"], ["parent", "👨‍👩‍👧", "Papás"]];
+    $("#navbar").innerHTML = `<div class="inner">${items.map(([v, i, l]) => `<button class="${view === v || (v === "home" && ["camp", "notes", "mission", "flash", "boss", "game", "memo", "song", "fuentes", "fuente", "ensenar", "ciudad"].includes(view)) ? "on" : ""}" data-go="${v}"><span class="ic">${i}</span>${l}</button>`).join("")}</div>`;
   }
   document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
 
@@ -110,13 +110,13 @@
     const cur = C.camps.find(c => campUnlocked(c) && campDone(c) < c.missions.length) || C.camps[C.camps.length - 1];
     const guide = cur.guide;
     const allDone = C.camps.every(c => campDone(c) === c.missions.length);
-    const positions = [[22, 10], [66, 24], [24, 39], [68, 54], [26, 69], [56, 88]];
-    const mapH = 900;
+    const positions = [[22, 8], [66, 20], [24, 33], [68, 46], [26, 59], [64, 73], [40, 90]];
+    const mapH = 1000;
     const P = positions.map(([x, y]) => [x * 6, y * mapH / 100]);
     const fragmentos = C.camps.filter(c => campDone(c) === c.missions.length).length;
     const wrap = el("div", { class: "home" });
     const map = el("div", { class: "mapwrap" });
-    const ramas = P.map(([x, y], i) => {
+    const ramas = P.slice(0, 6).map(([x, y], i) => {
       const izq = positions[i][0] < 50; const by = y + 48;
       const hojas = [...Array(4)].map((_, k) => { const hx = izq ? 60 + k * ((x - 70) / 4) : x + 30 + k * ((540 - x) / 4); return `<ellipse cx="${hx}" cy="${by - 7}" rx="16" ry="8" fill="#3FA66B" transform="rotate(${izq ? -18 : 18} ${hx} ${by - 7})"/>`; }).join("");
       return izq ? `<rect x="20" y="${by}" width="${x - 8}" height="22" rx="11" fill="#3B2A1C"/><rect x="20" y="${by + 2}" width="${x - 8}" height="8" rx="4" fill="#6B4C33"/>${hojas}`
@@ -135,15 +135,15 @@
       </defs>
       <rect width="600" height="${mapH}" fill="url(#cielo)"/>
       ${[...Array(34)].map((_, i) => { const x = (i * 137) % 600, y = (i * 211) % (mapH * .82), r = 28 + (i % 4) * 12; return `<circle cx="${x}" cy="${y}" r="${r}" fill="${i % 3 ? "#5FA95F" : "#4E9A52"}" opacity=".32"/>`; }).join("")}
-      <rect x="2" y="-20" width="84" height="${mapH * .82}" rx="26" fill="#3B2A1C"/><rect x="14" y="-20" width="30" height="${mapH * .82}" rx="15" fill="#6B4C33"/><rect x="58" y="-20" width="12" height="${mapH * .82}" rx="6" fill="#2E2116" opacity=".7"/>
-      <rect x="514" y="-20" width="84" height="${mapH * .82}" rx="26" fill="#3B2A1C"/><rect x="556" y="-20" width="30" height="${mapH * .82}" rx="15" fill="#6B4C33"/><rect x="530" y="-20" width="12" height="${mapH * .82}" rx="6" fill="#2E2116" opacity=".7"/>
+      <rect x="2" y="-20" width="84" height="${mapH * .78}" rx="26" fill="#3B2A1C"/><rect x="14" y="-20" width="30" height="${mapH * .78}" rx="15" fill="#6B4C33"/><rect x="58" y="-20" width="12" height="${mapH * .78}" rx="6" fill="#2E2116" opacity=".7"/>
+      <rect x="514" y="-20" width="84" height="${mapH * .78}" rx="26" fill="#3B2A1C"/><rect x="556" y="-20" width="30" height="${mapH * .78}" rx="15" fill="#6B4C33"/><rect x="530" y="-20" width="12" height="${mapH * .78}" rx="6" fill="#2E2116" opacity=".7"/>
       ${ramas}
       ${lianas}
       ${[...Array(14)].map((_, i) => { const x = (i * 97 + 46) % 600, y = (i * 173 + 70) % (mapH * .8); return `<text x="${x}" y="${y}" font-size="30" opacity=".8">${["🌴", "🌿", "🦜", "🌺", "🍃", "🌳"][i % 6]}</text>`; }).join("")}
-      <path d="M -20 ${mapH * .86} L 90 ${mapH * .74} L 190 ${mapH * .84} L 300 ${mapH * .66} L 420 ${mapH * .82} L 520 ${mapH * .72} L 620 ${mapH * .86} L 620 ${mapH} L -20 ${mapH} Z" fill="url(#nieve)" opacity=".97"/>
-      <path d="M 300 ${mapH * .66} L 268 ${mapH * .72} L 332 ${mapH * .72} Z" fill="#fff"/>
-      <circle cx="${P[5][0]}" cy="${P[5][1]}" r="86" fill="url(#ciudad)" opacity=".35"/>
-      <text x="300" y="${mapH * .805}" font-size="22" font-weight="800" text-anchor="middle" fill="#5B7089" font-family="Nunito,sans-serif">Cordillera del Himalaya</text>
+      <path d="M -20 ${mapH * .88} L 90 ${mapH * .79} L 190 ${mapH * .87} L 300 ${mapH * .72} L 420 ${mapH * .85} L 520 ${mapH * .78} L 620 ${mapH * .89} L 620 ${mapH} L -20 ${mapH} Z" fill="url(#nieve)" opacity=".97"/>
+      <path d="M 300 ${mapH * .72} L 272 ${mapH * .77} L 328 ${mapH * .77} Z" fill="#fff"/>
+      <circle cx="${P[6][0]}" cy="${P[6][1]}" r="92" fill="url(#ciudad)" opacity=".35"/>
+      <text x="300" y="${mapH * .845}" font-size="22" font-weight="800" text-anchor="middle" fill="#5B7089" font-family="Nunito,sans-serif">Cordillera del Himalaya</text>
     </svg>`;
     C.camps.forEach((c, i) => {
       const [x, y] = positions[i]; const un = campUnlocked(c); const full = campDone(c) === c.missions.length;
@@ -154,9 +154,14 @@
     });
     const [bx, by] = positions[5]; const bossOpen = C.camps.filter(c => campDone(c) >= 1).length >= 3;
     const boss = el("button", { class: `camp boss ${bossOpen ? "" : "locked"}`, style: `left:${bx}%;top:${by}%` });
-    boss.innerHTML = `<div class="land">${bossOpen ? "🏔️" : "🔒"}${S.boss ? `<span class="stars">${S.boss.pct}%</span>` : ""}</div><span class="name">Ciudad Aya<small>${fragmentos}/5 fragmentos del mapa</small></span>`;
-    boss.addEventListener("click", () => { if (!bossOpen) return toast("Los Ayas necesitan al menos 3 selvas recorridas para ver el camino a casa."); const lm = $(".leti-marker", map); if (lm) { lm.style.left = `calc(${bx}% + 58px)`; lm.style.top = `calc(${by}% + 8px)`; lm.classList.add("walking"); } beep(true); setTimeout(() => go("boss"), 650); });
+    boss.innerHTML = `<div class="land">${bossOpen ? "🏆" : "🔒"}${S.boss ? `<span class="stars">${S.boss.pct}%</span>` : ""}</div><span class="name">El gran salto<small>${bossOpen ? "simulacro de la prueba" : "abre con 3 selvas"}</small></span>`;
+    boss.addEventListener("click", () => { if (!bossOpen) return toast("Los Ayas necesitan al menos 3 selvas recorridas antes del gran salto."); const lm = $(".leti-marker", map); if (lm) { lm.style.left = `calc(${bx}% + 58px)`; lm.style.top = `calc(${by}% + 8px)`; lm.classList.add("walking"); } beep(true); setTimeout(() => go("boss"), 650); });
     map.appendChild(boss);
+    const [cx2, cy2] = positions[6]; const nPistas = (S.pistas || []).length; const quedanCand = CANDIDATOS.length - nPistas;
+    const ciu = el("button", { class: "camp ciudad", style: `left:${cx2}%;top:${cy2}%` });
+    ciu.innerHTML = `<div class="land">${quedanCand === 1 ? "✨" : "🏔️"}</div><span class="name">Ciudad Aya<small>${quedanCand === 1 ? "¡la encontraron!" : `${quedanCand} lugares posibles · ${nPistas}/8 pistas`}</small></span>`;
+    ciu.addEventListener("click", () => { beep(true); go("ciudad"); });
+    map.appendChild(ciu);
     const idx = allDone ? 5 : C.camps.indexOf(cur); const [lx, ly] = positions[idx];
     map.appendChild(el("div", { class: "leti-marker", style: `left:calc(${lx}% + 58px);top:calc(${ly}% + 8px)` }, `<img src="assets/chars/ovaya.png" alt="Ovaya">`));
     map.insertAdjacentHTML("beforeend", `<img class="map-tree" src="assets/chars/trio-arbol.png" alt="" aria-hidden="true">`);
@@ -185,6 +190,11 @@
     fc.innerHTML = `<div class="row" style="justify-content:space-between;gap:10px"><div><div class="eyebrow" style="color:#7A4BB8">Taller de fuentes</div><b style="font-family:Fredoka;font-size:18px;font-weight:600">La carpa del detective</b><div class="muted small">${fxh} de ${fx.length} fuentes analizadas. Mapas, diarios y cartas reales de la época.</div></div><button class="btn sm" id="goFx" style="background:#8E6BC7;box-shadow:0 3px 0 #6B49A0">Analizar 🔍</button></div>`;
     $("#goFx", fc).addEventListener("click", () => go("fuentes"));
     side.appendChild(fc);
+    const nPis = (S.pistas || []).length; const cand = CANDIDATOS.length - nPis;
+    const cc = el("div", { class: "card busqueda" });
+    cc.innerHTML = `<div class="row" style="justify-content:space-between;gap:10px"><div><div class="eyebrow" style="color:#A8801A">La búsqueda de casa</div><b style="font-family:Fredoka;font-size:18px;font-weight:600">${cand === 1 ? "¡Encontraron la Ciudad Aya!" : `Quedan ${cand} lugares posibles`}</b><div class="muted small">${nPis} de 8 pistas y ${nPis} de 8 notas de la melodía.</div></div><button class="btn y sm" id="goCiu">Investigar 🏔️</button></div>`;
+    $("#goCiu", cc).addEventListener("click", () => go("ciudad"));
+    side.appendChild(cc);
     const cd = el("div", { class: "card" });
     cd.innerHTML = `<div class="eyebrow">${esc(C.unit.subject)} · ${esc(C.unit.title)}</div><div class="countdown" style="margin-top:6px"><div class="big">${d >= 0 ? d : 0}</div><div><b style="font-family:Fredoka;font-size:18px">${d > 1 ? "días para la prueba" : d === 1 ? "día para la prueba" : d === 0 ? "¡La prueba es hoy!" : "La prueba ya pasó"}</b><div class="muted small">${esc(C.unit.test.label)} · ${doneMissions()}/${totalMissions} misiones completadas</div></div></div>`;
     side.appendChild(cd);
@@ -270,24 +280,32 @@
   /* ── MISIÓN (motor de preguntas) ── */
   function mission(m) {
     const c = C.camps.find(x => x.id === ctx.camp); const ms = c.missions.find(x => x.id === ctx.mission);
-    runQuiz(m, { title: ms.title, char: ms.char, story: ms.story, topic: c.topic, camp: c, questions: ms.questions.map((q, i) => ({ q, key: `${ms.id}:${i}` })), onDone: (errors) => {
+    runQuiz(m, { title: ms.title, char: ms.char, story: ms.story, topic: c.topic, camp: c, questions: ms.questions.map((q, i) => ({ q, key: `${ms.id}:${i}` })), onDone: (errors, pt, ayudasUsadas) => {
       const st = stars(errors); const prev = S.done[ms.id]; const first = !prev;
       S.done[ms.id] = { stars: Math.max(st, prev ? prev.stars : 0), errors };
-      const xp = first ? 40 + st * 10 : 15 + st * 5; addXP(xp);
-      if (campDone(c) === c.missions.length) { stamp(c.id); setTimeout(() => toast("🧭 ¡Fragmento del mapa conseguido! " + C.camps.filter(x => campDone(x) === x.missions.length).length + " de 5"), 1400); }
+      let xp = (first ? 40 + st * 10 : 15 + st * 5) - (ayudasUsadas || 0) * 5; xp = Math.max(10, xp); addXP(xp);
+      let extra = "";
+      const per = personajeDe(ms.id);
+      if (per) { const nueva = !selfieHecha(per); if (nueva) { S.selfies = S.selfies || {}; S.selfies[per.id] = todayKey(); setTimeout(obturador, 500); }
+        extra = `<div class="selfie-wrap">${selfieHTML(per, nueva)}<div class="globo">«${esc(per.frase)}»</div><div class="muted small" style="margin-top:6px">${nueva ? "📸 ¡Selfie nueva para tu álbum!" : "Ya tenías esta selfie."} ${esc(per.dato)}</div><a class="btn ghost sm" style="text-decoration:none;margin-top:8px" href="${earthURL(per.lat, per.lon)}" target="_blank" rel="noopener">Ver ${esc(per.lugar.split(",")[0])} en Google Earth 🌎</a></div>`; }
+      if (campDone(c) === c.missions.length) { stamp(c.id);
+        const nf = C.camps.filter(x => campDone(x) === x.missions.length).length;
+        S.pistas = S.pistas || []; if (S.pistas.length < PISTAS.length) { S.pistas.push(S.pistas.length); setTimeout(() => { toast("💭 ¡Nueva pista sobre la Ciudad Aya!"); sonarMelodia(S.pistas.length); }, 2600); }
+        setTimeout(() => toast("🧭 ¡Fragmento del mapa conseguido! " + nf + " de 5"), 1400); }
       if (doneMissions() === 1) stamp("first");
       save();
-      return { xp, stars: st, back: () => go("camp", { camp: c.id }) };
+      return { xp, stars: st, extra, back: () => go("camp", { camp: c.id }) };
     } });
   }
 
   function runQuiz(m, cfg) {
     const qs = cfg.questions; let i = 0, errors = 0, hearts = 5; const perTopic = {};
+    const ayudas = { ovaya: true, chupaya: true, estaya: true }; let escudo = false, ayudasUsadas = 0;
     const w = el("div", { class: "mission" }); m.appendChild(w);
     function head() { return `<div class="mhead"><button class="close" id="quit" aria-label="Salir">✕</button><div class="pbar"><b style="width:${(i / qs.length) * 100}%"></b></div><div class="hearts">${"❤".repeat(hearts)}${"♡".repeat(5 - hearts)}</div></div>`; }
     function next() { i++; if (i >= qs.length) return finish(); show(); }
     function finish() {
-      const r = cfg.onDone(errors, perTopic); confetti(); jingle("win");
+      const r = cfg.onDone(errors, perTopic, ayudasUsadas); confetti(); jingle("win");
       const st = r.stars;
       const rescued = cfg.char === "chupaya";
       w.innerHTML = `<div class="result fade"><div class="celebrate">${["🎉", "⭐", "🌟", "🎊", "✨", "🎈"].map((e, k) => `<span style="left:${8 + k * 16}%;animation-delay:${k * .15}s">${e}</span>`).join("")}</div><div class="chars"><span style="animation-delay:0s">${monkey("ovaya", "party", 90)}</span><span style="animation-delay:.3s">${monkey(cfg.char === "ovaya" ? "chupaya" : cfg.char, rescued ? "hang" : "party", 110)}</span><span style="animation-delay:.6s">${monkey("estaya", "party", 90)}</span></div>${rescued ? `<div class="tag" style="background:#DDF3E4;color:var(--jungle-deep);font-size:14px;margin-top:6px">🔎 ¡Encontraste a Chupaya!</div>` : ""}
@@ -295,6 +313,7 @@
         <div class="stars" aria-label="${st} estrellas">${starStr(st)}</div>
         <div class="xp">+${r.xp} XP</div>
         <p class="muted">${errors === 0 ? "Sin errores. ¡Ovaya está orgulloso de ti!" : errors === 1 ? "Solo un error. Lo repasarás en «Repaso»." : `Tuviste ${errors} errores. Aparecerán en «Repaso» para que los domines.`}</p>
+        ${r.extra || ""}
         ${chestHTML()}
         <div class="actions" style="justify-content:center"><button class="btn g" id="cont">Continuar</button>${r.retry ? `<button class="btn ghost" id="retry">Repetir</button>` : ""}</div></div>`;
       $("#cont", w).addEventListener("click", r.back);
@@ -302,13 +321,20 @@
     }
     function show() {
       const { q, key } = qs[i]; const ch = cfg.char;
-      w.innerHTML = head() + `<div class="scene"><div class="char">${monkey(ch, i === 0 ? "surprised" : "think", 92)}<span class="nm">${CH[ch].name}</span></div><div class="bubble"><span class="who">${i === 0 ? esc(cfg.title) : "Desafío " + (i + 1) + " de " + qs.length}</span><span class="tw">${i === 0 && cfg.story ? esc(cfg.story) : pickLine(ch)}</span>${SAYBTN}</div></div><div class="qcard" id="qc"></div>`;
+      w.innerHTML = head() + `<div class="ayudas" id="ay">${Object.keys(ayudas).map(k => `<button class="ay ${ayudas[k] ? "" : "usada"}" data-aya="${k}" ${ayudas[k] ? "" : "disabled"}>${monkey(k, "happy", 34)}<span><b>${CH[k].name}</b>${{ ovaya: "Escudo", chupaya: "Descarta", estaya: "Lee" }[k]}</span></button>`).join("")}</div><div class="scene"><div class="char">${monkey(ch, i === 0 ? "surprised" : "think", 92)}<span class="nm">${CH[ch].name}</span></div><div class="bubble"><span class="who">${i === 0 ? esc(cfg.title) : "Desafío " + (i + 1) + " de " + qs.length}</span><span class="tw">${i === 0 && cfg.story ? esc(cfg.story) : pickLine(ch)}</span>${SAYBTN}</div></div><div class="qcard" id="qc"></div>`;
       typewrite($(".bubble .tw", w));
       $("#quit", w).addEventListener("click", () => { if (confirm("¿Salir de la misión? Se perderá el avance de esta misión.")) cfg.quit ? cfg.quit() : go("camp", { camp: cfg.camp.id }); });
+      $("#ay", w).addEventListener("click", e => {
+        const b = e.target.closest(".ay"); if (!b || b.disabled) return; const k = b.dataset.aya; if (!ayudas[k]) return;
+        if (k === "chupaya") { const malas = [...w.querySelectorAll(".opt:not([data-ok]):not(.descartada)")].filter(x => !x.disabled); if (!malas.length) return toast("Aquí Chupaya no puede ayudarte."); const q1 = malas[Math.floor(Math.random() * malas.length)]; q1.classList.add("descartada"); q1.disabled = true; toast("Chupaya: «por ahí no es, te lo juro»."); }
+        else if (k === "estaya") { const qc = $("#qc", w) || $(".qcard", w); speak([...qc.querySelectorAll("h2, .opt")].map(x => x.textContent).join(". ")); toast("Estaya te lo lee en voz alta."); }
+        else { escudo = true; toast("Ovaya te presta su escudo: el próximo error no te quita corazón."); }
+        ayudas[k] = false; ayudasUsadas++; b.disabled = true; b.classList.add("usada"); beep(true);
+      });
       const qc = $("#qc", w);
       const done = ok => {
         const tp = qs[i].topic || cfg.topic; stat(tp, ok); const pt = perTopic[tp] || (perTopic[tp] = { ok: 0, n: 0, camp: qs[i].campId || (cfg.camp && cfg.camp.id) }); pt.n++; if (ok) pt.ok++; markWrong(key, q.q, qs[i].campId || (cfg.camp ? cfg.camp.id : ""), ok);
-        if (!ok) { errors++; hearts = Math.max(0, hearts - 1); $(".hearts", w).textContent = "❤".repeat(hearts) + "♡".repeat(5 - hearts); $("#qc", w).classList.add("shake"); }
+        if (!ok) { errors++; if (escudo) { escudo = false; toast("🛡️ El escudo de Ovaya te salvó el corazón."); } else { hearts = Math.max(0, hearts - 1); $(".hearts", w).textContent = "❤".repeat(hearts) + "♡".repeat(5 - hearts); } $("#qc", w).classList.add("shake"); }
         if (ok) beep(true); else jingle("lose"); setMood($(".char .mk", w), ok ? "party" : "sad"); save();
       };
       ({ mc: qMC, fill: qMC, tf: qTF, order: qOrder, match: qMatch, classify: qClassify, write: qWrite })[q.t](qc, q, done, next);
@@ -325,11 +351,11 @@
     const isFill = q.t === "fill";
     qc.innerHTML = `<h2>${isFill ? esc(q.q).replace("___", "<span style='color:var(--coral)'>______</span>") : esc(q.q)}</h2>${isFill ? `<div class="ctx">Elige la palabra que completa la frase.</div>` : ""}<div class="opts ${isFill ? "two" : ""}" id="o"></div>`;
     const o = $("#o", qc); const order = shuffle(q.opts.map((t, k) => ({ t, k })));
-    order.forEach((op, n) => { const b = el("button", { class: "opt" }, `<span class="k">${"ABCD"[n]}</span><span>${esc(op.t)}</span>`); b.addEventListener("click", () => { const ok = op.k === q.a; [...o.children].forEach((x, j) => { x.disabled = true; if (order[j].k === q.a) x.classList.add("ok"); else if (x === b) x.classList.add("bad"); }); qc.insertAdjacentHTML("beforeend", fbBox(ok, q.why)); qc.appendChild(contBtn(next)); done(ok); }); o.appendChild(b); });
+    order.forEach((op, n) => { const b = el("button", { class: "opt" }, `<span class="k">${"ABCD"[n]}</span><span>${esc(op.t)}</span>`); if (op.k === q.a) b.dataset.ok = "1"; b.addEventListener("click", () => { const ok = op.k === q.a; [...o.children].forEach((x, j) => { x.disabled = true; if (order[j].k === q.a) x.classList.add("ok"); else if (x === b) x.classList.add("bad"); }); qc.insertAdjacentHTML("beforeend", fbBox(ok, q.why)); qc.appendChild(contBtn(next)); done(ok); }); o.appendChild(b); });
   }
   function qTF(qc, q, done, next) {
     qc.innerHTML = `<div class="ctx">¿Verdadero o falso?</div><h2>${esc(q.q)}</h2><div class="opts two" id="o"></div>`;
-    const o = $("#o", qc); [["✅ Verdadero", true], ["❌ Falso", false]].forEach(([t, v]) => { const b = el("button", { class: "opt", style: "justify-content:center;font-size:19px" }, `<span>${t}</span>`); b.addEventListener("click", () => { const ok = v === q.a; [...o.children].forEach(x => { x.disabled = true; }); b.classList.add(ok ? "ok" : "bad"); if (!ok) [...o.children].find(x => x !== b).classList.add("ok"); qc.insertAdjacentHTML("beforeend", fbBox(ok, q.why)); qc.appendChild(contBtn(next)); done(ok); }); o.appendChild(b); });
+    const o = $("#o", qc); [["✅ Verdadero", true], ["❌ Falso", false]].forEach(([t, v]) => { const b = el("button", { class: "opt", style: "justify-content:center;font-size:19px" }, `<span>${t}</span>`); if (v === q.a) b.dataset.ok = "1"; b.addEventListener("click", () => { const ok = v === q.a; [...o.children].forEach(x => { x.disabled = true; }); b.classList.add(ok ? "ok" : "bad"); if (!ok) [...o.children].find(x => x !== b).classList.add("ok"); qc.insertAdjacentHTML("beforeend", fbBox(ok, q.why)); qc.appendChild(contBtn(next)); done(ok); }); o.appendChild(b); });
   }
   function qOrder(qc, q, done, next) {
     qc.innerHTML = `<h2>${esc(q.q)}</h2><div class="ctx">Toca los elementos en orden. Toca uno de la lista de abajo para devolverlo.</div><div class="orderwrap"><div class="seq" id="seq"><span class="lab">Tu orden</span></div><div class="pool" id="pool"><span class="lab">Elementos</span></div></div><div class="actions"><button class="btn ghost sm" id="reset">Reiniciar</button><button class="btn g" id="check" disabled>Comprobar</button></div>`;
@@ -689,6 +715,73 @@
     intro();
   }
 
+  /* ── SELFIES CON PERSONAJES HISTÓRICOS ── */
+  const personajeDe = mid => PERSONAJES.find(p => p.mision === mid);
+  const selfieHecha = p => !!(S.selfies && S.selfies[p.id]);
+  const earthURL = (lat, lon) => `https://earth.google.com/web/@${lat},${lon},1200a,18000d,35y,0h,45t,0r`;
+  function obturador() {
+    if (!S.sound || !AC) return; try { actx = actx || new AC(); const t = actx.currentTime;
+      [0, .07].forEach((dt, k) => { const o = actx.createOscillator(), g = actx.createGain(); o.type = "square"; o.frequency.setValueAtTime(k ? 1600 : 2400, t + dt); o.connect(g); g.connect(actx.destination); g.gain.setValueAtTime(.09, t + dt); g.gain.exponentialRampToValueAtTime(.001, t + dt + .05); o.start(t + dt); o.stop(t + dt + .06); });
+    } catch (e) { }
+  }
+  const selfieHTML = (p, nueva) => `<figure class="selfie ${nueva ? "nueva" : ""}" data-selfie="${p.id}">
+      <div class="foto"><img class="retrato" src="assets/historia/${p.id}.jpg" alt="${esc(p.nombre)}">
+        <span class="aya">${monkey(p.aya, "party", 78)}</span><span class="destello"></span></div>
+      <figcaption><b>${esc(CHARS[p.aya].name)} y ${esc(p.nombre)}</b><span>${esc(p.lugar)} · ${esc(p.anio)}</span></figcaption>
+    </figure>`;
+
+  /* ── EL MUNDO: dónde y cuándo pasó todo ── */
+  function mundo(m) {
+    const abiertos = C.camps.filter(campUnlocked).map(c => c.id);
+    const lugares = LUGARES.slice().sort((a, b) => a.anio - b.anio);
+    const w = el("div");
+    w.innerHTML = `<div class="camphead"><div class="icon" style="background:#4FB3C9">🌍</div><div><div class="eyebrow">Ubícate en el mundo</div><h2 style="font-size:26px;font-weight:600">Dónde y cuándo pasó</h2><div class="muted small">Toca un punto del mapa para ver qué ocurrió ahí y abrirlo en Google Earth.</div></div></div>
+      <div class="mundo-mapa"><img src="assets/mapa/mundi.jpg" alt="Mapa del mundo"><div class="pines" id="pines"></div></div>
+      <div id="ficha"></div>
+      <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:8px">Línea de tiempo de la unidad</h3><div class="tline" id="tl">${lugares.map(l => `<button class="tev ${abiertos.includes(l.camp) ? "" : "gris"}" data-id="${l.id}"><b>${l.anio < 0 ? Math.abs(l.anio) + " a.C." : l.anio}</b><span>${esc(l.n)}</span></button>`).join("")}</div></div>`;
+    const pines = $("#pines", w);
+    lugares.forEach(l => {
+      const b = el("button", { class: `pin ${abiertos.includes(l.camp) ? "" : "gris"}`, style: `left:${((l.lon + 180) / 360) * 100}%;top:${((90 - l.lat) / 180) * 100}%`, "aria-label": l.n, "data-id": l.id });
+      pines.appendChild(b);
+    });
+    const mostrar = id => {
+      const l = LUGARES.find(x => x.id === id); const c = C.camps.find(x => x.id === l.camp);
+      pines.querySelectorAll(".pin").forEach(p => p.classList.toggle("sel", p.dataset.id === id));
+      $("#ficha", w).innerHTML = `<div class="card ficha-lugar fade"><div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px"><div><div class="eyebrow">${esc(l.pais)} · ${l.anio < 0 ? Math.abs(l.anio) + " a.C." : "año " + l.anio}</div><h3 style="font-size:22px;font-weight:600">${esc(l.n)}</h3></div><span class="tag" style="background:${c.color}22;color:${c.color}">${c.icon} ${esc(c.name)}</span></div>
+        <p style="margin:8px 0 0;font-size:16px">${esc(l.q)}</p>
+        <div class="actions" style="justify-content:flex-start"><a class="btn sm" style="text-decoration:none;background:#4FB3C9;box-shadow:0 3px 0 #2E8AA0" href="${earthURL(l.lat, l.lon)}" target="_blank" rel="noopener">Ver en Google Earth 🌎</a><span class="muted small">${l.lat.toFixed(2)}°, ${l.lon.toFixed(2)}°</span></div></div>`;
+      $(".ficha-lugar", w).scrollIntoView({ block: "nearest", behavior: "smooth" });
+    };
+    w.addEventListener("click", e => { const b = e.target.closest("[data-id]"); if (b) { beep(true); mostrar(b.dataset.id); } });
+    m.appendChild(w); mostrar(lugares[0].id);
+  }
+
+  /* ── LA CIUDAD AYA: descartar lugares hasta dar con casa ── */
+  const pistasGanadas = () => (S.pistas || []).length;
+  function sonarMelodia(n) {
+    if (!S.sound || !AC) return; try { actx = actx || new AC(); const t0 = actx.currentTime;
+      MELODIA.slice(0, n).forEach((f, k) => { const o = actx.createOscillator(), g = actx.createGain(); o.type = "triangle"; o.frequency.value = f; o.connect(g); g.connect(actx.destination); const t = t0 + k * .28; g.gain.setValueAtTime(.0001, t); g.gain.exponentialRampToValueAtTime(.16, t + .03); g.gain.exponentialRampToValueAtTime(.0001, t + .26); o.start(t); o.stop(t + .28); });
+    } catch (e) { }
+  }
+  function ciudad(m) {
+    const n = pistasGanadas();
+    const descartados = PISTAS.slice(0, n).map(p => p.descarta);
+    const quedan = CANDIDATOS.filter(c => !descartados.includes(c.id));
+    const encontrada = quedan.length === 1;
+    const w = el("div");
+    w.innerHTML = `<button class="btn ghost sm" data-go="home">← Selva</button>
+      <div class="camphead" style="margin-top:12px"><div class="icon" style="background:linear-gradient(180deg,#FFE9A8,#F2B134)">🏔️</div><div><div class="eyebrow">La búsqueda de casa</div><h2 style="font-size:26px;font-weight:600">¿Dónde está la Ciudad Aya?</h2><div class="muted small">${encontrada ? "Solo queda un lugar posible." : `Quedan ${quedan.length} lugares posibles. Cada selva que completes trae una pista nueva.`}</div></div></div>
+      <div class="today card"><div class="char">${monkey("ovaya", encontrada ? "party" : "think", 76)}</div><div class="bubble"><span class="who">Ovaya</span><span class="tw">${encontrada ? `¡Es ahí! ${esc(quedan[0].n)}, en ${esc(quedan[0].pais)}. Todos los demás lugares quedaron descartados. ¡Vamos a casa!` : "No me acuerdo dónde queda mi ciudad, pero sí me acuerdo de cosas que NO eran. Con cada pista tachamos un lugar del mapa."}</span>${SAYBTN}</div></div>
+      <div class="melodia card"><div class="row" style="justify-content:space-between"><div><div class="eyebrow">La melodía de casa</div><div class="muted small">${n} de ${MELODIA.length} notas recordadas</div></div><button class="btn y sm" id="tocar">Escuchar 🎵</button></div><div class="notas">${MELODIA.map((_, k) => `<span class="${k < n ? "on" : ""}"></span>`).join("")}</div></div>
+      <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600">Pistas que recuerdan Los Ayas</h3><div class="pistas">${n === 0 ? `<p class="muted small">Todavía ninguna. Completa una selva entera para conseguir la primera.</p>` : PISTAS.slice(0, n).map(p => `<div class="pista"><span class="ic">💭</span><div><p>«${esc(p.txt)}»</p><small>${esc(p.nota)}</small></div></div>`).join("")}</div></div>
+      <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:4px">Los ocho lugares posibles</h3><p class="muted small" style="margin:0 0 10px">Todos existen de verdad. Tócalos para verlos en Google Earth.</p>
+        <div class="candidatos">${CANDIDATOS.map(c => { const fuera = descartados.includes(c.id); const es = encontrada && !fuera; return `<div class="cand ${fuera ? "fuera" : ""} ${es ? "casa" : ""}"><div class="cab"><b>${esc(c.n)}</b><span>${esc(c.pais)} · ${esc(c.alt)}</span></div><p>${esc(c.dato)}</p><a class="btn ghost sm" href="${earthURL(c.lat, c.lon)}" target="_blank" rel="noopener">Google Earth 🌎</a>${fuera ? `<span class="sello-fuera">Descartado</span>` : es ? `<span class="sello-casa">¡Es aquí!</span>` : ""}</div>`; }).join("")}</div></div>
+      <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:4px">La ruta del año</h3><p class="muted small" style="margin:0 0 10px">Cada expedición trae más pistas. Los Ayas no pueden volver a casa con una sola asignatura.</p>
+        <div class="exped">${EXPEDICIONES.map(e => `<div class="exp ${e.estado}"><span class="ic">${e.icono}</span><div><b>${esc(e.asignatura)}</b><span>${esc(e.nombre)}</span><small>${esc(e.nota)}</small></div><span class="est">${e.estado === "activa" ? "En curso" : "Próxima"}</span></div>`).join("")}</div></div>`;
+    m.appendChild(w); typewrite($(".bubble .tw", w));
+    $("#tocar", w).addEventListener("click", () => { if (n === 0) return toast("Todavía no recuerdan ninguna nota."); sonarMelodia(n); });
+  }
+
   /* ── TALLER DE FUENTES ── */
   const FMT = ["Escrita", "Visual", "Arqueológica", "Audiovisual"];
   const ORG = ["Primaria", "Secundaria"];
@@ -900,6 +993,8 @@
       <div class="bars" style="margin-top:10px"><div class="r"><span>Nivel ${level()}</span><div class="bar"><b style="width:${((S.xp % 250) / 250) * 100}%;background:var(--jungle)"></b></div><span class="n">${S.xp % 250}/250</span></div></div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:8px">Esta semana</h3><div class="week">${week}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:10px">Sellos de cada selva</h3><div class="stamps">${ST.map(([id, ic, t]) => `<div class="stamp ${S.stamps.includes(id) ? "got" : ""}"><div><span class="big">${S.stamps.includes(id) ? ic : "·"}</span>${esc(t)}</div></div>`).join("")}</div></div>
+      <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:4px">Álbum de selfies</h3><p class="muted small" style="margin:0 0 10px">${PERSONAJES.filter(selfieHecha).length} de ${PERSONAJES.length}. Se consigue una en cada misión completada.</p>
+        <div class="selfies">${PERSONAJES.map(p => selfieHecha(p) ? selfieHTML(p, false) : `<figure class="selfie vacia"><div class="foto"><span class="q">?</span></div><figcaption><b>Por descubrir</b><span>${esc(p.anio)}</span></figcaption></figure>`).join("")}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:4px">Álbum de Los Ayas</h3><p class="muted small" style="margin:0 0 10px">Cada campamento completo desbloquea una foto real de la tripulación.</p><div class="album">${[["c1", "Concierto en el piano"], ["c2", "Trepando el árbol"], ["c3", "La casa de Los Ayas"], ["c4", "Paseo en bote"], ["c5", "Colgados en la cocina"], ["boss", "Abrazo de campeones"]].map(([k, t]) => { const un = k === "boss" ? S.stamps.includes("boss") : S.stamps.includes(k); return `<figure class="photo ${un ? "" : "locked"}"><img src="assets/album/${k}.jpg" alt="${esc(t)}" loading="lazy"><figcaption>${un ? esc(t) : "🔒 " + (k === "boss" ? "Templo de la Prueba" : "Campamento " + k.slice(1))}</figcaption></figure>`; }).join("")}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:10px">Tu tripulación: Los Ayas</h3><img class="trio-wide" src="assets/chars/trio.png" alt="Ovaya, Chupaya y Estaya"><div class="crew">${Object.keys(CH).map(k => `<div class="c">${monkey(k, "happy", 90)}<b>${CH[k].name}</b><p>${esc(CH[k].desc)}</p></div>`).join("")}</div></div>`;
     m.appendChild(w);
