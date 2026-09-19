@@ -335,3 +335,7 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .lightbox{position:fixed;inset:0;background:rgba(20,30,20,.85);z-index:60;display:grid;place-items:center;padding:20px;cursor:pointer}
 .lightbox img{max-width:min(92vw,700px);max-height:78vh;border-radius:14px;border:8px solid #fff;box-shadow:0 20px 50px rgba(0,0,0,.5)}
 .lightbox p{color:#fff;font:700 16px Nunito;margin:12px 0 0}
+/* karaoke */
+.lyrics{display:grid;gap:8px;background:var(--paper);border-radius:20px;padding:16px;box-shadow:0 6px 0 rgba(0,0,0,.05)}
+.line{padding:10px 14px;border-radius:12px;font-weight:700;font-size:16px;color:var(--ink-2);transition:.25s}
+.line.on{background:linear-gradient(90deg,#F3E8FF,#FFE7F0);color:var(--ink);transform:scale(1.02);box-shadow:0 3px 0 rgba(0,0,0,.06)}

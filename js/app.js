@@ -76,14 +76,14 @@
   /* ── navegación ── */
   let view = "home", ctx = {};
   function go(v, c) { view = v; ctx = c || {}; render(); window.scrollTo({ top: 0 }); }
-  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo })[view](m); }
+  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song })[view](m); }
   function renderTop() {
     const d = daysToTest(); const dl = d > 1 ? `${d} días` : d === 1 ? "¡mañana!" : d === 0 ? "¡hoy!" : "pasó";
     $("#topbar").innerHTML = `<span class="chip streak">🔥 ${S.streak.count} <span class="lbl">día${S.streak.count === 1 ? "" : "s"}</span></span><span class="chip xp">⭐ ${S.xp} <span class="lbl">XP</span></span><span class="chip days">📅 <span class="lbl">Prueba:</span> ${dl}</span><span class="spacer"></span><button class="avatar" data-go="passport" aria-label="Pasaporte">${esc(S.name[0] || "L")}</button>`;
   }
   function renderNav() {
     const items = [["home", "🌴", "Selva"], ["review", "🎯", "Repaso"], ["passport", "🛂", "Pasaporte"], ["parent", "👩‍👧", "Mamá"]];
-    $("#navbar").innerHTML = `<div class="inner">${items.map(([v, i, l]) => `<button class="${view === v || (v === "home" && ["camp", "notes", "mission", "flash", "boss", "game", "memo"].includes(view)) ? "on" : ""}" data-go="${v}"><span class="ic">${i}</span>${l}</button>`).join("")}</div>`;
+    $("#navbar").innerHTML = `<div class="inner">${items.map(([v, i, l]) => `<button class="${view === v || (v === "home" && ["camp", "notes", "mission", "flash", "boss", "game", "memo", "song"].includes(view)) ? "on" : ""}" data-go="${v}"><span class="ic">${i}</span>${l}</button>`).join("")}</div>`;
   }
   document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
 
@@ -189,6 +189,8 @@
     sg.addEventListener("click", () => go("game", { camp: c.id })); steps.appendChild(sg);
     const sm = el("button", { class: "step" }); sm.innerHTML = `<div class="ic">🎵</div><div><b>Minijuego: Memorice de Los Ayas</b><span class="sub">Encuentra las parejas concepto y definición con Estaya · 3 min</span></div><div class="right">${S.games && S.games["memo-" + c.id] ? "🏆 " + S.games["memo-" + c.id] + " mov." : "→"}</div>`;
     sm.addEventListener("click", () => go("memo", { camp: c.id })); steps.appendChild(sm);
+    const ss = el("button", { class: "step" }); ss.innerHTML = `<div class="ic">🎤</div><div><b>La canción de Estaya</b><span class="sub">Karaoke con los datos clave y "completa la letra" · 3 min</span></div><div class="right">${S.games && S.games["song-" + c.id] ? "🏆" : "→"}</div>`;
+    ss.addEventListener("click", () => go("song", { camp: c.id })); steps.appendChild(ss);
     h.appendChild(steps); m.appendChild(h);
   }
 
@@ -345,6 +347,35 @@
     function finish() { const xp = Math.max(12, 40 - (moves - pairs.length) * 3); addXP(xp); S.games = S.games || {}; S.games["memo-" + c.id] = Math.min(S.games["memo-" + c.id] || 99, moves); if (moves <= pairs.length + 3) stamp("memo-" + c.id); save(); confetti(); jingle("win");
       w.innerHTML = `<div class="result">${monkey("estaya", "party", 120)}<h2>${moves <= pairs.length + 2 ? "¡Memoria de elefante!" : "¡Parejas completas!"}</h2><p class="muted">Encontraste las ${pairs.length} parejas en ${moves} movimientos.</p><div class="xp">+${xp} XP</div><div class="actions" style="justify-content:center"><button class="btn ghost" id="again">Otra vez</button><button class="btn g" id="back">Volver</button></div></div>`;
       $("#again", w).addEventListener("click", () => go("memo", { camp: c.id })); $("#back", w).addEventListener("click", () => go("camp", { camp: c.id })); }
+  }
+
+  /* ── CANCIÓN DE ESTAYA (karaoke) ── */
+  let beatTimer = null;
+  function beat(on) { clearInterval(beatTimer); if (!on || !S.sound || !AC) return; try { actx = actx || new AC(); let n = 0; beatTimer = setInterval(() => { const t = actx.currentTime; const o = actx.createOscillator(), g = actx.createGain(); o.connect(g); g.connect(actx.destination); const strong = n % 4 === 0; o.frequency.setValueAtTime(strong ? 160 : 110, t); o.frequency.exponentialRampToValueAtTime(50, t + .12); g.gain.setValueAtTime(strong ? .25 : .12, t); g.gain.exponentialRampToValueAtTime(.001, t + .15); o.start(t); o.stop(t + .16); n++; }, 480); } catch (e) { } }
+  function song(m) {
+    const c = C.camps.find(x => x.id === ctx.camp);
+    const short = t => { let x = t.split(/[.;]/)[0]; if (x.length > 70) x = x.slice(0, 68).replace(/\s\S*$/, "") + "…"; return x; };
+    const lines = shuffle(c.flashcards).slice(0, 6).map(([f, b]) => `${f}: ${short(b)}`);
+    const w = el("div", { class: "mission" }); m.appendChild(w); let li = 0, playing = false;
+    const draw = () => { w.innerHTML = `<div class="mhead"><button class="close" id="quit" aria-label="Salir">✕</button><div class="pbar"><b id="sp" style="width:0%;background:linear-gradient(90deg,#8E6BC7,#E9A0B4)"></b></div><span class="small muted" style="min-width:60px;text-align:right">🎵</span></div>
+      <div class="today" style="margin-bottom:12px"><div class="char">${monkey("estaya", "happy", 76)}</div><div class="bubble"><span class="who">Estaya</span><span class="tw">Compuse una canción con lo más importante de ${esc(c.name)}. Escúchala, síguela y después… ¡completa la letra!</span>${SAYBTN}</div></div>
+      <div class="lyrics" id="ly">${lines.map((l, k) => `<div class="line" data-k="${k}">♪ ${esc(l)}</div>`).join("")}</div>
+      <div class="actions" style="justify-content:center"><button class="btn" id="play">▶ Cantar</button><button class="btn g" id="fill">Completar la letra →</button></div>`;
+      $("#quit", w).addEventListener("click", () => { stop(); go("camp", { camp: c.id }); });
+      $("#play", w).addEventListener("click", () => playing ? stop() : play());
+      $("#fill", w).addEventListener("click", () => { stop(); fillGame(); }); };
+    const stop = () => { playing = false; beat(false); try { speechSynthesis.cancel(); } catch (e) { } const b = $("#play", w); if (b) b.textContent = "▶ Cantar"; };
+    const play = () => { playing = true; li = 0; beat(true); $("#play", w).textContent = "⏸ Pausar"; const mk = $(".today .mk", w); setMood(mk, "party"); next(); };
+    const next = () => { if (!playing) return; if (li >= lines.length) { stop(); setMood($(".today .mk", w), "happy"); toast("🎶 ¡Fin de la canción! Ahora completa la letra."); return; } [...w.querySelectorAll(".line")].forEach((x, k) => x.classList.toggle("on", k === li)); $("#sp", w).style.width = ((li + 1) / lines.length * 100) + "%"; const txt = lines[li]; li++;
+      if ("speechSynthesis" in window) { try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(txt); u.lang = voiceEs ? voiceEs.lang : "es-ES"; if (voiceEs) u.voice = voiceEs; u.rate = .9; u.pitch = 1.25; u.onend = () => setTimeout(next, 350); u.onerror = () => setTimeout(next, 1800); speechSynthesis.speak(u); } catch (e) { setTimeout(next, 2200); } } else setTimeout(next, 2200); };
+    const fillGame = () => { const qs = shuffle(lines).slice(0, 4).map(l => { const words = l.split(": ")[1].split(" ").filter(x => x.length > 4 && /^[a-záéíóúñ]+$/i.test(x)); const key = words[Math.floor(Math.random() * words.length)] || l.split(": ")[0]; const wrong = shuffle(C.camps.flatMap(x => x.flashcards).flatMap(f => f[1].split(" ")).filter(x => x.length > 4 && /^[a-záéíóúñ]+$/i.test(x) && x.toLowerCase() !== key.toLowerCase())).slice(0, 2); return { l, key, opts: shuffle([key, ...wrong]) }; }); let i = 0, score = 0;
+      const step = () => { if (i >= qs.length) { const xp = 15 + score * 5; addXP(xp); S.games = S.games || {}; S.games["song-" + c.id] = Math.max(S.games["song-" + c.id] || 0, score); if (score === qs.length) stamp("song-" + c.id); save(); confetti(); jingle("win"); w.innerHTML = `<div class="result">${monkey("estaya", "party", 120)}<h2>${score === qs.length ? "¡Te la sabes entera!" : "¡Buen ritmo!"}</h2><p class="muted">Completaste ${score} de ${qs.length} versos.</p><div class="xp">+${xp} XP</div><div class="actions" style="justify-content:center"><button class="btn ghost" id="again">Cantar otra vez</button><button class="btn g" id="back">Volver</button></div></div>`; $("#again", w).addEventListener("click", () => go("song", { camp: c.id })); $("#back", w).addEventListener("click", () => go("camp", { camp: c.id })); return; }
+        const q = qs[i]; const shown = q.l.replace(new RegExp(q.key.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")), "______");
+        w.innerHTML = `<div class="mhead"><button class="close" id="quit">✕</button><div class="pbar"><b style="width:${i / qs.length * 100}%"></b></div><span class="small muted">${i + 1}/${qs.length}</span></div><div class="scene"><div class="char">${monkey("estaya", "think", 80)}<span class="nm">Estaya</span></div><div class="bubble"><span class="who">Se me olvidó una palabra…</span><span class="tw">♪ ${esc(shown)} ♪</span></div></div><div class="qcard"><h2 style="font-size:19px">¿Qué palabra falta?</h2><div class="opts" id="o"></div></div>`;
+        $("#quit", w).addEventListener("click", () => go("camp", { camp: c.id }));
+        q.opts.forEach((op, n) => { const b = el("button", { class: "opt" }, `<span class="k">${"ABC"[n]}</span><span>${esc(op)}</span>`); b.addEventListener("click", () => { const ok = op === q.key; if (ok) { score++; beep(true); } else jingle("lose"); [...$("#o", w).children].forEach((x, j) => { x.disabled = true; if (q.opts[j] === q.key) x.classList.add("ok"); else if (x === b) x.classList.add("bad"); }); setMood($(".scene .mk", w), ok ? "party" : "sad"); $(".qcard", w).insertAdjacentHTML("beforeend", fbBox(ok, `♪ ${q.l} ♪`)); $(".qcard", w).appendChild(contBtn(() => { i++; step(); })); }); $("#o", w).appendChild(b); }); };
+      step(); };
+    draw();
   }
 
   /* ── TARJETAS ── */
