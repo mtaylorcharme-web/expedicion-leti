@@ -538,3 +538,9 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .bloque-copia{background:#fff;border:1px solid var(--line);border-radius:14px;padding:10px 14px;margin-top:10px}
 .bloque-copia p{margin:6px 0 0;font-size:14.5px;line-height:1.45}
 .bloque-copia p.mini{font-size:13px;color:var(--ink-2);font-style:italic}
+.componiendo{display:flex;gap:12px;align-items:center;background:#F3E8FF;border:2px solid #C8AEE8;border-radius:16px;padding:12px 16px;margin-top:12px}
+.componiendo div{display:grid;line-height:1.3}
+.componiendo b{font:600 16px Fredoka}
+.componiendo span{font-size:14px;color:var(--ink-2);font-weight:700}
+.componiendo .char{flex:none}
+.field small.muted{font-weight:700;font-size:12px}

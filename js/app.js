@@ -439,7 +439,30 @@
 
   /* ── EL CANCIONERO DE ESTAYA ── */
   const cancionDe = campId => (window.CANCIONES || []).find(x => x.camp === campId);
-  const mp3De = s => `assets/musica/${s.id}.mp3`;
+  const puenteURL = () => {
+    if (S.puente) return S.puente;
+    if (/github\.io$/i.test(location.hostname)) return null;
+    return window.PUENTE_SUNO || "/api/cancion";
+  };
+  const mp3De = s => (S.musica && S.musica[s.id]) || `assets/musica/${s.id}.mp3`;
+  async function generarConSuno({ titulo, estilo, letra }, alAvanzar) {
+    const base = puenteURL();
+    if (!base) throw new Error("Falta configurar el puente de Suno. Entra al panel de Mariana y Francisco, en Ajustes, y pega ahí la dirección de tu sitio de Netlify.");
+    alAvanzar("Enviándole la letra a Suno…");
+    const r = await fetch(base, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ titulo, estilo, letra }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.taskId) throw new Error(d.mensaje || d.detalle || d.error || "No se pudo empezar la canción.");
+    const frases = ["Suno está afinando los instrumentos…", "Estaya está eligiendo el ritmo…", "Grabando la primera estrofa…", "Ensayando el coro…", "Mezclando la canción…", "Ya casi, no te vayas…"];
+    for (let i = 0; i < 40; i++) {
+      await new Promise(x => setTimeout(x, 5000));
+      alAvanzar(frases[Math.min(frases.length - 1, Math.floor(i / 3))] + ` (${(i + 1) * 5}s)`);
+      const g = await fetch(`${base}?taskId=${encodeURIComponent(d.taskId)}`);
+      const e = await g.json().catch(() => ({}));
+      if (e.estado === "listo" && e.audio) return e.audio;
+      if (e.estado === "error") throw new Error(e.detalle || "Suno no pudo crear esta canción.");
+    }
+    throw new Error("Suno está demorando más de lo normal. Prueba de nuevo en un rato.");
+  }
   const esEtiqueta = l => /^\[.*\]$/.test(l.trim());
   function copiar(txt, msg) {
     const ok = () => toast(msg || "Copiado");
@@ -508,7 +531,22 @@
         <ol class="pasos"><li>Abre <b>suno.com</b> con tu cuenta y entra en <b>Create</b>.</li><li>Activa <b>Custom</b> para poder pegar la letra.</li><li>Copia el <b>estilo</b> y pégalo en «Style of Music».</li><li>Copia la <b>letra</b> y pégala en «Lyrics». El título es <b>${esc(CAN.titulo)}</b>.</li><li>Genera, elige la versión que más te guste y descárgala como MP3.</li><li>Guarda el archivo como <b>${CAN.id}.mp3</b> dentro de la carpeta <b>assets/musica</b> de la app.</li></ol>
         <div class="bloque-copia"><div class="row" style="justify-content:space-between"><span class="eyebrow">Estilo para Suno</span><button class="btn ghost sm" id="cEstilo">Copiar</button></div><p>${esc(CAN.estilo)}</p></div>
         <div class="bloque-copia"><div class="row" style="justify-content:space-between"><span class="eyebrow">Letra para Suno</span><button class="btn ghost sm" id="cLetra">Copiar</button></div><p class="mini">${esc(CAN.letra.slice(0, 5).join(" / "))}…</p></div>
+        <div class="actions" style="justify-content:flex-start;gap:10px"><button class="btn" id="auto">Crearla ahora con Suno 🎶</button><span class="muted small">usa tu cuenta a través de tu puente en Netlify</span></div>
+        <div id="estado"></div>
         <p class="muted small" style="margin-top:8px">Mientras tanto puedes jugar igual con la letra escrita.</p></div>`;
+      $("#auto", cont).addEventListener("click", async () => {
+        const btn = $("#auto", cont), est = $("#estado", cont); btn.disabled = true;
+        const pinta = t => { est.innerHTML = `<div class="componiendo"><div class="char">${monkey("estaya", "party", 64)}</div><div><b>Componiendo…</b><span>${esc(t)}</span></div></div>`; };
+        pinta("Preparando…");
+        try {
+          const url = await generarConSuno({ titulo: CAN.titulo, estilo: CAN.estilo, letra: CAN.letra.join("\n") }, pinta);
+          S.musica = S.musica || {}; S.musica[CAN.id] = url; save(); jingle("win"); confetti();
+          toast("🎵 ¡La canción está lista!"); hayAudio = null; montarReproductor();
+        } catch (err) {
+          btn.disabled = false;
+          est.innerHTML = `<div class="voz-problema" style="margin-top:10px"><b>🎵 No se pudo crear la canción</b><p>${esc(err.message)}</p><p class="muted small">Revisa en el panel de Mariana y Francisco que el puente de Suno esté bien configurado, o crea la canción a mano con la receta de arriba.</p></div>`;
+        }
+      });
       $("#cEstilo", cont).addEventListener("click", () => copiar(CAN.estilo, "Estilo copiado. Pégalo en «Style of Music»."));
       $("#cLetra", cont).addEventListener("click", () => copiar(CAN.letra.join("\n"), "Letra copiada. Pégala en «Lyrics»."));
     }
@@ -1103,6 +1141,7 @@
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600">Para reforzar (${wrong.length})</h3><p class="muted small" style="margin:4px 0 10px">Preguntas falladas que siguen pendientes. Desaparecen cuando se responden bien dos veces en «Repaso».</p><div class="wrongs">${wrong.length ? wrong.map(x => `<div>${esc(x.q)}</div>`).join("") : "<div class='muted' style='border-color:var(--ok)'>Nada pendiente por ahora.</div>"}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600">Ajustes</h3>
                 <div class="field"><label for="np">Cambiar PIN</label><input id="np" inputmode="numeric" maxlength="6" placeholder="Nuevo PIN (4 a 6 números)"></div>
+        <div class="field"><label for="pu">Puente de Suno (para crear canciones automáticamente)</label><input id="pu" value="${esc(S.puente || "")}" placeholder="https://tu-sitio.netlify.app/api/cancion"><small class="muted">Déjalo vacío si la app vive en el mismo Netlify.</small></div>
         <div class="field"><label style="font-weight:800;font-size:14px">Micrófono</label><button class="btn ghost sm" id="probarMic" style="justify-self:start">Probar micrófono 🎤</button><div id="micres"></div></div>
         <div class="field"><label><input type="checkbox" id="snd" ${S.sound ? "checked" : ""} style="width:auto;margin-right:8px">Sonidos activados</label></div>
         <div class="actions" style="justify-content:flex-start"><button class="btn g sm" id="saveS">Guardar ajustes</button><button class="btn ghost sm" id="reset">Reiniciar todo el progreso</button></div>
@@ -1120,7 +1159,7 @@
         sal.innerHTML = `<div class="campo-voz"><textarea class="write" id="txmic" placeholder="Toca el micrófono y di una frase…"></textarea><div class="voz-barra"><button class="mic" data-target="txmic"><span class="mic-ic">🎤</span><span class="mic-txt">Responder hablando</span></button><span class="voz-hint">debería aparecer escrito lo que digas</span></div></div>`;
       });
     });
-    $("#saveS", w).addEventListener("click", () => { const np = $("#np", w).value.trim(); if (np) { if (/^\d{4,6}$/.test(np)) S.pin = np; else return toast("El PIN debe tener 4 a 6 números."); } S.sound = $("#snd", w).checked; save(); toast("Ajustes guardados"); render(); });
+    $("#saveS", w).addEventListener("click", () => { const pu = $("#pu", w).value.trim(); S.puente = pu || null; const np = $("#np", w).value.trim(); if (np) { if (/^\d{4,6}$/.test(np)) S.pin = np; else return toast("El PIN debe tener 4 a 6 números."); } S.sound = $("#snd", w).checked; save(); toast("Ajustes guardados"); render(); });
     $("#reset", w).addEventListener("click", () => { if (confirm("¿Borrar TODO el progreso de la Misión Aya? Esta acción no se puede deshacer.")) { const pin = S.pin; S = Object.assign({}, DEF, { pin }); save(); toast("Progreso reiniciado"); go("home"); } });
   }
 
