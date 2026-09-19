@@ -226,7 +226,8 @@
     function finish() {
       const r = cfg.onDone(errors); confetti(); jingle("win");
       const st = r.stars;
-      w.innerHTML = `<div class="result fade"><div class="chars">${monkey("ovaya", "party", 90)}${monkey(cfg.char === "ovaya" ? "chupaya" : cfg.char, "party", 110)}${monkey("estaya", "party", 90)}</div>
+      const rescued = cfg.char === "chupaya";
+      w.innerHTML = `<div class="result fade"><div class="celebrate">${["🎉", "⭐", "🌟", "🎊", "✨", "🎈"].map((e, k) => `<span style="left:${8 + k * 16}%;animation-delay:${k * .15}s">${e}</span>`).join("")}</div><div class="chars"><span style="animation-delay:0s">${monkey("ovaya", "party", 90)}</span><span style="animation-delay:.3s">${monkey(cfg.char === "ovaya" ? "chupaya" : cfg.char, rescued ? "hang" : "party", 110)}</span><span style="animation-delay:.6s">${monkey("estaya", "party", 90)}</span></div>${rescued ? `<div class="tag" style="background:#DDF3E4;color:var(--jungle-deep);font-size:14px;margin-top:6px">🔎 ¡Encontraste a Chupaya!</div>` : ""}
         <div class="eyebrow">${esc(cfg.topic || "")}</div><h2>${st === 3 ? "¡Misión perfecta!" : st === 2 ? "¡Misión cumplida!" : "¡Lo lograste!"}</h2>
         <div class="stars" aria-label="${st} estrellas">${starStr(st)}</div>
         <div class="xp">+${r.xp} XP</div>
