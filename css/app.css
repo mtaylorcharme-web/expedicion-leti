@@ -363,3 +363,24 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .leti-marker{overflow:hidden;background:#DDF3E4;width:44px;height:44px;margin-left:-22px;margin-top:-22px}
 .leti-marker img{width:100%;height:100%;object-fit:cover;object-position:top}
 .leti-marker::after{content:"Ovaya";top:44px}
+
+/* ── Taller de fuentes ── */
+.card.taller{border:2px solid #C8AEE8;background:#F7F1FE}
+.guiacard{background:var(--paper);border-radius:16px;padding:12px 16px;margin:14px 0 4px;border-left:6px solid #8E6BC7}
+.guialist{margin:6px 0 0;padding-left:20px;display:flex;flex-wrap:wrap;gap:4px 20px;font-weight:700;font-size:14px;color:var(--ink-2)}
+.guialist li{list-style:decimal}
+.stepper{display:flex;gap:6px;margin:10px 0 14px;overflow-x:auto;padding-bottom:2px}
+.stepper span{flex:1;min-width:72px;display:grid;justify-items:center;gap:3px;font:800 13px Nunito;color:#9AA396;background:#fff;border-radius:12px;padding:7px 4px;border:2px solid var(--line)}
+.stepper span i{font-style:normal;font-size:10.5px;font-weight:700;letter-spacing:.02em;text-align:center;line-height:1.15}
+.stepper span.on{color:#fff;background:#8E6BC7;border-color:#8E6BC7}
+.stepper span.ok{color:var(--jungle-deep);background:var(--ok-bg);border-color:var(--ok)}
+.fuente-card{position:relative;margin:0 0 14px;background:#FFFDF3;border:2px solid #E2D9C6;border-radius:20px;padding:14px 16px;box-shadow:0 6px 0 rgba(0,0,0,.05)}
+.fuente-card .ficha{font-size:13px;font-weight:700;color:var(--ink-2);padding-right:40px}
+.fuente-card .ficha .eyebrow{display:block;color:#7A4BB8;margin-bottom:2px}
+.fuente-img{display:block;width:100%;max-height:340px;object-fit:contain;border-radius:12px;margin-top:10px;background:#fff;cursor:zoom-in}
+.fuente-texto{margin:10px 0 0;padding:12px 16px;background:#fff;border-left:5px solid var(--gold);border-radius:10px;font-size:16.5px;line-height:1.55;font-style:italic}
+.rubrica{display:grid;gap:8px;margin-top:10px}
+.rubrica label{display:flex;gap:10px;align-items:flex-start;background:#fff;border:2px solid var(--line);border-radius:14px;padding:11px 13px;font-weight:700;font-size:15px;cursor:pointer}
+.rubrica label:has(input:checked){border-color:var(--ok);background:var(--ok-bg)}
+.rubrica input{width:20px;height:20px;flex:none;margin-top:1px;accent-color:var(--jungle)}
+.step .sub{display:block;margin-top:1px}

@@ -77,14 +77,14 @@
   /* ── navegación ── */
   let view = "home", ctx = {};
   function go(v, c) { view = v; ctx = c || {}; render(); window.scrollTo({ top: 0 }); }
-  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song, daily })[view](m); }
+  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song, daily, fuentes, fuente })[view](m); }
   function renderTop() {
     const d = daysToTest(); const dl = d > 1 ? `${d} días` : d === 1 ? "¡mañana!" : d === 0 ? "¡hoy!" : "pasó";
     $("#topbar").innerHTML = `<span class="chip streak">🔥 ${S.streak.count} <span class="lbl">día${S.streak.count === 1 ? "" : "s"}</span></span><span class="chip xp">⭐ ${S.xp} <span class="lbl">XP</span></span><span class="chip days">📅 <span class="lbl">Prueba:</span> ${dl}</span><span class="spacer"></span><button class="avatar" data-go="passport" aria-label="Pasaporte"><img src="assets/chars/ovaya.png" alt="Ovaya"></button>`;
   }
   function renderNav() {
     const items = [["home", "🌴", "Selva"], ["review", "🎯", "Repaso"], ["passport", "🛂", "Pasaporte"], ["parent", "👨‍👩‍👧", "Papás"]];
-    $("#navbar").innerHTML = `<div class="inner">${items.map(([v, i, l]) => `<button class="${view === v || (v === "home" && ["camp", "notes", "mission", "flash", "boss", "game", "memo", "song"].includes(view)) ? "on" : ""}" data-go="${v}"><span class="ic">${i}</span>${l}</button>`).join("")}</div>`;
+    $("#navbar").innerHTML = `<div class="inner">${items.map(([v, i, l]) => `<button class="${view === v || (v === "home" && ["camp", "notes", "mission", "flash", "boss", "game", "memo", "song", "fuentes", "fuente"].includes(view)) ? "on" : ""}" data-go="${v}"><span class="ic">${i}</span>${l}</button>`).join("")}</div>`;
   }
   document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
 
@@ -161,6 +161,11 @@
     dc.innerHTML = `<div class="row" style="justify-content:space-between;gap:10px"><div><div class="eyebrow">Reto del día</div><b style="font-family:Fredoka;font-size:18px;font-weight:600">${dailyDone ? "¡Reto de hoy superado! ✅" : "5 preguntas sorpresa · +30 XP"}</b><div class="muted small">${dailyDone ? `Sacaste ${S.daily.score}/5. Mañana hay uno nuevo.` : "De los campamentos que ya abriste. ¡Mantén tu racha!"}</div></div>${dailyDone ? "" : `<button class="btn y sm" id="goDaily">¡Jugar! 🎲</button>`}</div>`;
     if (!dailyDone) $("#goDaily", dc).addEventListener("click", () => go("daily"));
     side.appendChild(dc);
+    const fx = FUENTES.filter(f => campUnlocked(C.camps.find(c => c.id === f.camp))); const fxh = fx.filter(fuenteHecha).length;
+    const fc = el("div", { class: "card taller" });
+    fc.innerHTML = `<div class="row" style="justify-content:space-between;gap:10px"><div><div class="eyebrow" style="color:#7A4BB8">Taller de fuentes</div><b style="font-family:Fredoka;font-size:18px;font-weight:600">La carpa del detective</b><div class="muted small">${fxh} de ${fx.length} fuentes analizadas. Mapas, diarios y cartas reales de la época.</div></div><button class="btn sm" id="goFx" style="background:#8E6BC7;box-shadow:0 3px 0 #6B49A0">Analizar 🔍</button></div>`;
+    $("#goFx", fc).addEventListener("click", () => go("fuentes"));
+    side.appendChild(fc);
     const cd = el("div", { class: "card" });
     cd.innerHTML = `<div class="eyebrow">${esc(C.unit.subject)} · ${esc(C.unit.title)}</div><div class="countdown" style="margin-top:6px"><div class="big">${d >= 0 ? d : 0}</div><div><b style="font-family:Fredoka;font-size:18px">${d > 1 ? "días para la prueba" : d === 1 ? "día para la prueba" : d === 0 ? "¡La prueba es hoy!" : "La prueba ya pasó"}</b><div class="muted small">${esc(C.unit.test.label)} · ${doneMissions()}/${totalMissions} misiones completadas</div></div></div>`;
     side.appendChild(cd);
@@ -196,6 +201,10 @@
     sg.addEventListener("click", () => go("game", { camp: c.id })); steps.appendChild(sg);
     const sm = el("button", { class: "step" }); sm.innerHTML = `<div class="ic">🎵</div><div><b>Minijuego: Memorice de Los Ayas</b><span class="sub">Encuentra las parejas concepto y definición con Estaya · 3 min</span></div><div class="right">${S.games && S.games["memo-" + c.id] ? "🏆 " + S.games["memo-" + c.id] + " mov." : "→"}</div>`;
     sm.addEventListener("click", () => go("memo", { camp: c.id })); steps.appendChild(sm);
+    const fxc = FUENTES.filter(f => f.camp === c.id);
+    if (fxc.length) { const sfx = el("button", { class: "step" }); const hh = fxc.filter(fuenteHecha).length;
+      sfx.innerHTML = `<div class="ic">🔍</div><div><b>Taller de fuentes</b><span class="sub">${fxc.length} fuente${fxc.length === 1 ? "" : "s"} real${fxc.length === 1 ? "" : "es"} de este tema · analízalas con la guía de tu clase</span></div><div class="right">${hh === fxc.length ? "✅" : hh ? hh + "/" + fxc.length : "→"}</div>`;
+      sfx.addEventListener("click", () => go("fuentes")); steps.appendChild(sfx); }
     const ss = el("button", { class: "step" }); ss.innerHTML = `<div class="ic">🎤</div><div><b>La canción de Estaya</b><span class="sub">Karaoke con los datos clave y "completa la letra" · 3 min</span></div><div class="right">${S.games && S.games["song-" + c.id] ? "🏆" : "→"}</div>`;
     ss.addEventListener("click", () => go("song", { camp: c.id })); steps.appendChild(ss);
     h.appendChild(steps); m.appendChild(h);
@@ -408,6 +417,144 @@
     draw();
   }
 
+  /* ── TALLER DE FUENTES ── */
+  const FMT = ["Escrita", "Visual", "Arqueológica", "Audiovisual"];
+  const ORG = ["Primaria", "Secundaria"];
+  const PRO = ["Informar", "Comunicar", "Dar su opinión", "Convencer"];
+  const PASOS = ["Formato", "Origen", "Propósito", "Idea principal", "Argumento"];
+  const fuenteHecha = f => !!(S.fuentes && S.fuentes[f.id]);
+
+  function fuentes(m) {
+    const hechas = FUENTES.filter(fuenteHecha).length;
+    const w = el("div");
+    w.innerHTML = `<button class="btn ghost sm" data-go="home">← Selva</button>
+      <div class="camphead" style="margin-top:12px"><div class="icon" style="background:#8E6BC7">🔍</div><div><div class="eyebrow">Taller de fuentes</div><h2 style="font-size:26px;font-weight:600">La carpa del detective</h2><div class="muted small">${hechas} de ${FUENTES.length} fuentes analizadas</div></div></div>
+      <div class="today card"><div class="char">${monkey("estaya", "think", 76)}</div><div class="bubble"><span class="who">Estaya</span><span class="tw">Aquí guardamos todo lo que encontramos en la selva: mapas, diarios y cartas de verdad. Analiza cada fuente con los cuatro pasos de tu clase y después arma tu argumento.</span>${SAYBTN}</div></div>
+      <div class="guiacard"><div class="eyebrow">Los pasos de tu guía</div><ol class="guialist">${PASOS.map(p => `<li>${p}</li>`).join("")}</ol></div>
+      <div class="steps" id="lst"></div>`;
+    const lst = $("#lst", w);
+    FUENTES.forEach(f => {
+      const c = C.camps.find(x => x.id === f.camp); const un = campUnlocked(c); const hecha = fuenteHecha(f);
+      const b = el("button", { class: `step ${hecha ? "done" : ""} ${un ? "" : "locked"}` });
+      b.innerHTML = `<div class="ic">${un ? (hecha ? "✅" : (f.img ? "🖼️" : "📜")) : "🔒"}</div><div><b>${esc(f.titulo)}</b><span class="sub">${esc(f.ficha)}</span><span class="sub" style="color:${c.color};font-weight:800">${c.icon} ${esc(c.name)}</span></div><div class="right">${hecha ? "★".repeat(S.fuentes[f.id].estrellas) : un ? "→" : ""}</div>`;
+      b.addEventListener("click", () => un ? go("fuente", { id: f.id }) : toast(`Esta fuente se abre cuando llegues a ${c.name}.`));
+      lst.appendChild(b);
+    });
+    m.appendChild(w); typewrite($(".bubble .tw", w));
+  }
+
+  function fuente(m) {
+    const f = FUENTES.find(x => x.id === ctx.id); const c = C.camps.find(x => x.id === f.camp);
+    let paso = 0, aciertos = 0, total = 0;
+    const w = el("div", { class: "mission" }); m.appendChild(w);
+    const cabeza = () => `<div class="mhead"><button class="close" id="quit" aria-label="Salir">✕</button><div class="pbar"><b style="width:${(paso / PASOS.length) * 100}%;background:linear-gradient(90deg,#8E6BC7,#B695E0)"></b></div><span class="small muted" style="min-width:74px;text-align:right">Paso ${Math.min(paso + 1, PASOS.length)}/${PASOS.length}</span></div>
+      <div class="stepper">${PASOS.map((p, k) => `<span class="${k < paso ? "ok" : k === paso ? "on" : ""}">${k < paso ? "✓" : k + 1}<i>${p}</i></span>`).join("")}</div>`;
+    const tarjeta = () => `<figure class="fuente-card"><figcaption class="ficha"><span class="eyebrow">Fuente</span>${esc(f.ficha)}</figcaption>${f.img ? `<img src="${f.img}" alt="${esc(f.titulo)}" class="fuente-img">` : ""}${f.texto ? `<blockquote class="fuente-texto">${esc(f.texto)}</blockquote>` : ""}${SAYBTN}</figure>`;
+
+    function eleccion(titulo, ayuda, opciones, datos, luego) {
+      w.innerHTML = cabeza() + tarjeta() + `<div class="qcard"><div class="ctx">${esc(ayuda)}</div><h2>${esc(titulo)}</h2><div class="opts ${opciones.length > 2 ? "two" : ""}" id="o"></div></div>`;
+      $("#quit", w).addEventListener("click", salir);
+      const o = $("#o", w);
+      opciones.forEach((op, k) => {
+        const b = el("button", { class: "opt" }, `<span class="k">${"ABCD"[k]}</span><span>${esc(op)}</span>`);
+        b.addEventListener("click", () => {
+          const ok = k === datos.a; total++; if (ok) { aciertos++; beep(true); } else jingle("lose");
+          [...o.children].forEach((x, j) => { x.disabled = true; if (j === datos.a) x.classList.add("ok"); else if (x === b) x.classList.add("bad"); });
+          $(".qcard", w).insertAdjacentHTML("beforeend", fbBox(ok, datos.why));
+          $(".qcard", w).appendChild(contBtn(() => { paso++; luego(); }));
+        });
+        o.appendChild(b);
+      });
+    }
+
+    function escritura(titulo, ayuda, datos, luego) {
+      w.innerHTML = cabeza() + tarjeta() + `<div class="qcard"><div class="ctx">${esc(ayuda)}</div><h2>${esc(titulo)}</h2><textarea class="write" id="tx" placeholder="Escribe aquí con tus propias palabras…"></textarea><div class="actions"><button class="btn g" id="ver" disabled>Comparar con la respuesta modelo</button></div></div>`;
+      $("#quit", w).addEventListener("click", salir);
+      const tx = $("#tx", w);
+      tx.addEventListener("input", () => { $("#ver", w).disabled = tx.value.trim().length < 15; });
+      $("#ver", w).addEventListener("click", () => {
+        tx.disabled = true; $("#ver", w).remove();
+        $(".qcard", w).insertAdjacentHTML("beforeend", `<div class="model"><span class="t">Respuesta modelo</span>${esc(datos.modelo)}</div>
+          <div class="ctx" style="margin-top:14px">Ahora compara y marca lo que sí pusiste en tu respuesta. Sé honesta: así sabes qué te falta.</div>
+          <div class="rubrica" id="ru">${datos.rubrica.map((r, k) => `<label><input type="checkbox" data-k="${k}"><span>${esc(r)}</span></label>`).join("")}</div>
+          <div class="actions"><button class="btn g" id="listo">Listo</button></div>`);
+        $("#listo", w).addEventListener("click", () => {
+          const marcadas = [...$("#ru", w).querySelectorAll("input")].filter(i => i.checked).length;
+          total += datos.rubrica.length; aciertos += marcadas;
+          const msg = marcadas === datos.rubrica.length ? "¡Completísima! Tu respuesta tiene todas las ideas clave." : marcadas === 0 ? "Vuelve a leer la respuesta modelo y fíjate en qué ideas te faltaron. Eso es justo lo que hay que practicar." : `Pusiste ${marcadas} de ${datos.rubrica.length} ideas clave. Las que no marcaste son las que conviene repasar.`;
+          $("#ru", w).querySelectorAll("input").forEach(i => i.disabled = true); $("#listo", w).remove();
+          $(".qcard", w).insertAdjacentHTML("beforeend", fbBox(marcadas >= Math.ceil(datos.rubrica.length / 2), msg));
+          if (marcadas === datos.rubrica.length) { beep(true); } 
+          $(".qcard", w).appendChild(contBtn(() => { paso++; luego(); }));
+        });
+      });
+    }
+
+    const salir = () => { if (confirm("¿Salir del análisis? Se perderá el avance de esta fuente.")) go("fuentes"); };
+
+    const paso1 = () => eleccion("¿Qué formato tiene esta fuente?", "Paso 1 de tu guía: el formato es de qué está hecha la fuente.", FMT, f.formato, paso2);
+    const paso2 = () => eleccion("¿Es una fuente primaria o secundaria?", "Paso 2: fíjate en cuándo se hizo y quién la hizo.", ORG, f.origen, paso3);
+    const paso3 = () => eleccion("¿Cuál es el propósito de esta fuente?", "Paso 3: ¿para qué la creó su autor?", PRO, f.proposito, paso4);
+    const paso4 = () => escritura(f.relevante.pregunta, "Paso 4: la información relevante es la idea principal que la fuente aporta sobre el tema.", f.relevante, paso5);
+
+    function paso5() {
+      const A = f.argumento;
+      w.innerHTML = cabeza() + tarjeta() + `<div class="qcard"><div class="ctx">Paso 5: ahora argumenta. Primero tu postura, o sea la opinión que vas a defender.</div><h2 style="font-size:20px">${esc(A.frase)}</h2><div class="opts two" id="o"><button class="opt" style="justify-content:center">👍 Estoy de acuerdo</button><button class="opt" style="justify-content:center">👎 Estoy en desacuerdo</button></div></div>`;
+      $("#quit", w).addEventListener("click", salir);
+      [...$("#o", w).children].forEach((b, k) => b.addEventListener("click", () => {
+        const ok = k === A.a; total++; if (ok) { aciertos++; beep(true); } else jingle("lose");
+        [...$("#o", w).children].forEach((x, j) => { x.disabled = true; if (j === A.a) x.classList.add("ok"); else if (x === b) x.classList.add("bad"); });
+        $(".qcard", w).insertAdjacentHTML("beforeend", fbBox(ok, A.why));
+        $(".qcard", w).appendChild(contBtn(respaldo, "Ahora el respaldo →"));
+      }));
+    }
+
+    function respaldo() {
+      escritura("Escribe tu respaldo", "El respaldo es la explicación de tu postura: por qué piensas eso.", { modelo: f.argumento.respaldoModelo, rubrica: f.argumento.rubrica }, evidencia);
+      paso = 4;
+    }
+
+    function evidencia() {
+      const A = f.argumento; const ops = shuffle(A.evidencias);
+      w.innerHTML = cabeza() + tarjeta() + `<div class="qcard"><div class="ctx">Último paso: la evidencia son datos concretos que salen de la fuente y apoyan tu opinión.</div><h2 style="font-size:20px">¿Cuál de estas sirve como evidencia?</h2><div class="opts" id="o"></div></div>`;
+      $("#quit", w).addEventListener("click", salir);
+      ops.forEach((op, k) => {
+        const b = el("button", { class: "opt" }, `<span class="k">${"ABC"[k]}</span><span>${esc(op.t)}</span>`);
+        b.addEventListener("click", () => {
+          total++; if (op.ok) { aciertos++; beep(true); } else jingle("lose");
+          [...$("#o", w).children].forEach((x, j) => { x.disabled = true; if (ops[j].ok) x.classList.add("ok"); else if (x === b) x.classList.add("bad"); });
+          $(".qcard", w).insertAdjacentHTML("beforeend", fbBox(op.ok, op.why));
+          $(".qcard", w).appendChild(contBtn(fin));
+        });
+        $("#o", w).appendChild(b);
+      });
+    }
+
+    function fin() {
+      const pct = Math.round(aciertos / total * 100);
+      const estrellas = pct >= 85 ? 3 : pct >= 60 ? 2 : 1;
+      S.fuentes = S.fuentes || {};
+      const prev = S.fuentes[f.id]; const primera = !prev;
+      S.fuentes[f.id] = { estrellas: Math.max(estrellas, prev ? prev.estrellas : 0), pct };
+      const xp = primera ? 35 + estrellas * 10 : 12 + estrellas * 4; addXP(xp);
+      const listas = FUENTES.filter(fuenteHecha).length;
+      if (listas >= 3) stamp("detective");
+      if (listas === FUENTES.length) stamp("detective-max");
+      save(); confetti(); jingle("win");
+      w.innerHTML = `<div class="result"><div class="celebrate">${["🔍", "📜", "⭐", "🗺️", "✨"].map((e, k) => `<span style="left:${10 + k * 19}%;animation-delay:${k * .15}s">${e}</span>`).join("")}</div>
+        <div class="chars"><span>${monkey(f.guia, "party", 110)}</span></div>
+        <div class="eyebrow">${esc(f.ficha)}</div><h2>${estrellas === 3 ? "¡Análisis de historiador!" : estrellas === 2 ? "¡Buen análisis!" : "¡Fuente analizada!"}</h2>
+        <div class="stars" aria-label="${estrellas} estrellas">${starStr(estrellas)}</div><div class="xp">+${xp} XP</div>
+        <p class="muted">Acertaste ${aciertos} de ${total} en los cinco pasos de la guía.</p>
+        <div class="chest" id="chest"><button class="chest-btn" id="openChest" aria-label="Abrir cofre">🧰</button><div class="chest-body" hidden><div class="eyebrow">Dato del detective</div><p>${esc(f.dato)}</p></div></div>
+        <div class="actions" style="justify-content:center"><button class="btn ghost" id="otra">Otra fuente</button><button class="btn g" id="volver">Volver a la selva</button></div></div>`;
+      $("#otra", w).addEventListener("click", () => go("fuentes"));
+      $("#volver", w).addEventListener("click", () => go("home"));
+    }
+
+    paso1();
+  }
+
   /* ── TARJETAS ── */
   function flash(m) {
     const c = C.camps.find(x => x.id === ctx.camp); let cards = shuffle(c.flashcards), i = 0, know = 0;
@@ -472,7 +619,7 @@
 
   /* ── PASAPORTE ── */
   function passport(m) {
-    const ST = [["first", "🧭", "Primera misión"], ...C.camps.map(c => [c.id, c.icon, c.name]), ["boss", "🏆", "Templo conquistado"], ["streak3", "🔥", "3 días seguidos"], ["daily5", "🎲", "Reto del día perfecto"], ...C.camps.map(c => ["flash-" + c.id, "🃏", "Tarjetas " + c.n]), ...C.camps.map(c => ["liana-" + c.id, "🐒", "Lianas " + c.n]), ...C.camps.map(c => ["memo-" + c.id, "🎵", "Memorice " + c.n])];
+    const ST = [["first", "🧭", "Primera misión"], ...C.camps.map(c => [c.id, c.icon, c.name]), ["boss", "🏆", "Templo conquistado"], ["streak3", "🔥", "3 días seguidos"], ["daily5", "🎲", "Reto del día perfecto"], ["detective", "🔍", "Detective de fuentes"], ["detective-max", "📜", "Todas las fuentes"], ...C.camps.map(c => ["flash-" + c.id, "🃏", "Tarjetas " + c.n]), ...C.camps.map(c => ["liana-" + c.id, "🐒", "Lianas " + c.n]), ...C.camps.map(c => ["memo-" + c.id, "🎵", "Memorice " + c.n])];
     if (S.streak.count >= 3) stamp("streak3");
     const dn = ["L", "M", "X", "J", "V", "S", "D"]; const now = new Date(); const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay() + 6) % 7)); mon.setHours(0, 0, 0, 0);
     const week = [...Array(7)].map((_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); const k = localKey(d); return `<span class="${S.days.includes(k) ? "d" : ""} ${k === todayKey() ? "t" : ""}">${dn[i]}</span>`; }).join("");
@@ -486,7 +633,8 @@
     m.appendChild(w);
   }
 
-  document.addEventListener("click", e => { const f = e.target.closest(".photo:not(.locked)"); if (!f) return; const lb = el("div", { class: "lightbox" }, `<img src="${f.querySelector("img").src}" alt=""><p>${f.querySelector("figcaption").textContent}</p>`); lb.addEventListener("click", () => lb.remove()); document.body.appendChild(lb); });
+  document.addEventListener("click", e => { const fi = e.target.closest(".fuente-img"); if (fi) { const lb = el("div", { class: "lightbox" }, `<img src="${fi.src}" alt=""><p>${esc(fi.alt)}</p>`); lb.addEventListener("click", () => lb.remove()); document.body.appendChild(lb); return; }
+    const f = e.target.closest(".photo:not(.locked)"); if (!f) return; const lb = el("div", { class: "lightbox" }, `<img src="${f.querySelector("img").src}" alt=""><p>${f.querySelector("figcaption").textContent}</p>`); lb.addEventListener("click", () => lb.remove()); document.body.appendChild(lb); });
 
   /* ── PANEL MAMÁ ── */
   let parentOK = false;
