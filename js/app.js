@@ -79,7 +79,7 @@
   /* ── navegación ── */
   let view = "home", ctx = {};
   function go(v, c) { pararVoz(true); view = v; ctx = c || {}; render(); himnoSegunVista(v); window.scrollTo({ top: 0 }); }
-  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song, daily, fuentes, fuente, ensenar, mundo, ciudad, causas, ciego })[view](m); }
+  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song, daily, fuentes, fuente, ensenar, mundo, ciudad, causas, ciego, aqui })[view](m); }
   function renderTop() {
     const d = daysToTest(); const dl = d > 1 ? `${d} días` : d === 1 ? "¡mañana!" : d === 0 ? "¡hoy!" : "pasó";
     $("#topbar").innerHTML = `<span class="chip streak">🔥 ${S.streak.count} <span class="lbl">día${S.streak.count === 1 ? "" : "s"}</span></span><span class="chip xp">⭐ ${S.xp} <span class="lbl">XP</span></span><span class="chip days">📅 <span class="lbl">Prueba:</span> ${dl}</span><span class="spacer"></span><button class="chip mus ${himno && !himno.paused ? "on" : ""}" data-himno="1" aria-label="Himno de Los Ayas" title="Himno de Los Ayas">🎵</button><button class="avatar" data-go="passport" aria-label="Pasaporte"><img src="assets/chars/ovaya.png" alt="Ovaya"></button>`;
@@ -240,6 +240,10 @@
       const sc = el("button", { class: `step destacado ${hh ? "done" : ""}` });
       sc.innerHTML = `<div class="ic">🧵</div><div><b>El hilo de las causas</b><span class="sub">${esc(A.titulo)} · ordena los hechos y une qué provocó qué</span><span class="sub" style="color:var(--jungle);font-weight:800">Aquí se aprende la multicausalidad</span></div><div class="right">${hh ? "★".repeat(hh.estrellas) : "→"}</div>`;
       sc.addEventListener("click", () => go("causas", { camp: c.id })); steps.appendChild(sc); }
+    if (transferDe(c.id)) { const T = transferDe(c.id); const hh = (S.aqui && S.aqui[T.id]) || null; const listo = hh && hh.texto;
+      const sq = el("button", { class: `step aqui ${listo ? "done" : ""}` });
+      sq.innerHTML = `<div class="ic">${listo ? "🔁" : hh && hh.pendiente ? "🏠" : "🔁"}</div><div><b>Aquí y ahora <span class="etiqueta verde">caso real</span></b><span class="sub">${esc(T.titulo)} · usa «${esc(T.concepto)}» en tu propia vida</span><span class="sub" style="color:var(--jungle);font-weight:800">${hh && hh.pendiente && !listo ? "Lo dejaste pendiente para hacerlo en casa" : "Si solo funciona con Colón, no lo aprendiste"}</span></div><div class="right">${listo ? hh.marcadas + "/" + hh.de : "→"}</div>`;
+      sq.addEventListener("click", () => go("aqui", { camp: c.id })); steps.appendChild(sq); }
     if (LECCIONES.some(l => l.camp === c.id)) { const L = LECCIONES.find(l => l.camp === c.id); const hecha = leccionHecha(L);
       const se = el("button", { class: `step destacado ${hecha ? "done" : ""}` });
       se.innerHTML = `<div class="ic">🧠</div><div><b>Enséñale a Chupaya</b><span class="sub">${esc(L.titulo)} · explícaselo y él te repregunta</span><span class="sub" style="color:var(--jungle);font-weight:800">Lo que le explicas se te queda</span></div><div class="right">${hecha ? "★".repeat(S.lecciones[L.id].estrellas) : "→"}</div>`;
@@ -1647,7 +1651,9 @@ Respeta los criterios pedagógicos del proyecto.`;
         <p class="muted">Uniste las ${hechas.length} causas y marcaste ${marcadas} de ${tot} ideas clave.</p>
         <div class="xp">+${xp} XP</div><div class="stars">${starStr(est)}</div>
         ${faltan ? `<div class="model" style="text-align:left"><span class="t">Para la prueba, repasa esto</span><ul style="margin:0;padding-left:20px">${faltantes.map(k => `<li>${esc(A.cierre.rubrica[k])}</li>`).join("")}</ul></div>` : ""}
-        <div class="actions" style="justify-content:center"><button class="btn ghost" id="again">Repetir</button><button class="btn g" id="back">Volver a la selva</button></div></div>`;
+        <div class="actions" style="justify-content:center"><button class="btn ghost" id="again">Repetir</button>${transferDe(c.id) ? `<button class="btn g" id="real">Llevarlo a tu vida 🔁</button>` : `<button class="btn g" id="back">Volver a la selva</button>`}</div></div>`;
+      if ($("#real", w)) $("#real", w).addEventListener("click", () => go("aqui", { camp: c.id }));
+      if (!$("#back", w)) w.insertAdjacentHTML("beforeend", `<div class="actions" style="justify-content:center;margin-top:10px"><button class="btn ghost sm" id="back">Volver a la selva</button></div>`);
       $("#again", w).addEventListener("click", () => go("causas", { camp: c.id }));
       $("#back", w).addEventListener("click", () => go("camp", { camp: c.id }));
     }
@@ -1722,6 +1728,94 @@ Respeta los criterios pedagógicos del proyecto.`;
     }
 
     reto();
+  }
+
+
+  /* ── AQUÍ Y AHORA · transferencia a casos reales ── */
+  const transferDe = campId => (window.TRANSFERENCIA || []).find(x => x.camp === campId);
+
+  function aqui(m) {
+    const c = C.camps.find(x => x.id === ctx.camp); const T = transferDe(c.id);
+    if (!T) return go("camp", { camp: c.id });
+    const guia = T.guia || "ovaya";
+    const guardado = (S.aqui && S.aqui[T.id]) || {};
+    const w = el("div", { class: "mission" }); m.appendChild(w);
+
+    function marco(dentro, prog) {
+      w.innerHTML = `<div class="mhead"><button class="close" id="quit" aria-label="Salir">✕</button><div class="pbar"><b style="width:${prog}%"></b></div><span class="small muted" style="min-width:72px;text-align:right">Caso real</span></div>
+        <div class="today" style="margin-bottom:12px"><div class="char">${monkey(guia, "think", 72)}</div><div class="bubble"><span class="who">${CH[guia].name}</span><span class="tw">${esc(T.invita)}</span>${SAYBTN}</div></div>${dentro}`;
+      $("#quit", w).addEventListener("click", () => go("camp", { camp: c.id }));
+      typewrite($(".bubble .tw", w));
+    }
+
+    function partir() {
+      marco(`<div class="qcard">
+          <div class="ctx">🔁 Lo mismo que aprendiste, fuera de la historia</div>
+          <h2>${esc(T.titulo)}</h2>
+          <div class="puente"><span class="lab">Lo que acabas de aprender</span>${esc(T.caso)}</div>
+          <div class="puente ahora"><span class="lab">Ahora úsalo aquí</span>${esc(T.consigna)}</div>
+          ${T.encasa ? `<div class="encasa">🏠 Esta necesita que mires o preguntes algo en tu casa. No se puede responder solo desde la pantalla, y de eso se trata.</div>` : ""}
+          <div class="actions">${T.encasa ? `<button class="btn ghost" id="luego">Lo haré en casa</button>` : ""}<button class="btn g" id="ya">${T.encasa ? "Ya lo averigüé" : "Empezar"}</button></div>
+        </div>${guardado.texto ? `<div class="model"><span class="t">Lo que escribiste la vez pasada</span><p style="margin:0;white-space:pre-wrap">${esc(guardado.texto)}</p></div>` : ""}`, 20);
+      if (T.encasa) $("#luego", w).addEventListener("click", () => {
+        S.aqui = S.aqui || {}; S.aqui[T.id] = Object.assign({}, guardado, { pendiente: true }); save();
+        toast("Anotado. Te espera en la selva cuando lo tengas.");
+        setTimeout(() => go("camp", { camp: c.id }), 900);
+      });
+      $("#ya", w).addEventListener("click", escribir);
+    }
+
+    function escribir() {
+      marco(`<div class="qcard">
+          <h2 style="font-size:20px">${esc(T.consigna)}</h2>
+          ${campoVoz("tx", "Escribe aquí lo que averiguaste… o toca el micrófono")}
+          <button class="btn ghost sm" id="pistas" style="margin-top:6px">¿Te ayudo a partir?</button>
+          <div id="lista" hidden></div>
+          <div class="actions"><button class="btn g" id="listo" disabled>Listo →</button></div>
+        </div>`, 55);
+      const tx = $("#tx", w); if (guardado.texto) tx.value = guardado.texto;
+      const revisar = () => { $("#listo", w).disabled = tx.value.trim().length < 15; };
+      tx.addEventListener("input", revisar); revisar();
+      $("#pistas", w).addEventListener("click", () => {
+        const l = $("#lista", w); l.hidden = false; $("#pistas", w).remove();
+        l.innerHTML = `<div class="model"><span class="t">Preguntas que te pueden servir</span><ul style="margin:0;padding-left:20px">${T.pistas.map(p => `<li>${esc(p)}</li>`).join("")}</ul></div>`;
+      });
+      $("#listo", w).addEventListener("click", () => { cerrarVoz(w); revisarRubrica(tx.value.trim()); });
+    }
+
+    function revisarRubrica(mio) {
+      marco(`<div class="qcard">
+          <div class="model"><span class="t">Lo que escribiste</span><p style="margin:0;white-space:pre-wrap">${esc(mio)}</p></div>
+          <p style="font-weight:800;margin:16px 0 0">Aquí no hay una sola respuesta correcta. Lo que importa es cómo lo pensaste:</p>
+          <div class="rubrica" id="ru">${T.rubrica.map((r, k) => `<label><input type="checkbox" data-k="${k}"><span>${esc(r)}</span></label>`).join("")}</div>
+          <div class="actions"><button class="btn g" id="fin">Terminar</button></div>
+        </div>`, 85);
+      $("#fin", w).addEventListener("click", () => {
+        const cajas = [...$("#ru", w).querySelectorAll("input")];
+        const faltan = cajas.map((i, k) => i.checked ? -1 : k).filter(k => k >= 0);
+        fin(mio, cajas.length - faltan.length, cajas.length, faltan);
+      });
+    }
+
+    function fin(mio, marcadas, tot, faltan) {
+      const xp = 35 + marcadas * 10;
+      addXP(xp);
+      S.aqui = S.aqui || {};
+      S.aqui[T.id] = { texto: mio, marcadas: Math.max(marcadas, guardado.marcadas || 0), de: tot, pendiente: false, fecha: todayKey() };
+      if (marcadas === tot) stamp("aqui-" + c.id);
+      save(); confetti(); jingle("win");
+      w.innerHTML = `<div class="result">${monkey(guia, "party", 120)}
+        <h2>${marcadas === tot ? "¡Lo llevaste a tu vida entera!" : "Buen puente"}</h2>
+        <p class="muted">Usaste «${esc(T.concepto)}» fuera de la historia.</p>
+        <div class="xp">+${xp} XP</div>
+        <div class="model" style="text-align:left"><span class="t">Por qué esto importa</span><p style="margin:0">${esc(T.cierre)}</p></div>
+        ${faltan.length ? `<div class="model" style="text-align:left;background:#FFF7E0"><span class="t">Para pensarlo otra vez</span><ul style="margin:0;padding-left:20px">${faltan.map(k => `<li>${esc(T.rubrica[k])}</li>`).join("")}</ul></div>` : ""}
+        <div class="actions" style="justify-content:center"><button class="btn ghost" id="again">Mejorarlo</button><button class="btn g" id="back">Volver a la selva</button></div></div>`;
+      $("#again", w).addEventListener("click", () => go("aqui", { camp: c.id }));
+      $("#back", w).addEventListener("click", () => go("camp", { camp: c.id }));
+    }
+
+    partir();
   }
 
   /* ── arranque ── */

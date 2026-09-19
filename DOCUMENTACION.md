@@ -30,6 +30,7 @@ js/content-mundo.js        personajes, lugares, candidatos, pistas, expediciones
 js/content-canciones.js    letras y estilos para generar música
 js/content-causas.js       redes causales: qué provocó qué, por selva
 js/content-desafio.js      "salto a ciegas": apostar antes de leer (opcional)
+js/content-transferencia.js casos reales de su vida para aplicar cada concepto
 netlify/functions/         puentes: música (cancion) y memoria (progreso)
 assets/                    fotos de los Ayas, retratos históricos, mapa, música
 ```
@@ -84,6 +85,7 @@ Las de tipo `write` aceptan dictado por voz automáticamente.
 - **Canciones** (`content-canciones.js`): letra con marcas `[Verso]` y `[Coro]`, y un estilo en inglés para el generador.
 - **Causas** (`content-causas.js`): una red causal por selva. `hechos` en orden cronológico real, `enlaces` con las uniones verdaderas y su explicación, `trampas` con uniones falsas que un niño de esta edad hace de verdad (sucesión sin causa, flecha invertida, saltarse pasos) y `cierre` con escritura y rúbrica. Es la actividad que enseña multicausalidad, que es lo que evalúa la unidad.
 - **Salto a ciegas** (`content-desafio.js`): modalidad **opcional**, no reemplaza nada. Antes de leer la bitácora, Leti apuesta por una hipótesis y después ve qué pasó. Las opciones equivocadas tienen que ser razonables para quien aún no sabe: si una es absurda, no hay hipótesis, hay adivinanza. `nota` apunta al título de la página de la bitácora que lo explica.
+- **Aquí y ahora** (`content-transferencia.js`): un caso **real** por selva, de su casa, su colegio o su país, para usar el concepto fuera de la historia. Se entra desde la selva o desde el final de «El hilo de las causas». Cuando `encasa` es verdadero hace falta preguntar o mirar algo fuera de la pantalla, y la actividad se puede dejar pendiente. Su texto queda guardado y reaparece la próxima vez. La rúbrica evalúa cómo pensó, no si acertó: en estos casos no hay una sola respuesta correcta.
 
 ### 4. Archivos que hay que enchufar
 
@@ -102,6 +104,7 @@ Estas decisiones son deliberadas. Si se cambian, se pierde lo que hace que la ap
 7. **Sin ranking contra otros niños.** Compite contra sí misma.
 8. **Causalidad, no cronología.** Ordenar fechas es el piso. El aprendizaje está en unir qué provocó qué, y en distinguir una sucesión de una causa. Por eso cada red causal incluye trampas deliberadas.
 9. **Intentar antes de que te expliquen, como opción.** Fallar una predicción propia hace que la explicación posterior se fije mucho más. Va como modalidad aparte y voluntaria: obligarla a fallar siempre desgasta, poder elegir arriesgarse motiva.
+10. **Si solo funciona con Colón, no lo aprendió.** Cada concepto se aplica al menos una vez a un caso real de su vida. Los casos tienen que ser verificables por ella —lo que hay en su cocina, por qué eligieron su colegio—, nunca inventados, y varios la obligan a salir de la pantalla y hablar con alguien.
 
 ## Memoria y sincronización
 
