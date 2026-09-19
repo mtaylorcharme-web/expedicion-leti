@@ -288,3 +288,17 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .qcard{position:relative}
 .qcard .say{top:10px;right:10px}
 .qcard h2{padding-right:36px}
+/* memorice */
+.memo{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+@media(max-width:560px){.memo{grid-template-columns:repeat(3,1fr)}}
+.mcard{perspective:800px;aspect-ratio:4/3;background:none;padding:0}
+.mcard .in{position:relative;display:block;width:100%;height:100%;transition:transform .45s;transform-style:preserve-3d}
+.mcard.flip .in{transform:rotateY(180deg)}
+.mcard .f,.mcard .b{position:absolute;inset:0;backface-visibility:hidden;border-radius:14px;display:grid;place-items:center;padding:8px;font-weight:800;font-size:13px;line-height:1.25;text-align:center}
+.mcard .f{background:linear-gradient(180deg,#3FA66B,#2E7D4F);color:#fff;font-size:30px;box-shadow:0 5px 0 #1F5A38}
+.mcard .b{background:var(--paper);border:2px solid var(--line);transform:rotateY(180deg)}
+.mcard.b .b{background:#FFF7E0;border-color:var(--gold)}
+.mcard.a .b{font-family:Fredoka;font-size:15px;font-weight:600}
+.mcard.done .b{border-color:var(--ok);background:var(--ok-bg)}
+.mcard.done{opacity:.8}
+@media(prefers-reduced-motion:reduce){.mcard .in{transition:none}}

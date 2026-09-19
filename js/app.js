@@ -76,14 +76,14 @@
   /* ── navegación ── */
   let view = "home", ctx = {};
   function go(v, c) { view = v; ctx = c || {}; render(); window.scrollTo({ top: 0 }); }
-  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game })[view](m); }
+  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo })[view](m); }
   function renderTop() {
     const d = daysToTest(); const dl = d > 1 ? `${d} días` : d === 1 ? "¡mañana!" : d === 0 ? "¡hoy!" : "pasó";
     $("#topbar").innerHTML = `<span class="chip streak">🔥 ${S.streak.count} <span class="lbl">día${S.streak.count === 1 ? "" : "s"}</span></span><span class="chip xp">⭐ ${S.xp} <span class="lbl">XP</span></span><span class="chip days">📅 <span class="lbl">Prueba:</span> ${dl}</span><span class="spacer"></span><button class="avatar" data-go="passport" aria-label="Pasaporte">${esc(S.name[0] || "L")}</button>`;
   }
   function renderNav() {
     const items = [["home", "🌴", "Selva"], ["review", "🎯", "Repaso"], ["passport", "🛂", "Pasaporte"], ["parent", "👩‍👧", "Mamá"]];
-    $("#navbar").innerHTML = `<div class="inner">${items.map(([v, i, l]) => `<button class="${view === v || (v === "home" && ["camp", "notes", "mission", "flash", "boss", "game"].includes(view)) ? "on" : ""}" data-go="${v}"><span class="ic">${i}</span>${l}</button>`).join("")}</div>`;
+    $("#navbar").innerHTML = `<div class="inner">${items.map(([v, i, l]) => `<button class="${view === v || (v === "home" && ["camp", "notes", "mission", "flash", "boss", "game", "memo"].includes(view)) ? "on" : ""}" data-go="${v}"><span class="ic">${i}</span>${l}</button>`).join("")}</div>`;
   }
   document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
 
@@ -173,6 +173,8 @@
     sf.addEventListener("click", () => go("flash", { camp: c.id })); steps.appendChild(sf);
     const sg = el("button", { class: "step" }); sg.innerHTML = `<div class="ic">🐒</div><div><b>Minijuego: Salto de lianas</b><span class="sub">Verdadero o falso contra el reloj · ayuda a Chupaya a cruzar la selva · 2 min</span></div><div class="right">${S.games && S.games["liana-" + c.id] ? "🏆 " + S.games["liana-" + c.id] : "→"}</div>`;
     sg.addEventListener("click", () => go("game", { camp: c.id })); steps.appendChild(sg);
+    const sm = el("button", { class: "step" }); sm.innerHTML = `<div class="ic">🎵</div><div><b>Minijuego: Memorice de Los Ayas</b><span class="sub">Encuentra las parejas concepto y definición con Estaya · 3 min</span></div><div class="right">${S.games && S.games["memo-" + c.id] ? "🏆 " + S.games["memo-" + c.id] + " mov." : "→"}</div>`;
+    sm.addEventListener("click", () => go("memo", { camp: c.id })); steps.appendChild(sm);
     h.appendChild(steps); m.appendChild(h);
   }
 
@@ -303,6 +305,31 @@
       timer = setInterval(() => { tleft -= .1; const b = $("#tb b", w); if (b) b.style.width = Math.max(0, tleft / LIMIT * 100) + "%"; if (tleft <= 0) answer(null); }, 100);
     };
     intro();
+  }
+
+  /* ── MINIJUEGO: memorice ── */
+  function memo(m) {
+    const c = C.camps.find(x => x.id === ctx.camp);
+    const short = t => { let x = t.split(/[.;]/)[0]; if (x.length > 64) x = x.slice(0, 62).replace(/\s\S*$/, "") + "…"; return x; };
+    const pairs = shuffle(c.flashcards.filter(f => f[0].length <= 28)).slice(0, 6);
+    let cards = shuffle(pairs.flatMap((p, k) => [{ k, t: p[0], kind: "a" }, { k, t: short(p[1]), kind: "b" }]));
+    let open = [], found = 0, moves = 0, lock = false;
+    const w = el("div", { class: "mission" }); m.appendChild(w);
+    w.innerHTML = `<div class="mhead"><button class="close" id="quit" aria-label="Salir">✕</button><div class="pbar"><b id="mp" style="width:0%"></b></div><span class="small muted" id="mv" style="min-width:70px;text-align:right">0 mov.</span></div>
+      <div class="today" style="margin-bottom:12px"><div class="char">${monkey("estaya", "happy", 72)}</div><div class="bubble"><span class="who">Estaya</span><span class="tw">Da vuelta dos cartas: un concepto y su definición hacen pareja. ¡Con menos movimientos, más XP!</span>${SAYBTN}</div></div>
+      <div class="memo" id="grid">${cards.map((cd, i) => `<button class="mcard ${cd.kind}" data-i="${i}"><span class="in"><span class="f">🐒</span><span class="b">${esc(cd.t)}</span></span></button>`).join("")}</div>`;
+    typewrite($(".bubble .tw", w));
+    $("#quit", w).addEventListener("click", () => go("camp", { camp: c.id }));
+    $("#grid", w).addEventListener("click", e => {
+      const b = e.target.closest(".mcard"); if (!b || lock || b.classList.contains("flip") || b.classList.contains("done")) return;
+      b.classList.add("flip"); beep(true); open.push(b);
+      if (open.length === 2) { moves++; $("#mv", w).textContent = moves + " mov."; const [x, y] = open; const cx = cards[+x.dataset.i], cy = cards[+y.dataset.i];
+        if (cx.k === cy.k && cx.kind !== cy.kind) { found++; open = []; x.classList.add("done"); y.classList.add("done"); jingle("stamp"); $("#mp", w).style.width = (found / pairs.length * 100) + "%"; if (found === pairs.length) setTimeout(finish, 600); }
+        else { lock = true; setTimeout(() => { x.classList.remove("flip"); y.classList.remove("flip"); open = []; lock = false; }, 900); } }
+    });
+    function finish() { const xp = Math.max(12, 40 - (moves - pairs.length) * 3); addXP(xp); S.games = S.games || {}; S.games["memo-" + c.id] = Math.min(S.games["memo-" + c.id] || 99, moves); if (moves <= pairs.length + 3) stamp("memo-" + c.id); save(); confetti(); jingle("win");
+      w.innerHTML = `<div class="result">${monkey("estaya", "party", 120)}<h2>${moves <= pairs.length + 2 ? "¡Memoria de elefante!" : "¡Parejas completas!"}</h2><p class="muted">Encontraste las ${pairs.length} parejas en ${moves} movimientos.</p><div class="xp">+${xp} XP</div><div class="actions" style="justify-content:center"><button class="btn ghost" id="again">Otra vez</button><button class="btn g" id="back">Volver</button></div></div>`;
+      $("#again", w).addEventListener("click", () => go("memo", { camp: c.id })); $("#back", w).addEventListener("click", () => go("camp", { camp: c.id })); }
   }
 
   /* ── TARJETAS ── */
