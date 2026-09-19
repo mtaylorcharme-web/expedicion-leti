@@ -269,3 +269,15 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .lstick{position:absolute;top:0;width:4px;height:70px;background:linear-gradient(#5B7A3A,#3E5A26);border-radius:2px;margin-left:30px}
 .jumper{position:absolute;top:-6px;transition:left .6s cubic-bezier(.4,1.4,.6,1)}
 .jumper .mk{transform-origin:50% 0}
+/* mapa vivo */
+.flow{animation:flow 1.6s linear infinite}
+@keyframes flow{to{stroke-dashoffset:-20}}
+.critter{position:absolute;left:-60px;font-size:28px;pointer-events:none;z-index:1;filter:drop-shadow(0 3px 2px rgba(0,0,0,.25))}
+.critter.fly{animation:fly linear infinite}
+.critter.walk{animation:walk linear infinite}
+@keyframes fly{0%{transform:translate(0,0) scaleX(1)}25%{transform:translate(28vw,-30px) scaleX(1)}50%{transform:translate(56vw,10px) scaleX(1)}75%{transform:translate(84vw,-20px) scaleX(1)}100%{transform:translate(115vw,0) scaleX(1)}}
+@keyframes walk{0%{transform:translateX(0)}100%{transform:translateX(115vw)}}
+.leti-marker.walking{animation:walkbob .3s ease-in-out 2}
+@keyframes walkbob{50%{transform:translateY(-8px) rotate(-6deg)}}
+.leti-marker{z-index:3}
+@media(prefers-reduced-motion:reduce){.flow,.critter{animation:none!important}}

@@ -99,22 +99,24 @@
       ${[...Array(12)].map((_, i) => { const x = (i * 97 + 40) % 600, y = (i * 173 + 90) % mapH; return `<text x="${x}" y="${y}" font-size="30" opacity=".85">${["🌴", "🌿", "🦜", "🌺", "🐒", "🌳"][i % 6]}</text>`; }).join("")}
       <path d="${river}" stroke="#3A97AD" stroke-width="34" fill="none" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>
       <path d="${river}" stroke="#4FB3C9" stroke-width="26" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
-      <path d="${river}" stroke="#fff" stroke-width="3" fill="none" stroke-dasharray="8 12" opacity=".75" stroke-linecap="round"/>
+      <path class="flow" d="${river}" stroke="#fff" stroke-width="3" fill="none" stroke-dasharray="8 12" opacity=".75" stroke-linecap="round"/>
     </svg>`;
     C.camps.forEach((c, i) => {
       const [x, y] = positions[i]; const un = campUnlocked(c); const full = campDone(c) === c.missions.length;
       const node = el("button", { class: `camp ${un ? "" : "locked"} ${c === cur && !allDone ? "here" : ""}`, style: `left:${x}%;top:${y}%`, "aria-label": c.name });
       node.innerHTML = `<div class="land" style="background:${c.color}"><span class="n">${c.n}</span>${un ? c.icon : "🔒"}${campDone(c) ? `<span class="stars">${"★".repeat(Math.min(3, Math.round(campStars(c) / c.missions.length)))}${full ? " ✓" : ""}</span>` : ""}</div><span class="name">${c.name}</span>`;
-      node.addEventListener("click", () => un ? go("camp", { camp: c.id }) : toast("Completa una misión del campamento anterior para abrir este."));
+      node.addEventListener("click", () => { if (!un) return toast("Completa una misión del campamento anterior para abrir este."); const lm = $(".leti-marker", map); if (lm) { lm.style.left = `calc(${x}% + 58px)`; lm.style.top = `calc(${y}% + 8px)`; lm.classList.add("walking"); } beep(true); setTimeout(() => go("camp", { camp: c.id }), 650); });
       map.appendChild(node);
     });
     const [bx, by] = positions[5]; const bossOpen = C.camps.filter(c => campDone(c) >= 1).length >= 3;
     const boss = el("button", { class: `camp boss ${bossOpen ? "" : "locked"}`, style: `left:${bx}%;top:${by}%` });
     boss.innerHTML = `<div class="land">${bossOpen ? "🏆" : "🔒"}${S.boss ? `<span class="stars">${S.boss.pct}%</span>` : ""}</div><span class="name">Templo de la Prueba</span>`;
-    boss.addEventListener("click", () => bossOpen ? go("boss") : toast("Abre al menos 3 campamentos para entrar al Templo de la Prueba."));
+    boss.addEventListener("click", () => { if (!bossOpen) return toast("Abre al menos 3 campamentos para entrar al Templo de la Prueba."); const lm = $(".leti-marker", map); if (lm) { lm.style.left = `calc(${bx}% + 58px)`; lm.style.top = `calc(${by}% + 8px)`; lm.classList.add("walking"); } beep(true); setTimeout(() => go("boss"), 650); });
     map.appendChild(boss);
     const idx = allDone ? 5 : C.camps.indexOf(cur); const [lx, ly] = positions[idx];
     map.appendChild(el("div", { class: "leti-marker", style: `left:calc(${lx}% + 58px);top:calc(${ly}% + 8px)` }, esc(S.name[0] || "L")));
+    // animales que cruzan la selva
+    map.insertAdjacentHTML("beforeend", `<div class="critter fly" style="top:18%;animation-duration:14s">🦜</div><div class="critter fly" style="top:52%;animation-duration:22s;animation-delay:-9s;font-size:22px">🦋</div><div class="critter walk" style="top:66%;animation-duration:30s;animation-delay:-12s">🐢</div>`);
     // monos columpiándose en lianas del mapa
     [["ovaya", 42, 7, "swing"], ["chupaya", 89, 46, "swing"], ["estaya", 9, 88, "hang"]].forEach(([id, x, y, md]) => {
       if (md === "swing") { const l = el("div", { class: "liana", style: `left:calc(${x}% + 25px);top:0;height:${y}%` }); map.appendChild(l); }
