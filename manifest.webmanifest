@@ -1,0 +1,16 @@
+{
+  "name": "Expedición Leti",
+  "short_name": "Leti",
+  "description": "Aventuras para estudiar 5º básico con Ovaya, Chupaya y Estaya.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#EFEBDF",
+  "theme_color": "#2E7D4F",
+  "lang": "es",
+  "icons": [
+    { "src": "assets/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "assets/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "assets/icon-512.png", "sizes": "512x512", "type": "image/png" }
+  ]
+}
