@@ -228,3 +228,36 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 @keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
 .shake{animation:shake .35s}
 @keyframes shake{20%{transform:translateX(-6px)}40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(4px)}}
+
+/* ── Personajes (fotos) ── */
+.mk{position:relative;display:inline-block;width:var(--s);height:calc(var(--s) * 1.5);transform-origin:50% 90%;filter:drop-shadow(0 6px 4px rgba(31,42,30,.25))}
+.mk img{width:100%;height:100%;object-fit:contain;object-position:bottom;user-select:none;-webkit-user-drag:none}
+.mk-badge{position:absolute;top:-4px;right:-6px;font-size:calc(var(--s) * .32);animation:pop .4s ease-out;filter:none}
+.mood-happy{animation:bob 2.4s ease-in-out infinite}
+.mood-think{animation:tilt 3s ease-in-out infinite}
+.mood-surprised{animation:jump .7s ease-out}
+.mood-party{animation:dance .9s ease-in-out infinite;transform-origin:50% 100%}
+.mood-sad{animation:fall 1.1s ease-in forwards}
+.mood-swing{transform-origin:50% 0;animation:swing 2.6s ease-in-out infinite}
+.mood-hang{transform-origin:50% 0;animation:swing 3.4s ease-in-out infinite}
+@keyframes tilt{0%,100%{transform:rotate(-4deg)}50%{transform:rotate(4deg)}}
+@keyframes jump{0%{transform:translateY(0) scale(1)}30%{transform:translateY(-22px) scale(1.06,.94)}60%{transform:translateY(0) scale(.96,1.06)}100%{transform:none}}
+@keyframes dance{0%,100%{transform:rotate(-10deg) translateY(0)}25%{transform:rotate(0) translateY(-14px)}50%{transform:rotate(10deg) translateY(0)}75%{transform:rotate(0) translateY(-14px)}}
+@keyframes fall{0%{transform:rotate(0)}35%{transform:rotate(-12deg) translateY(-6px)}100%{transform:rotate(-75deg) translateY(26px) translateX(-10px)}}
+@keyframes swing{0%,100%{transform:rotate(-9deg)}50%{transform:rotate(9deg)}}
+@keyframes pop{from{transform:scale(0)}to{transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){.mk,.mk-badge{animation:none!important}}
+.scene .char,.today .char{width:auto}
+.today .char .mk{--s:72px!important}
+.scene .char .mk{--s:80px!important}
+.result .chars{display:flex;justify-content:center;gap:14px;align-items:flex-end}
+.crew .c .mk{--s:88px!important}
+/* portada con la escena de selva */
+.hero-jungle{position:relative;border-radius:28px;overflow:hidden;min-height:300px;background:#2E7D4F url(../assets/escena-selva.jpg) 50% 22%/cover no-repeat;box-shadow:var(--shadow);display:flex;align-items:flex-end;margin-bottom:16px}
+.hero-jungle .txt{background:linear-gradient(0deg,rgba(20,40,25,.85),rgba(20,40,25,0));width:100%;padding:60px 20px 16px;color:#fff}
+.hero-jungle h1{font-size:30px;font-weight:600;text-shadow:0 2px 6px rgba(0,0,0,.5)}
+.hero-jungle p{margin:2px 0 0;font-size:14px;opacity:.95}
+/* monos columpiándose en el mapa */
+.map-monkey{position:absolute;pointer-events:none;z-index:2}
+.map-monkey .mk{filter:drop-shadow(0 4px 3px rgba(0,0,0,.3))}
+.liana{position:absolute;width:4px;background:linear-gradient(#5B7A3A,#3E5A26);border-radius:2px;pointer-events:none}

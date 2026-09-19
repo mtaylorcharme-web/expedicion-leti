@@ -102,6 +102,13 @@
     map.appendChild(boss);
     const idx = allDone ? 5 : C.camps.indexOf(cur); const [lx, ly] = positions[idx];
     map.appendChild(el("div", { class: "leti-marker", style: `left:calc(${lx}% + 58px);top:calc(${ly}% + 8px)` }, esc(S.name[0] || "L")));
+    // monos columpiándose en lianas del mapa
+    [["ovaya", 42, 7, "swing"], ["chupaya", 89, 46, "swing"], ["estaya", 9, 88, "hang"]].forEach(([id, x, y, md]) => {
+      if (md === "swing") { const l = el("div", { class: "liana", style: `left:calc(${x}% + 25px);top:0;height:${y}%` }); map.appendChild(l); }
+      const mm = el("div", { class: "map-monkey", style: `left:${x}%;top:${y}%` }, monkey(id, md, 52)); map.appendChild(mm);
+    });
+    const hero = el("div", { class: "hero-jungle" }, `<div class="txt"><div class="eyebrow" style="color:#CFEFD8">Los Ayas te acompañan</div><h1>Expedición ${esc(S.name)}</h1><p>${esc(C.unit.subject)} · ${esc(C.unit.title)} · ${C.unit.test.label.split("·")[1] ? "prueba el" + C.unit.test.label.split("·")[1] : ""}</p></div>`);
+    const shell = el("div"); shell.appendChild(hero); shell.appendChild(wrap); m.appendChild(shell);
     wrap.appendChild(map);
 
     const side = el("div", { style: "display:grid;gap:14px" });
@@ -119,7 +126,7 @@
     const dn = ["dom", "lun", "mar", "mié", "jue", "vie", "sáb"];
     plan.innerHTML = `<h3 style="font-size:19px;font-weight:600">Plan de expedición hasta la prueba</h3><div class="plan" style="margin-top:10px">${C.plan.map(p => { const dt = new Date(start); dt.setDate(dt.getDate() + p.day); const isT = dt.getTime() === t0.getTime(), past = dt < t0; const camps = p.camps.map(id => C.camps.find(c => c.id === id)); const ok = camps.every(c => campDone(c) === c.missions.length); return `<div class="d ${isT ? "today" : past ? "past" : ""}"><div class="dn">${dn[dt.getDay()]}<b>${dt.getDate()}</b></div><div><b>${esc(p.label)}</b><div class="muted small">${camps.map(c => c.icon + " " + esc(c.name)).join(", ")} · ${esc(p.extra)}</div></div><div class="st">${ok ? "✅" : isT ? "👉" : ""}</div></div>`; }).join("")}</div>`;
     side.appendChild(plan);
-    wrap.appendChild(side); m.appendChild(wrap);
+    wrap.appendChild(side);
   }
 
   /* ── CAMPAMENTO ── */
@@ -195,7 +202,7 @@
       const done = ok => {
         stat(cfg.topic, ok); markWrong(key, q.q, cfg.camp ? cfg.camp.id : "", ok);
         if (!ok) { errors++; hearts = Math.max(0, hearts - 1); $(".hearts", w).textContent = "❤".repeat(hearts) + "♡".repeat(5 - hearts); $("#qc", w).classList.add("shake"); }
-        beep(ok); $(".char svg", w).outerHTML = monkey(ch, ok ? "party" : "sad", 92); save();
+        beep(ok); setMood($(".char .mk", w), ok ? "party" : "sad"); save();
       };
       ({ mc: qMC, fill: qMC, tf: qTF, order: qOrder, match: qMatch, classify: qClassify, write: qWrite })[q.t](qc, q, done, next);
     }
