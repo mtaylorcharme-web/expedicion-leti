@@ -7,3 +7,6 @@ window.PUENTE_SUNO = "/api/cancion";
 
 /* Dónde vive la memoria compartida entre dispositivos. Misma regla que el puente de música. */
 window.PUENTE_PROGRESO = "/api/progreso";
+
+/* Dónde vive el generador de expediciones. */
+window.PUENTE_GENERAR = "/api/generar";

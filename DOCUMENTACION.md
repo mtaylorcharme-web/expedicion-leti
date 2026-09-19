@@ -103,14 +103,26 @@ Estas decisiones son deliberadas. Si se cambian, se pierde lo que hace que la ap
 - Con un **código de familia** de seis caracteres, el avance se guarda en Netlify Blobs y se une entre celular, tablet y computador. La función `fusionar()` combina sin perder nada: se queda con lo mejor de cada aparato.
 - Siempre está disponible **Guardar copia** y **Restaurar copia** en archivo, sin necesitar internet ni cuentas.
 
+## Pruebas y materiales del colegio
+
+En el panel de adultos, pestaña **Pruebas**, se anota el calendario de pruebas y se adjunta el material de clase: texto pegado del profesor, fotos de la guía o del cuaderno, y archivos. La prueba más próxima manda el contador de la portada y el plan de estudio.
+
+Desde ahí hay dos caminos:
+
+- **Exportar para Claude** descarga un paquete de texto con la asignatura, la fecha, los temas y el material. Se pasa en una conversación y yo devuelvo el archivo de contenido. No necesita cuentas ni claves.
+- **Generar expedición** hace lo mismo solo, llamando a la función `/api/generar` de Netlify, que usa la API de Anthropic con la variable `ANTHROPIC_API_KEY`. Lee también las fotos adjuntas. El resultado se guarda en `S.unidades` y queda activo de inmediato.
+
+Las unidades generadas conviven con las de archivo: si `S.unidadActiva` apunta a una generada, el motor la usa en vez de `window.CONTENT`.
+
 ## Puentes de Netlify
 
-Dos funciones, ambas con las claves guardadas en el servidor y nunca en la página.
+Tres funciones, ambas con las claves guardadas en el servidor y nunca en la página.
 
 | Función | Ruta | Variables |
 |---|---|---|
 | Música | `/api/cancion` | `PROVEEDOR` (mureka, elevenlabs, suno), `MUSICA_API_KEY` |
 | Memoria | `/api/progreso` | ninguna; usa Netlify Blobs |
+| Generador | `/api/generar` | `ANTHROPIC_API_KEY` |
 
 Si la app vive en GitHub Pages, hay que pegar las direcciones completas del sitio de Netlify en el panel de Mariana y Francisco.
 

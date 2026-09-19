@@ -1,7 +1,9 @@
 /* Misión Aya · motor de la app (sin dependencias) */
 (function () {
   "use strict";
-  const C = window.CONTENT, CH = window.CHARS, monkey = window.monkey;
+  let C = window.CONTENT; const CH = window.CHARS, monkey = window.monkey;
+  function usarUnidad() { try { const u = JSON.parse(localStorage.getItem("mision-aya-v1") || "{}"); if (u.unidadActiva && u.unidades && u.unidades[u.unidadActiva]) C = u.unidades[u.unidadActiva]; } catch (e) { } }
+  usarUnidad();
   const $ = (s, r) => (r || document).querySelector(s);
   const el = (tag, attrs, html) => { const e = document.createElement(tag); if (attrs) for (const k in attrs) { if (k === "class") e.className = attrs[k]; else if (k.startsWith("on")) e.addEventListener(k.slice(2), attrs[k]); else e.setAttribute(k, attrs[k]); } if (html != null) e.innerHTML = html; return e; };
   const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
@@ -61,7 +63,7 @@
     for (let i = 0; i < 140; i++) ps.push({ x: Math.random() * cv.width, y: -20 - Math.random() * cv.height * .5, vx: (Math.random() - .5) * 3, vy: 2 + Math.random() * 4, r: 4 + Math.random() * 6, c: cols[i % cols.length], a: Math.random() * 6 });
     let f = 0; (function step() { ctx.clearRect(0, 0, cv.width, cv.height); ps.forEach(p => { p.x += p.vx; p.y += p.vy; p.a += .1; ctx.save(); ctx.translate(p.x, p.y); ctx.rotate(p.a); ctx.fillStyle = p.c; ctx.fillRect(-p.r / 2, -p.r / 2, p.r, p.r * .6); ctx.restore(); }); if (++f < 150) requestAnimationFrame(step); else ctx.clearRect(0, 0, cv.width, cv.height); })();
   }
-  function daysToTest() { const t = new Date(C.unit.test.date + "T00:00:00"), n = new Date(); n.setHours(0, 0, 0, 0); return Math.round((t - n) / 864e5); }
+  function daysToTest() { const p = (typeof proximaPrueba === "function") && proximaPrueba(); const f = (p && p.fecha) || C.unit.test.date; const t = new Date(f + "T00:00:00"), n = new Date(); n.setHours(0, 0, 0, 0); return Math.round((t - n) / 864e5); }
   function stars(errors) { return errors <= 1 ? 3 : errors <= 3 ? 2 : 1; }
   const starStr = n => "★".repeat(n) + "☆".repeat(3 - n);
 
@@ -849,6 +851,182 @@
     intro();
   }
 
+  /* ── PRUEBAS Y MATERIALES DEL COLEGIO ── */
+  const ASIGNATURAS = ["Historia", "Science", "Math", "Lenguaje", "English", "Social Studies", "Arte", "Música", "Otra"];
+  const pruebas = () => (S.pruebas || []).slice().sort((a, b) => (a.fecha || "").localeCompare(b.fecha || ""));
+  const diasHasta = f => { if (!f) return null; const t = new Date(f + "T00:00:00"); if (isNaN(t)) return null; const n = new Date(); n.setHours(0, 0, 0, 0); return Math.round((t - n) / 864e5); };
+  const proximaPrueba = () => pruebas().find(p => p.fecha && diasHasta(p.fecha) >= 0) || null;
+  const idNuevo = () => "p" + Date.now().toString(36) + Math.floor(Math.random() * 999).toString(36);
+  const generarURL = () => {
+    if (S.puenteGenerar) return S.puenteGenerar;
+    if (/github\.io$/i.test(location.hostname)) return null;
+    return window.PUENTE_GENERAR || "/api/generar";
+  };
+
+  /* Achica las fotos antes de guardarlas, para que quepan en el aparato */
+  function achicarImagen(file, maxLado, calidad) {
+    return new Promise((resolve, reject) => {
+      const fr = new FileReader();
+      fr.onload = () => {
+        const im = new Image();
+        im.onload = () => {
+          const esc = Math.min(1, maxLado / Math.max(im.width, im.height));
+          const cv = document.createElement("canvas");
+          cv.width = Math.round(im.width * esc); cv.height = Math.round(im.height * esc);
+          cv.getContext("2d").drawImage(im, 0, 0, cv.width, cv.height);
+          resolve(cv.toDataURL("image/jpeg", calidad || .62));
+        };
+        im.onerror = reject; im.src = fr.result;
+      };
+      fr.onerror = reject; fr.readAsDataURL(file);
+    });
+  }
+
+  function paqueteDePrueba(p) {
+    const mats = (p.materiales || []);
+    return {
+      asignatura: p.asignatura, titulo: p.titulo, fecha: p.fecha, curso: "5º básico",
+      colegio: "Colegio Bradford", idioma: p.asignatura === "Lenguaje" ? "español" : "inglés con pistas en español",
+      temas: p.temas || [],
+      textos: mats.filter(m => m.tipo === "texto").map(m => m.contenido),
+      archivos: mats.filter(m => m.tipo === "archivo").map(m => m.nombre),
+      imagenes: mats.filter(m => m.tipo === "imagen").length
+    };
+  }
+
+  function exportarPaquete(p) {
+    const paq = paqueteDePrueba(p);
+    const txt = `PAQUETE PARA CLAUDE · MISIÓN AYA
+=================================
+Asignatura: ${paq.asignatura}
+Prueba: ${paq.titulo}
+Fecha: ${paq.fecha}
+Curso: 5º básico, Colegio Bradford (IB). Idioma: ${paq.idioma}
+
+TEMAS QUE ENTRAN
+${(paq.temas.length ? paq.temas : ["(sin especificar)"]).map((t, i) => `${i + 1}. ${t}`).join("\n")}
+
+MATERIAL DE CLASE PEGADO
+${paq.textos.length ? paq.textos.join("\n\n---\n\n") : "(no hay texto pegado)"}
+
+ARCHIVOS ADJUNTOS EN LA APP
+${paq.archivos.length ? paq.archivos.join("\n") : "(ninguno)"}
+Fotos de guías o cuadernos adjuntas: ${paq.imagenes}
+
+QUÉ NECESITO
+Genera el archivo de contenido de una expedición nueva para Misión Aya siguiendo
+el formato de js/content-historia-u3.js descrito en DOCUMENTACION.md:
+selvas con lugar y época, bitácora por páginas, misiones con los siete tipos de
+pregunta, tarjetas, fuentes, lección de Chupaya, personajes para selfies y canción.
+Respeta los criterios pedagógicos del proyecto.`;
+    const blob = new Blob([txt], { type: "text/plain;charset=utf-8" });
+    const a = document.createElement("a"); a.href = URL.createObjectURL(blob);
+    a.download = `paquete-${(p.asignatura || "materia").toLowerCase().replace(/\s+/g, "-")}-${p.fecha || "sinfecha"}.txt`;
+    a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+    toast("Paquete descargado. Pásamelo en una conversación.");
+  }
+
+  async function generarExpedicion(p, avisar) {
+    const base = generarURL();
+    if (!base) throw new Error("Falta configurar el puente de generación en Ajustes.");
+    avisar("Ordenando el material…");
+    const imagenes = (p.materiales || []).filter(m => m.tipo === "imagen").slice(0, 6).map(m => m.contenido);
+    avisar("Leyendo las guías y armando la expedición… esto tarda un poco.");
+    const r = await fetch(base, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ paquete: paqueteDePrueba(p), imagenes }) });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok || !d.contenido) throw new Error(d.mensaje || d.error || "No se pudo generar la expedición.");
+    return d.contenido;
+  }
+
+  /* Pestaña de pruebas dentro del panel de Mariana y Francisco */
+  function vistaPruebas(w) {
+    const lista = pruebas();
+    const cont = el("div");
+    cont.innerHTML = `<div class="card"><div class="row" style="justify-content:space-between"><div><h3 style="font-size:19px;font-weight:600">Calendario de pruebas</h3><p class="muted small" style="margin:2px 0 0">Agrega una prueba, pega el material de clase y con eso se arma la expedición.</p></div><button class="btn g sm" id="nueva">Agregar prueba</button></div>
+      <div class="lista-pruebas">${lista.length ? lista.map(p => { const d = diasHasta(p.fecha); const tono = d === null ? "" : d < 0 ? "pasada" : d <= 2 ? "urgente" : d <= 7 ? "pronto" : ""; const nm = (p.materiales || []).length;
+        return `<button class="prueba ${tono} ${S.pruebaAbierta === p.id ? "abierta" : ""}" data-prueba="${p.id}"><div class="dias"><b>${d === null ? "·" : d < 0 ? "—" : d}</b><span>${d === null ? "sin fecha" : d < 0 ? "pasó" : d === 1 ? "día" : "días"}</span></div><div class="info"><b>${esc(p.titulo || "Prueba sin título")}</b><span>${esc(p.asignatura)} · ${esc(p.fecha || "sin fecha")}</span><small>${nm} material${nm === 1 ? "" : "es"} · ${(p.temas || []).length} tema${(p.temas || []).length === 1 ? "" : "s"}${p.expedicion ? " · expedición lista ✓" : ""}</small></div><span class="flecha">${S.pruebaAbierta === p.id ? "▾" : "›"}</span></button>
+        ${S.pruebaAbierta === p.id ? `<div class="detalle" id="det-${p.id}"></div>` : ""}`; }).join("") : `<p class="muted" style="margin-top:10px">Todavía no hay pruebas anotadas.</p>`}</div></div>`;
+    w.appendChild(cont);
+    $("#nueva", cont).addEventListener("click", () => {
+      const p = { id: idNuevo(), asignatura: "Historia", titulo: "", fecha: "", temas: [], materiales: [] };
+      S.pruebas = [...(S.pruebas || []), p]; S.pruebaAbierta = p.id; save(); go("parent");
+    });
+    cont.querySelectorAll("[data-prueba]").forEach(b => b.addEventListener("click", () => { S.pruebaAbierta = S.pruebaAbierta === b.dataset.prueba ? null : b.dataset.prueba; save(); go("parent"); }));
+    const abierta = lista.find(p => p.id === S.pruebaAbierta);
+    if (abierta) pintarDetalle($("#det-" + abierta.id, cont), abierta);
+  }
+
+  function pintarDetalle(caja, p) {
+    if (!caja) return;
+    const mats = p.materiales || [];
+    caja.innerHTML = `<div class="campos">
+        <label>Asignatura<select id="f-asig">${ASIGNATURAS.map(a => `<option ${a === p.asignatura ? "selected" : ""}>${a}</option>`).join("")}</select></label>
+        <label>Fecha de la prueba<input type="date" id="f-fecha" value="${esc(p.fecha || "")}"></label>
+      </div>
+      <label class="campo">Título o unidad<input id="f-tit" value="${esc(p.titulo || "")}" placeholder="Unidad 3: La expansión europea"></label>
+      <label class="campo">Temas que entran, uno por línea<textarea id="f-temas" rows="4" placeholder="Los viajes de exploración europea&#10;Culturas americanas pre-Conquista">${esc((p.temas || []).join("\n"))}</textarea></label>
+      <div class="mats">
+        <div class="row" style="justify-content:space-between"><b style="font-family:Fredoka;font-size:16px;font-weight:600">Material de clase</b><span class="muted small">${mats.length} adjunto${mats.length === 1 ? "" : "s"}</span></div>
+        <label class="campo">Pegar texto del profesor, de la guía o del correo<textarea id="f-texto" rows="4" placeholder="Pega aquí lo que mandó el profesor…"></textarea></label>
+        <div class="actions" style="justify-content:flex-start;gap:8px;margin-top:6px">
+          <button class="btn ghost sm" id="addTexto">Agregar el texto</button>
+          <label class="btn ghost sm" style="cursor:pointer">Adjuntar fotos<input type="file" id="addFoto" accept="image/*" multiple hidden></label>
+          <label class="btn ghost sm" style="cursor:pointer">Adjuntar archivos<input type="file" id="addArch" multiple hidden></label>
+        </div>
+        <div class="adjuntos">${mats.map((m, i) => `<div class="adj ${m.tipo}">${m.tipo === "imagen" ? `<img src="${m.contenido}" alt="">` : `<span class="ic">${m.tipo === "texto" ? "📝" : "📎"}</span>`}<div><b>${esc(m.nombre || (m.tipo === "texto" ? "Texto pegado" : "Archivo"))}</b><small>${m.tipo === "texto" ? esc((m.contenido || "").slice(0, 70)) + "…" : esc(m.peso || "")}</small></div><button class="quitar" data-quitar="${i}" aria-label="Quitar">✕</button></div>`).join("") || `<p class="muted small" style="margin:8px 0 0">Sin material todavía. Pega el texto del profesor o adjunta fotos de la guía.</p>`}</div>
+      </div>
+      <div class="actions" style="justify-content:space-between;flex-wrap:wrap;gap:8px">
+        <button class="btn ghost sm" id="borrar">Borrar esta prueba</button>
+        <span style="display:flex;gap:8px;flex-wrap:wrap"><button class="btn ghost sm" id="exportar">Exportar para Claude</button><button class="btn sm" id="generar">Generar expedición ✨</button></span>
+      </div>
+      <div id="genEstado"></div>`;
+    const guardar = () => {
+      p.asignatura = $("#f-asig", caja).value; p.fecha = $("#f-fecha", caja).value; p.titulo = $("#f-tit", caja).value;
+      p.temas = $("#f-temas", caja).value.split("\n").map(t => t.trim()).filter(Boolean); save();
+    };
+    ["f-asig", "f-fecha", "f-tit", "f-temas"].forEach(id => $("#" + id, caja).addEventListener("change", guardar));
+    $("#addTexto", caja).addEventListener("click", () => {
+      const t = $("#f-texto", caja).value.trim(); if (!t) return toast("Pega primero el texto.");
+      guardar(); p.materiales = [...(p.materiales || []), { tipo: "texto", nombre: "Texto pegado", contenido: t }]; save(); go("parent");
+    });
+    $("#addFoto", caja).addEventListener("change", async e => {
+      guardar(); const fs = [...e.target.files].slice(0, 6);
+      for (const f of fs) { try { const d = await achicarImagen(f, 900, .6); p.materiales = [...(p.materiales || []), { tipo: "imagen", nombre: f.name, contenido: d }]; } catch (err) { } }
+      try { save(); } catch (err) { toast("Las fotos no cupieron en el aparato."); }
+      go("parent");
+    });
+    $("#addArch", caja).addEventListener("change", async e => {
+      guardar();
+      for (const f of [...e.target.files].slice(0, 8)) {
+        const kb = Math.round(f.size / 1024) + " KB";
+        if (/\.(txt|md|csv)$/i.test(f.name)) { const t = await f.text(); p.materiales = [...(p.materiales || []), { tipo: "texto", nombre: f.name, contenido: t.slice(0, 20000) }]; }
+        else p.materiales = [...(p.materiales || []), { tipo: "archivo", nombre: f.name, peso: kb }];
+      }
+      save(); go("parent");
+    });
+    caja.querySelectorAll("[data-quitar]").forEach(b => b.addEventListener("click", ev => { ev.stopPropagation(); p.materiales.splice(+b.dataset.quitar, 1); save(); go("parent"); }));
+    $("#borrar", caja).addEventListener("click", () => { if (!confirm("¿Borrar esta prueba y su material?")) return; S.pruebas = S.pruebas.filter(x => x.id !== p.id); S.pruebaAbierta = null; save(); go("parent"); });
+    $("#exportar", caja).addEventListener("click", () => { guardar(); exportarPaquete(p); });
+    $("#generar", caja).addEventListener("click", async () => {
+      guardar();
+      if (!p.titulo || !p.fecha) return toast("Ponle título y fecha a la prueba.");
+      if (!(p.materiales || []).length && !(p.temas || []).length) return toast("Agrega al menos los temas o algo de material.");
+      const est = $("#genEstado", caja), btn = $("#generar", caja); btn.disabled = true;
+      const pinta = t => { est.innerHTML = `<div class="componiendo"><div class="char">${monkey("ovaya", "party", 60)}</div><div><b>Armando la expedición…</b><span>${esc(t)}</span></div></div>`; };
+      pinta("Empezando…");
+      try {
+        const contenido = await generarExpedicion(p, pinta);
+        S.unidades = S.unidades || {}; S.unidades[contenido.unit.id] = contenido;
+        p.expedicion = contenido.unit.id; S.unidadActiva = contenido.unit.id; save();
+        confetti(); jingle("win");
+        est.innerHTML = `<div class="componiendo"><div class="char">${monkey("ovaya", "party", 60)}</div><div><b>¡Expedición lista!</b><span>${esc(contenido.unit.title)} · ${contenido.camps.length} selvas. Ya está activa en la selva de Leti.</span></div></div>`;
+      } catch (err) {
+        btn.disabled = false;
+        est.innerHTML = `<div class="voz-problema" style="margin-top:10px"><b>✨ No se pudo generar</b><p>${esc(err.message)}</p><p class="muted small">Mientras tanto, usa "Exportar para Claude" y pásame el archivo en una conversación: lo genero yo y te lo dejo listo.</p></div>`;
+      }
+    });
+  }
+
   /* ── MEMORIA ENTRE DISPOSITIVOS ── */
   const syncURL = () => {
     if (S.puenteProgreso) return S.puenteProgreso;
@@ -1244,9 +1422,14 @@
     const wrong = Object.values(S.wrong);
     const w = el("div");
     w.innerHTML = `<div class="row" style="justify-content:space-between"><h2 style="font-size:26px;font-weight:600">Panel de Mariana y Francisco</h2><button class="btn ghost sm" id="lock">Cerrar 🔒</button></div>
+      <div class="subtabs">${[["progreso", "📊", "Progreso"], ["pruebas", "📅", "Pruebas"], ["ajustes", "⚙️", "Ajustes"]].map(([k, i, n]) => `<button class="subtab ${(S.panelTab || "progreso") === k ? "on" : ""}" data-tab="${k}">${i} ${n}</button>`).join("")}</div>
+      <div id="tabProgreso" ${(S.panelTab || "progreso") !== "progreso" ? "hidden" : ""}>
       <div class="kpi" style="margin-top:12px"><div><b>${doneMissions()}/${totalMissions}</b><small>misiones completadas</small></div><div><b>${totalN ? Math.round(totalOK / totalN * 100) : 0}%</b><small>aciertos (${totalN} respuestas)</small></div><div><b>${S.streak.count}</b><small>días seguidos</small></div><div><b>${S.boss ? S.boss.pct + "%" : "—"}</b><small>mejor simulacro</small></div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600">Aciertos por tema de la prueba</h3><div class="bars" style="margin-top:6px">${topics.map(t => `<div class="r"><span>${t.c.n}. ${esc(t.c.topic)}</span><div class="bar"><b style="width:${t.pct || 0}%;background:${t.pct == null ? "#ccc" : t.pct >= 80 ? "var(--ok)" : t.pct >= 60 ? "var(--gold)" : "var(--coral)"}"></b></div><span class="n">${t.pct == null ? "sin datos" : t.pct + "%"}</span></div>`).join("")}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600">Para reforzar (${wrong.length})</h3><p class="muted small" style="margin:4px 0 10px">Preguntas falladas que siguen pendientes. Desaparecen cuando se responden bien dos veces en «Repaso».</p><div class="wrongs">${wrong.length ? wrong.map(x => `<div>${esc(x.q)}</div>`).join("") : "<div class='muted' style='border-color:var(--ok)'>Nada pendiente por ahora.</div>"}</div></div>
+      </div>
+      <div id="tabPruebas" ${(S.panelTab || "progreso") !== "pruebas" ? "hidden" : ""}></div>
+      <div id="tabAjustes" ${(S.panelTab || "progreso") !== "ajustes" ? "hidden" : ""}>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600">Ajustes</h3>
                 <div class="field"><label for="np">Cambiar PIN</label><input id="np" inputmode="numeric" maxlength="6" placeholder="Nuevo PIN (4 a 6 números)"></div>
         <div class="field"><label style="font-weight:800;font-size:14px">Memoria entre dispositivos</label>
@@ -1254,13 +1437,16 @@
             <p class="muted small" style="margin:8px 0">Usa el mismo código en el celular, la tablet y el computador. El avance se une solo, sin perder nada de ninguno.</p>
             <div class="actions" style="justify-content:flex-start;gap:8px;margin:0"><button class="btn g sm" id="sincro">Sincronizar ahora</button><button class="btn ghost sm" id="exportar">Guardar copia</button><label class="btn ghost sm" style="cursor:pointer">Restaurar copia<input type="file" id="importar" accept="application/json" hidden></label></div>
             <div id="estadoSync">${ultimoSync ? `<span class="sync-estado ${ultimoSync.clase || ""}">${esc(ultimoSync.txt)}</span>` : ""}</div></div></div>
+        <div class="field"><label for="pg">Generador de expediciones (dirección de Netlify)</label><input id="pg" value="${esc(S.puenteGenerar || "")}" placeholder="https://tu-sitio.netlify.app/api/generar"><small class="muted">Sin esto, exporta el paquete y yo genero la expedición.</small></div>
         <div class="field"><label for="pu">Memoria en la nube (dirección de Netlify)</label><input id="pp" value="${esc(S.puenteProgreso || "")}" placeholder="https://tu-sitio.netlify.app/api/progreso"><small class="muted">Sin esto, la copia en archivo funciona igual.</small></div>
         <div class="field"><label for="pu">Puente de Suno (para crear canciones automáticamente)</label><input id="pu" value="${esc(S.puente || "")}" placeholder="https://tu-sitio.netlify.app/api/cancion"><small class="muted">Déjalo vacío si la app vive en el mismo Netlify.</small></div>
         <div class="field"><label style="font-weight:800;font-size:14px">Micrófono</label><button class="btn ghost sm" id="probarMic" style="justify-self:start">Probar micrófono 🎤</button><div id="micres"></div></div>
         <div class="field"><label><input type="checkbox" id="snd" ${S.sound ? "checked" : ""} style="width:auto;margin-right:8px">Sonidos activados</label></div>
         <div class="actions" style="justify-content:flex-start"><button class="btn g sm" id="saveS">Guardar ajustes</button><button class="btn ghost sm" id="reset">Reiniciar todo el progreso</button></div>
-        <p class="muted small" style="margin-top:12px">Próximamente: subir fotos, texto o enlaces del colegio para crear nuevas expediciones con inteligencia artificial (requiere clave de API de Anthropic).</p></div>`;
+        </div></div>`;
     m.appendChild(w);
+    w.querySelectorAll("[data-tab]").forEach(b => b.addEventListener("click", () => { S.panelTab = b.dataset.tab; save(); go("parent"); }));
+    if ((S.panelTab || "progreso") === "pruebas") vistaPruebas($("#tabPruebas", w));
     $("#lock", w).addEventListener("click", () => { parentOK = false; go("home"); });
     $("#probarMic", w).addEventListener("click", async () => {
       const cont = $("#micres", w); cont.innerHTML = `<div class="muted small" style="margin-top:8px">Revisando…</div>`;
@@ -1277,7 +1463,7 @@
     $("#sincro", w).addEventListener("click", async () => { if (!S.codigo) return marcarSync("Primero crea un código.", "mal"); if (!syncURL()) return marcarSync("Falta la dirección de la memoria en la nube.", "mal"); marcarSync("Sincronizando…", ""); await sincronizar(false); render(); });
     $("#exportar", w).addEventListener("click", exportarProgreso);
     $("#importar", w).addEventListener("change", e => { const f = e.target.files[0]; if (f) importarProgreso(f, () => go("parent")); });
-    $("#saveS", w).addEventListener("click", () => { const pp = $("#pp", w).value.trim(); S.puenteProgreso = pp || null; const pu = $("#pu", w).value.trim(); S.puente = pu || null; const np = $("#np", w).value.trim(); if (np) { if (/^\d{4,6}$/.test(np)) S.pin = np; else return toast("El PIN debe tener 4 a 6 números."); } S.sound = $("#snd", w).checked; save(); toast("Ajustes guardados"); render(); });
+    $("#saveS", w).addEventListener("click", () => { const pg = $("#pg", w).value.trim(); S.puenteGenerar = pg || null; const pp = $("#pp", w).value.trim(); S.puenteProgreso = pp || null; const pu = $("#pu", w).value.trim(); S.puente = pu || null; const np = $("#np", w).value.trim(); if (np) { if (/^\d{4,6}$/.test(np)) S.pin = np; else return toast("El PIN debe tener 4 a 6 números."); } S.sound = $("#snd", w).checked; save(); toast("Ajustes guardados"); render(); });
     $("#reset", w).addEventListener("click", () => { if (confirm("¿Borrar TODO el progreso de la Misión Aya? Esta acción no se puede deshacer.")) { const pin = S.pin; S = Object.assign({}, DEF, { pin }); save(); toast("Progreso reiniciado"); go("home"); } });
   }
 
