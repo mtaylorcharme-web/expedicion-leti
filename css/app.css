@@ -281,3 +281,10 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 @keyframes walkbob{50%{transform:translateY(-8px) rotate(-6deg)}}
 .leti-marker{z-index:3}
 @media(prefers-reduced-motion:reduce){.flow,.critter{animation:none!important}}
+/* voz */
+.say{position:absolute;right:8px;top:8px;width:30px;height:30px;border-radius:50%;background:#EEF1EC;font-size:15px;display:grid;place-items:center;line-height:1;opacity:.85}
+.say:hover{background:#DDF3E4}
+.bubble{padding-right:44px}
+.qcard{position:relative}
+.qcard .say{top:10px;right:10px}
+.qcard h2{padding-right:36px}

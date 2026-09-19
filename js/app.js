@@ -46,6 +46,14 @@
     setMood(mk, "surprised"); beep(true); toast(`${CH[id].name}: ${SAY[id][Math.floor(Math.random() * SAY[id].length)]}`);
     setTimeout(() => setMood(mk, prev === "sad" ? "happy" : prev), 800);
   });
+  /* voz en español (lectura en voz alta) */
+  let voiceEs = null;
+  function pickVoice() { try { const vs = speechSynthesis.getVoices(); voiceEs = vs.find(v => /es-(CL|MX|419|US)/i.test(v.lang)) || vs.find(v => /^es/i.test(v.lang)) || null; } catch (e) { } }
+  if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
+  function speak(text) { if (!("speechSynthesis" in window)) return toast("Este dispositivo no tiene voz disponible."); try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text.replace(/[«»♪✅❌]/g, "")); u.lang = voiceEs ? voiceEs.lang : "es-ES"; if (voiceEs) u.voice = voiceEs; u.rate = .95; u.pitch = 1.05; speechSynthesis.speak(u); } catch (e) { } }
+  document.addEventListener("click", e => { const b = e.target.closest(".say"); if (!b) return; e.stopPropagation(); const box = b.closest(".bubble, .qcard"); if (!box) return; const txt = [...box.querySelectorAll(".tw, h2, .ctx")].map(x => x.textContent).join(". ") || box.textContent; speak(txt.replace(/🔊/g, "")); });
+  function typewrite(elm) { const full = elm.textContent; if (!full || full.length > 240 || matchMedia("(prefers-reduced-motion: reduce)").matches) return; elm.textContent = ""; let i = 0; const t = setInterval(() => { elm.textContent = full.slice(0, ++i); if (i >= full.length) clearInterval(t); }, 18); }
+  const SAYBTN = `<button class="say" aria-label="Escuchar" title="Escuchar">🔊</button>`;
   function confetti() {
     const cv = $("#confetti"), ctx = cv.getContext("2d"); cv.width = innerWidth; cv.height = innerHeight;
     const cols = ["#F2603E", "#F2B134", "#3FA66B", "#4FB3C9", "#8E6BC7", "#fff"]; const ps = [];
@@ -129,7 +137,7 @@
     const side = el("div", { style: "display:grid;gap:14px" });
     const nextM = cur.missions.find(x => !S.done[x.id]);
     const msg = allDone ? `¡Recorrimos toda la selva! Ahora toca el Templo de la Prueba y repasar tus errores. ¡Tú puedes!` : campDone(cur) === 0 && !S.done[cur.id + "-notes"] ? cur.intro : nextM ? `Siguiente misión en ${cur.name}: «${nextM.title}». ${nextM.story}` : cur.intro;
-    side.innerHTML = `<div class="card"><div class="today"><div class="char">${monkey(guide, allDone ? "party" : "happy", 96)}</div><div class="bubble"><span class="who">${CH[guide].name}</span>${esc(msg)}</div></div><div class="actions" style="justify-content:flex-start"><button class="btn" id="goNext">${allDone ? "Ir al Templo 🏆" : "¡Vamos! ⛵"}</button><button class="btn ghost" data-go="review">Repaso 🎯</button></div></div>`;
+    side.innerHTML = `<div class="card"><div class="today"><div class="char">${monkey(guide, allDone ? "party" : "happy", 96)}</div><div class="bubble"><span class="who">${CH[guide].name}</span><span class="tw">${esc(msg)}</span>${SAYBTN}</div></div><div class="actions" style="justify-content:flex-start"><button class="btn" id="goNext">${allDone ? "Ir al Templo 🏆" : "¡Vamos! ⛵"}</button><button class="btn ghost" data-go="review">Repaso 🎯</button></div></div>`;
     $("#goNext", side).addEventListener("click", () => allDone ? go("boss") : go("camp", { camp: cur.id }));
 
     const cd = el("div", { class: "card" });
@@ -150,7 +158,7 @@
     const h = el("div");
     h.innerHTML = `<button class="btn ghost sm" data-go="home">← Selva</button>
       <div class="camphead" style="margin-top:12px"><div class="icon" style="background:${c.color}">${c.icon}</div><div><div class="eyebrow">Campamento ${c.n} · ${esc(c.topic)}</div><h2 style="font-size:26px;font-weight:600">${esc(c.name)}</h2></div></div>
-      <div class="today card"><div class="char">${monkey(c.guide, "happy", 84)}</div><div class="bubble"><span class="who">${CH[c.guide].name}</span>${esc(c.intro)}</div></div>`;
+      <div class="today card"><div class="char">${monkey(c.guide, "happy", 84)}</div><div class="bubble"><span class="who">${CH[c.guide].name}</span><span class="tw">${esc(c.intro)}</span>${SAYBTN}</div></div>`;
     const steps = el("div", { class: "steps" });
     const s0 = el("button", { class: `step ${notesDone ? "done" : ""}` }); s0.innerHTML = `<div class="ic">📖</div><div><b>Bitácora del campamento</b><span class="sub">${c.notes.length} páginas para leer antes de las misiones · 5 min</span></div><div class="right">${notesDone ? "✅" : "→"}</div>`;
     s0.addEventListener("click", () => go("notes", { camp: c.id })); steps.appendChild(s0);
@@ -213,7 +221,8 @@
     }
     function show() {
       const { q, key } = qs[i]; const ch = cfg.char;
-      w.innerHTML = head() + `<div class="scene"><div class="char">${monkey(ch, i === 0 ? "surprised" : "think", 92)}<span class="nm">${CH[ch].name}</span></div><div class="bubble"><span class="who">${i === 0 ? esc(cfg.title) : "Desafío " + (i + 1) + " de " + qs.length}</span>${i === 0 && cfg.story ? esc(cfg.story) : pickLine(ch)}</div></div><div class="qcard" id="qc"></div>`;
+      w.innerHTML = head() + `<div class="scene"><div class="char">${monkey(ch, i === 0 ? "surprised" : "think", 92)}<span class="nm">${CH[ch].name}</span></div><div class="bubble"><span class="who">${i === 0 ? esc(cfg.title) : "Desafío " + (i + 1) + " de " + qs.length}</span><span class="tw">${i === 0 && cfg.story ? esc(cfg.story) : pickLine(ch)}</span>${SAYBTN}</div></div><div class="qcard" id="qc"></div>`;
+      typewrite($(".bubble .tw", w));
       $("#quit", w).addEventListener("click", () => { if (confirm("¿Salir de la misión? Se perderá el avance de esta misión.")) cfg.quit ? cfg.quit() : go("camp", { camp: cfg.camp.id }); });
       const qc = $("#qc", w);
       const done = ok => {
@@ -222,6 +231,7 @@
         if (ok) beep(true); else jingle("lose"); setMood($(".char .mk", w), ok ? "party" : "sad"); save();
       };
       ({ mc: qMC, fill: qMC, tf: qTF, order: qOrder, match: qMatch, classify: qClassify, write: qWrite })[q.t](qc, q, done, next);
+      qc.insertAdjacentHTML("afterbegin", SAYBTN);
     }
     show();
   }
