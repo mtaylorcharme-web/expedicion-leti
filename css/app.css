@@ -352,3 +352,8 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 @keyframes wiggle{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(6deg) translateY(-4px)}}
 .chest-body{background:#FFF7E0;border:2px solid var(--gold);border-radius:16px;padding:12px 16px;text-align:left;animation:fade .35s ease-out}
 .chest-body p{margin:4px 0 0;font-size:15.5px}
+/* cuaderno */
+.notebook{background:#FFFDF3;background-image:repeating-linear-gradient(transparent 0 30px,#EDE6CF 30px 31px);border-left:8px solid var(--gold)}
+.notebook h2{font-size:24px;margin:4px 0 10px}
+.nbody{font-size:17px;line-height:1.6}
+.nbody b{color:var(--jungle-deep);background:#E6F6EC;padding:0 4px;border-radius:5px}

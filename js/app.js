@@ -52,7 +52,7 @@
   function pickVoice() { try { const vs = speechSynthesis.getVoices(); voiceEs = vs.find(v => /es-(CL|MX|419|US)/i.test(v.lang)) || vs.find(v => /^es/i.test(v.lang)) || null; } catch (e) { } }
   if ("speechSynthesis" in window) { pickVoice(); speechSynthesis.onvoiceschanged = pickVoice; }
   function speak(text) { if (!("speechSynthesis" in window)) return toast("Este dispositivo no tiene voz disponible."); try { speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text.replace(/[«»♪✅❌]/g, "")); u.lang = voiceEs ? voiceEs.lang : "es-ES"; if (voiceEs) u.voice = voiceEs; u.rate = .95; u.pitch = 1.05; speechSynthesis.speak(u); } catch (e) { } }
-  document.addEventListener("click", e => { const b = e.target.closest(".say"); if (!b) return; e.stopPropagation(); const box = b.closest(".bubble, .qcard"); if (!box) return; const txt = [...box.querySelectorAll(".tw, h2, .ctx")].map(x => x.textContent).join(". ") || box.textContent; speak(txt.replace(/🔊/g, "")); });
+  document.addEventListener("click", e => { const b = e.target.closest(".say"); if (!b) return; e.stopPropagation(); const box = b.closest(".bubble, .qcard"); if (!box) return; const txt = [...box.querySelectorAll(".tw, h2, .ctx, .nbody")].map(x => x.textContent).join(". ") || box.textContent; speak(txt.replace(/🔊/g, "")); });
   function typewrite(elm) { const full = elm.textContent; if (!full || full.length > 240 || matchMedia("(prefers-reduced-motion: reduce)").matches) return; elm.textContent = ""; let i = 0; const t = setInterval(() => { elm.textContent = full.slice(0, ++i); if (i >= full.length) clearInterval(t); }, 18); }
   const SAYBTN = `<button class="say" aria-label="Escuchar" title="Escuchar">🔊</button>`;
   function confetti() {
@@ -201,16 +201,21 @@
     h.appendChild(steps); m.appendChild(h);
   }
 
-  /* ── BITÁCORA ── */
+  /* ── BITÁCORA (cuaderno por páginas) ── */
   function notes(m) {
-    const c = C.camps.find(x => x.id === ctx.camp);
-    const w = el("div", { class: "mission" });
-    w.innerHTML = `<button class="btn ghost sm" id="back">← ${esc(c.name)}</button><div class="eyebrow" style="margin-top:12px">Bitácora · ${esc(c.topic)}</div><h2 style="font-size:26px;font-weight:600;margin-bottom:12px">Lo que hay que saber</h2>
-      <div class="notes">${c.notes.map(n => `<div class="note"><h3>${esc(n.title)}</h3><p>${n.body}</p></div>`).join("")}</div>
-      <div class="actions"><button class="btn g" id="ok">¡Listo, leí la bitácora! +15 XP</button></div>`;
-    $("#back", w).addEventListener("click", () => go("camp", { camp: c.id }));
-    $("#ok", w).addEventListener("click", () => { if (!S.done[c.id + "-notes"]) { S.done[c.id + "-notes"] = { stars: 0 }; addXP(15); } save(); go("camp", { camp: c.id }); });
-    m.appendChild(w);
+    const c = C.camps.find(x => x.id === ctx.camp); let pg = 0; const N = c.notes.length; const maxSeen = { v: 0 };
+    const w = el("div", { class: "mission" }); m.appendChild(w);
+    const draw = () => { const n = c.notes[pg]; maxSeen.v = Math.max(maxSeen.v, pg);
+      w.innerHTML = `<div class="mhead"><button class="close" id="back" aria-label="Volver">✕</button><div class="pbar"><b style="width:${((pg + 1) / N) * 100}%;background:linear-gradient(90deg,var(--gold),#F7C95C)"></b></div><span class="small muted" style="min-width:60px;text-align:right">Pág. ${pg + 1}/${N}</span></div>
+        <div class="scene"><div class="char">${monkey(c.guide, pg === 0 ? "surprised" : "think", 80)}<span class="nm">${CH[c.guide].name}</span></div><div class="bubble"><span class="who">Bitácora · ${esc(c.topic)}</span><span class="tw">${pg === 0 ? "Lee con calma cada página. Toca 🔊 si quieres que te la lea. Al final vienen las misiones." : ["¡Esto sale en la prueba!", "Fíjate en las palabras en verde.", "Léelo dos veces si hace falta.", "¡Vas muy bien!", "Ya casi terminamos."][pg % 5]}</span>${SAYBTN}</div></div>
+        <div class="qcard notebook"><div class="eyebrow">Página ${pg + 1}</div><h2>${esc(n.title)}</h2><div class="nbody">${n.body}</div></div>
+        <div class="actions" style="justify-content:space-between"><button class="btn ghost" id="prev" ${pg === 0 ? "disabled" : ""}>← Anterior</button>${pg < N - 1 ? `<button class="btn g" id="next">Siguiente →</button>` : `<button class="btn" id="ok">¡Leí toda la bitácora! +15 XP</button>`}</div>`;
+      typewrite($(".bubble .tw", w)); const qc = $(".qcard", w); qc.insertAdjacentHTML("afterbegin", SAYBTN);
+      $("#back", w).addEventListener("click", () => go("camp", { camp: c.id }));
+      $("#prev", w).addEventListener("click", () => { pg--; draw(); });
+      const nx = $("#next", w); if (nx) nx.addEventListener("click", () => { pg++; beep(true); draw(); window.scrollTo({ top: 0 }); });
+      const ok = $("#ok", w); if (ok) ok.addEventListener("click", () => { if (!S.done[c.id + "-notes"]) { S.done[c.id + "-notes"] = { stars: 0 }; addXP(15); jingle("stamp"); } save(); go("camp", { camp: c.id }); }); };
+    draw();
   }
 
   const FACTS = [
