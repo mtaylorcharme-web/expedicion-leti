@@ -607,3 +607,17 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .contador{text-align:right;font-weight:800;margin-bottom:6px}
 .pista{background:#FFF7E0;border:2px dashed var(--gold);border-radius:14px;padding:10px 13px;font-weight:700;color:var(--ink-2)}
 @media (max-width:420px){.causas{padding-left:30px}.hecho .txt{font-size:14.5px}}
+
+/* ── El salto a ciegas (modalidad opcional) ── */
+.step.opcional{border-color:var(--coral);background:linear-gradient(180deg,#FFF6F2,var(--paper))}
+.etiqueta{display:inline-block;vertical-align:1px;margin-left:6px;background:var(--coral);color:#fff;border-radius:999px;padding:2px 9px;font:800 11px Fredoka;letter-spacing:.03em;text-transform:uppercase}
+.qcard.ciego{border:2px dashed var(--coral);background:#FFF9F6}
+.qcard.ciego .ctx{color:var(--coral-deep);font-weight:800}
+.apuesta{margin-top:12px;border-radius:16px;padding:12px 15px;font-weight:700;border:2px solid var(--line);background:#fff}
+.apuesta .lab{display:block;font:800 12px Fredoka;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-2);margin-bottom:3px}
+.apuesta.ok{border-color:var(--ok);background:var(--ok-bg)}
+.apuesta.no{border-color:var(--line);background:#F4F1E8;opacity:.9}
+.apuesta.real{border-color:var(--ok);background:var(--ok-bg)}
+.apuesta.real .lab{color:var(--jungle)}
+.enlace-nota{margin-top:12px;font-weight:700;font-size:14.5px;color:var(--ink-2);background:#F4F1E8;border-radius:14px;padding:10px 13px}
+.step .sub .fuerte{font-style:normal;font-weight:800;color:var(--coral-deep);text-decoration:underline}

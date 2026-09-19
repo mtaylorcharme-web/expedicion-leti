@@ -79,7 +79,7 @@
   /* ── navegación ── */
   let view = "home", ctx = {};
   function go(v, c) { pararVoz(true); view = v; ctx = c || {}; render(); himnoSegunVista(v); window.scrollTo({ top: 0 }); }
-  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song, daily, fuentes, fuente, ensenar, mundo, ciudad, causas })[view](m); }
+  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song, daily, fuentes, fuente, ensenar, mundo, ciudad, causas, ciego })[view](m); }
   function renderTop() {
     const d = daysToTest(); const dl = d > 1 ? `${d} días` : d === 1 ? "¡mañana!" : d === 0 ? "¡hoy!" : "pasó";
     $("#topbar").innerHTML = `<span class="chip streak">🔥 ${S.streak.count} <span class="lbl">día${S.streak.count === 1 ? "" : "s"}</span></span><span class="chip xp">⭐ ${S.xp} <span class="lbl">XP</span></span><span class="chip days">📅 <span class="lbl">Prueba:</span> ${dl}</span><span class="spacer"></span><button class="chip mus ${himno && !himno.paused ? "on" : ""}" data-himno="1" aria-label="Himno de Los Ayas" title="Himno de Los Ayas">🎵</button><button class="avatar" data-go="passport" aria-label="Pasaporte"><img src="assets/chars/ovaya.png" alt="Ovaya"></button>`;
@@ -223,6 +223,10 @@
       <div class="camphead" style="margin-top:12px"><div class="icon" style="background:${c.color}">${c.icon}</div><div><div class="eyebrow">Selva ${c.n} de 5 · ${esc(c.lugar)} · ${esc(c.epoca)}</div><h2 style="font-size:26px;font-weight:600">${esc(c.name)}</h2><div class="muted small">${esc(c.topic)}</div></div></div>
       <div class="today card"><div class="char">${monkey(c.guide, "happy", 84)}</div><div class="bubble"><span class="who">${CH[c.guide].name}</span><span class="tw">${esc(c.intro)}</span>${SAYBTN}</div></div>`;
     const steps = el("div", { class: "steps" });
+    if (desafioDe(c.id)) { const D = desafioDe(c.id); const hh = S.ciegos && S.ciegos[D.id];
+      const sd = el("button", { class: `step opcional ${hh ? "done" : ""}` });
+      sd.innerHTML = `<div class="ic">🙈</div><div><b>El salto a ciegas <span class="etiqueta">modo opcional</span></b><span class="sub">${D.retos.length} apuestas con Chupaya <i class="fuerte">antes</i> de leer la bitácora · 3 min</span><span class="sub" style="color:var(--coral-deep);font-weight:800">Aquí se puede fallar: fallar es el punto</span></div><div class="right">${hh ? hh.mejor + "/" + hh.de : "→"}</div>`;
+      sd.addEventListener("click", () => go("ciego", { camp: c.id })); steps.appendChild(sd); }
     const s0 = el("button", { class: `step ${notesDone ? "done" : ""}` }); s0.innerHTML = `<div class="ic">📖</div><div><b>Bitácora de esta selva</b><span class="sub">${c.notes.length} páginas sobre ${esc(c.lugar)}, ${esc(c.epoca)} · léelas antes de saltar · 5 min</span></div><div class="right">${notesDone ? "✅" : "→"}</div>`;
     s0.addEventListener("click", () => go("notes", { camp: c.id })); steps.appendChild(s0);
     c.missions.forEach((ms, i) => {
@@ -1649,6 +1653,75 @@ Respeta los criterios pedagógicos del proyecto.`;
     }
 
     ordenar();
+  }
+
+
+  /* ── EL SALTO A CIEGAS · modalidad opcional: intentar antes de leer ── */
+  const desafioDe = campId => (window.DESAFIOS || []).find(x => x.camp === campId);
+
+  function ciego(m) {
+    const c = C.camps.find(x => x.id === ctx.camp); const D = desafioDe(c.id);
+    if (!D) return go("camp", { camp: c.id });
+    let i = 0, aciertos = 0; const elegidas = [];
+    const w = el("div", { class: "mission" }); m.appendChild(w);
+
+    function marco(dentro, prog) {
+      w.innerHTML = `<div class="mhead"><button class="close" id="quit" aria-label="Salir">✕</button><div class="pbar"><b style="width:${prog}%"></b></div><span class="small muted" style="min-width:74px;text-align:right">${i + 1} de ${D.retos.length}</span></div>${dentro}`;
+      $("#quit", w).addEventListener("click", () => go("camp", { camp: c.id }));
+      const tw = $(".bubble .tw", w); if (tw) typewrite(tw);
+    }
+    const burbuja = (txt, mood) => `<div class="today" style="margin-bottom:12px"><div class="char">${monkey("chupaya", mood || "surprised", 72)}</div><div class="bubble"><span class="who">Chupaya</span><span class="tw">${esc(txt)}</span>${SAYBTN}</div></div>`;
+
+    function reto() {
+      const r = D.retos[i];
+      marco(burbuja(i === 0 ? D.invita : ["¡Otra! No mires, adivina.", "Arriésgate. Yo siempre me arriesgo.", "¿Qué te dice tu instinto?"][i % 3]) +
+        `<div class="qcard ciego">
+          <div class="ctx">🙈 Todavía no has leído esto. Arriésgate.</div>
+          <h2>${esc(r.q)}</h2>
+          <div class="opts" id="opts">${r.opciones.map((o, k) => `<button class="opt" data-k="${k}">${esc(o)}</button>`).join("")}</div>
+        </div>`, (i / D.retos.length) * 100);
+      $("#opts", w).addEventListener("click", ev => {
+        const b = ev.target.closest(".opt"); if (!b) return;
+        elegidas.push(+b.dataset.k); revelar(+b.dataset.k);
+      });
+    }
+
+    function revelar(k) {
+      const r = D.retos[i], ok = k === r.correcta;
+      if (ok) aciertos++;
+      beep(ok);
+      const nota = (c.notes || []).find(n => n.title === r.nota);
+      marco(burbuja(ok ? "¡Le achuntaste sin leer! Cuéntame cómo lo supiste." : "¡Fallaste! Perfecto: ahora se te va a quedar grabado.", ok ? "party" : "happy") +
+        `<div class="qcard">
+          <h2 style="font-size:19px">${esc(r.q)}</h2>
+          <div class="apuesta ${ok ? "ok" : "no"}"><span class="lab">Lo que apostaste</span>${esc(r.opciones[k])}</div>
+          ${ok ? "" : `<div class="apuesta real"><span class="lab">Lo que pasó de verdad</span>${esc(r.opciones[r.correcta])}</div>`}
+          <div class="model"><span class="t">${ok ? "Y además" : "Por qué"}</span><p style="margin:0">${esc(r.revelacion)}</p></div>
+          ${nota ? `<div class="enlace-nota">📖 Está explicado en la bitácora, en la página «${esc(nota.title)}».</div>` : ""}
+        </div>`, ((i + 1) / D.retos.length) * 100);
+      w.appendChild(contBtn(() => { i++; i < D.retos.length ? reto() : fin(); }, i + 1 < D.retos.length ? "Siguiente apuesta →" : "Ver cómo me fue →"));
+    }
+
+    function fin() {
+      const n = D.retos.length;
+      const xp = 20 + aciertos * 10;
+      addXP(xp);
+      S.ciegos = S.ciegos || {};
+      const prev = S.ciegos[D.id] || {};
+      S.ciegos[D.id] = { veces: (prev.veces || 0) + 1, mejor: Math.max(aciertos, prev.mejor || 0), de: n };
+      save(); jingle("win"); if (aciertos) confetti();
+      const notas = D.retos.map(r => r.nota).filter((t, k) => (c.notes || []).some(n => n.title === t));
+      w.innerHTML = `<div class="result">${monkey("chupaya", "party", 120)}
+        <h2>${aciertos === n ? "¡Saltaste con los ojos cerrados y caíste de pie!" : aciertos ? "Apostaste y aprendiste" : "Fallaste todas… y eso sirve"}</h2>
+        <p class="muted">Acertaste ${aciertos} de ${n} sin haber leído nada.</p>
+        <div class="xp">+${xp} XP</div>
+        <div class="model" style="text-align:left"><span class="t">Por qué esto funciona</span><p style="margin:0">${aciertos === n ? "Ya tenías más idea de la que creías. Ahora lee la bitácora para afirmarlo con las palabras exactas que te van a pedir en la prueba." : "Intentar antes de leer, aunque falles, hace que la explicación se fije mucho mejor que si la lees de entrada. Ahora la bitácora te va a sonar distinta: ya sabes qué preguntas responde."}</p></div>
+        <div class="actions" style="justify-content:center"><button class="btn ghost" id="again">Repetir</button><button class="btn g" id="leer">Ahora sí, a la bitácora 📖</button></div></div>`;
+      $("#again", w).addEventListener("click", () => go("ciego", { camp: c.id }));
+      $("#leer", w).addEventListener("click", () => go("notes", { camp: c.id }));
+    }
+
+    reto();
   }
 
   /* ── arranque ── */
