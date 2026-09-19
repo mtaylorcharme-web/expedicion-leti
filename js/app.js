@@ -1433,9 +1433,11 @@ Respeta los criterios pedagógicos del proyecto.`;
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600">Ajustes</h3>
                 <div class="field"><label for="np">Cambiar PIN</label><input id="np" inputmode="numeric" maxlength="6" placeholder="Nuevo PIN (4 a 6 números)"></div>
         <div class="field"><label style="font-weight:800;font-size:14px">Memoria entre dispositivos</label>
-          <div class="sync-caja"><div class="row" style="justify-content:space-between;gap:8px"><div><span class="muted small">Código de Leti</span><div class="codigo" id="codigoVal">${esc(S.codigo || "sin código")}</div></div><button class="btn ghost sm" id="genCodigo">${S.codigo ? "Cambiar" : "Crear código"}</button></div>
-            <p class="muted small" style="margin:8px 0">Usa el mismo código en el celular, la tablet y el computador. El avance se une solo, sin perder nada de ninguno.</p>
-            <div class="actions" style="justify-content:flex-start;gap:8px;margin:0"><button class="btn g sm" id="sincro">Sincronizar ahora</button><button class="btn ghost sm" id="exportar">Guardar copia</button><label class="btn ghost sm" style="cursor:pointer">Restaurar copia<input type="file" id="importar" accept="application/json" hidden></label></div>
+          <div class="sync-caja">
+            <span class="muted small">Código de Leti. Escribe el mismo en todos los aparatos.</span>
+            <div class="row" style="gap:8px;margin-top:6px"><input id="codigoIn" class="codigo-in" value="${esc(S.codigo || "")}" placeholder="ABC123" maxlength="12" autocapitalize="characters" spellcheck="false"><button class="btn ghost sm" id="genCodigo">Generar uno</button></div>
+            <p class="muted small" style="margin:8px 0">En el primer aparato genera uno. En los demás, escribe ese mismo código aquí. El avance se une solo, sin perder nada de ninguno.</p>
+            <div class="actions" style="justify-content:flex-start;gap:8px;margin:0"><button class="btn g sm" id="sincro">Sincronizar ahora</button><button class="btn y sm" id="enlace">Copiar enlace para otro aparato</button><button class="btn ghost sm" id="exportar">Guardar copia</button><label class="btn ghost sm" style="cursor:pointer">Restaurar copia<input type="file" id="importar" accept="application/json" hidden></label></div>
             <div id="estadoSync">${ultimoSync ? `<span class="sync-estado ${ultimoSync.clase || ""}">${esc(ultimoSync.txt)}</span>` : ""}</div></div></div>
         <div class="field"><label for="pg">Generador de expediciones (dirección de Netlify)</label><input id="pg" value="${esc(S.puenteGenerar || "")}" placeholder="https://tu-sitio.netlify.app/api/generar"><small class="muted">Sin esto, exporta el paquete y yo genero la expedición.</small></div>
         <div class="field"><label for="pu">Memoria en la nube (dirección de Netlify)</label><input id="pp" value="${esc(S.puenteProgreso || "")}" placeholder="https://tu-sitio.netlify.app/api/progreso"><small class="muted">Sin esto, la copia en archivo funciona igual.</small></div>
@@ -1459,7 +1461,26 @@ Respeta los criterios pedagógicos del proyecto.`;
         sal.innerHTML = `<div class="campo-voz"><textarea class="write" id="txmic" placeholder="Toca el micrófono y di una frase…"></textarea><div class="voz-barra"><button class="mic" data-target="txmic"><span class="mic-ic">🎤</span><span class="mic-txt">Responder hablando</span></button><span class="voz-hint">debería aparecer escrito lo que digas</span></div></div>`;
       });
     });
-    $("#genCodigo", w).addEventListener("click", () => { if (S.codigo && !confirm("¿Cambiar el código? Tendrás que poner el nuevo en los otros aparatos.")) return; S.codigo = nuevoCodigo(); save(); $("#codigoVal", w).textContent = S.codigo; marcarSync("Código creado. Anótalo y úsalo en los otros aparatos.", "ok"); });
+    $("#genCodigo", w).addEventListener("click", () => { if (S.codigo && !confirm("¿Generar un código nuevo? Tendrás que escribirlo también en los otros aparatos.")) return; S.codigo = nuevoCodigo(); save(); $("#codigoIn", w).value = S.codigo; marcarSync("Código creado: " + S.codigo + ". Escríbelo igual en los otros aparatos.", "ok"); });
+    $("#codigoIn", w).addEventListener("change", async e => {
+      const c = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
+      e.target.value = c;
+      if (c && c.length < 4) return marcarSync("El código necesita al menos 4 caracteres.", "mal");
+      S.codigo = c || null; save();
+      if (!c) return marcarSync("", "");
+      if (!syncURL()) return marcarSync("Código guardado. Para unir aparatos falta la dirección de la memoria en la nube, más abajo.", "");
+      marcarSync("Buscando el avance de ese código…", "");
+      await sincronizar(false); go("parent");
+    });
+    $("#enlace", w).addEventListener("click", () => {
+      if (!S.codigo) return marcarSync("Primero crea o escribe un código.", "mal");
+      const u = new URL(location.href.split("?")[0].split("#")[0]);
+      u.searchParams.set("codigo", S.codigo);
+      if (S.puenteProgreso || (!/github\.io$/i.test(location.hostname) && window.PUENTE_PROGRESO)) u.searchParams.set("sync", S.puenteProgreso || new URL(window.PUENTE_PROGRESO, location.origin).href);
+      if (S.puente) u.searchParams.set("musica", S.puente);
+      if (S.puenteGenerar) u.searchParams.set("generar", S.puenteGenerar);
+      copiar(u.toString(), "Enlace copiado. Ábrelo en el otro aparato y queda todo configurado.");
+    });
     $("#sincro", w).addEventListener("click", async () => { if (!S.codigo) return marcarSync("Primero crea un código.", "mal"); if (!syncURL()) return marcarSync("Falta la dirección de la memoria en la nube.", "mal"); marcarSync("Sincronizando…", ""); await sincronizar(false); render(); });
     $("#exportar", w).addEventListener("click", exportarProgreso);
     $("#importar", w).addEventListener("change", e => { const f = e.target.files[0]; if (f) importarProgreso(f, () => go("parent")); });
@@ -1468,6 +1489,20 @@ Respeta los criterios pedagógicos del proyecto.`;
   }
 
   /* ── arranque ── */
+  (function leerEnlace() {
+    try {
+      const q = new URLSearchParams(location.search);
+      if (!q.has("codigo") && !q.has("sync")) return;
+      const c = (q.get("codigo") || "").toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 12);
+      if (c.length >= 4) S.codigo = c;
+      if (q.get("sync")) S.puenteProgreso = q.get("sync");
+      if (q.get("musica")) S.puente = q.get("musica");
+      if (q.get("generar")) S.puenteGenerar = q.get("generar");
+      save();
+      history.replaceState(null, "", location.pathname);
+      setTimeout(() => toast("📲 Aparato enlazado. Recuperando el avance de Leti…"), 400);
+    } catch (e) { }
+  })();
   touchDay();
   render();
   if (syncURL() && S.codigo) sincronizar(true).then(() => render());
