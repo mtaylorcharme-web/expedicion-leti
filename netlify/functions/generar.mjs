@@ -2,8 +2,8 @@
    Recibe el material de una prueba y devuelve el contenido de una expedición nueva.
    Variable de entorno en Netlify: ANTHROPIC_API_KEY */
 
-const ORIGENES = (process.env.ORIGENES || "https://mtaylorcharme-web.github.io").split(",").map(s => s.trim()).filter(Boolean);
-const cors = o => ({ "Access-Control-Allow-Origin": (!o || ORIGENES.some(x => o.startsWith(x))) ? (o || "*") : ORIGENES[0], "Access-Control-Allow-Headers": "content-type", "Access-Control-Allow-Methods": "POST,OPTIONS", "Content-Type": "application/json; charset=utf-8" });
+const ORIGENES = (process.env.ORIGENES || "https://mision-aya.netlify.app,https://mtaylorcharme-web.github.io").split(",").map(s => s.trim()).filter(Boolean);
+const cors = o => ({ "Access-Control-Allow-Origin": (!o || ORIGENES.some(x => o.startsWith(x))) ? (o || "*") : ORIGENES[0], "Access-Control-Allow-Headers": "content-type", "Access-Control-Allow-Methods": "GET,POST,OPTIONS", "Content-Type": "application/json; charset=utf-8" });
 
 const INSTRUCCIONES = `Eres el generador de contenido de Misión Aya, una app de estudio para una niña de 11 años de 5º básico del Colegio Bradford (Chile, currículo MINEDUC, colegio IB). Las asignaturas van en inglés salvo Lenguaje.
 
@@ -85,9 +85,21 @@ Reglas de "extras", que son las que hacen que esto enseñe y no solo pregunte:
 export default async (req) => {
   const H = cors(req.headers.get("origin"));
   if (req.method === "OPTIONS") return new Response("", { status: 204, headers: H });
-  if (req.method !== "POST") return new Response(JSON.stringify({ error: "metodo_no_permitido" }), { status: 405, headers: H });
-  const key = process.env.ANTHROPIC_API_KEY;
-  if (!key) return new Response(JSON.stringify({ error: "falta_clave", mensaje: "Falta configurar ANTHROPIC_API_KEY en Netlify." }), { status: 500, headers: H });
+  if (req.method !== "POST" && req.method !== "GET") return new Response(JSON.stringify({ error: "metodo_no_permitido" }), { status: 405, headers: H });
+  /* La clave se lee tal cual viene de Netlify y se limpia: al pegarla es muy fácil que
+     arrastre un espacio o un salto de línea, y la API la rechaza sin decir por qué. */
+  const cruda = process.env.ANTHROPIC_API_KEY || "";
+  const key = cruda.trim().replace(/[\r\n\t]/g, "");
+  const diagnostico = {
+    configurada: !!cruda,
+    tenia_espacios: !!cruda && cruda !== key,
+    empieza_bien: key.startsWith("sk-ant-"),
+    largo_razonable: key.length > 40,
+    modelo: "claude-sonnet-5"
+  };
+  /* Un GET revisa la clave sin gastar una llamada a la API. Nunca devuelve la clave. */
+  if (req.method === "GET") return new Response(JSON.stringify({ diagnostico }), { status: 200, headers: H });
+  if (!key) return new Response(JSON.stringify({ error: "falta_clave", mensaje: "Falta configurar ANTHROPIC_API_KEY en Netlify.", diagnostico }), { status: 500, headers: H });
   try {
     const { paquete, imagenes = [] } = await req.json();
     const contenido = [];
@@ -103,7 +115,15 @@ export default async (req) => {
       body: JSON.stringify({ model: "claude-sonnet-5", max_tokens: 32000, system: INSTRUCCIONES, messages: [{ role: "user", content: contenido }] })
     });
     const d = await r.json();
-    if (!r.ok) return new Response(JSON.stringify({ error: "api_rechazo", mensaje: d?.error?.message || `HTTP ${r.status}` }), { status: 502, headers: H });
+    if (!r.ok) {
+      const razon = d?.error?.message || `HTTP ${r.status}`;
+      const ayuda = /x-api-key|authentication/i.test(razon)
+        ? "Anthropic no acepta la clave. Hay que generar una nueva en console.anthropic.com y pegarla en Netlify, en ANTHROPIC_API_KEY, sin espacios."
+        : /credit|balance|quota/i.test(razon) ? "La cuenta de Anthropic no tiene saldo disponible."
+        : /model/i.test(razon) ? "Ese modelo no está disponible para esta cuenta."
+        : "";
+      return new Response(JSON.stringify({ error: "api_rechazo", mensaje: razon, ayuda, diagnostico }), { status: 502, headers: H });
+    }
     const txt = (d.content || []).filter(c => c.type === "text").map(c => c.text).join("");
     const i = txt.indexOf("{"), j = txt.lastIndexOf("}");
     if (i < 0 || j < 0) return new Response(JSON.stringify({ error: "sin_json", mensaje: "La respuesta no traía contenido utilizable." }), { status: 502, headers: H });
