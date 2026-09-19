@@ -98,7 +98,22 @@ export default async (req) => {
     modelo: "claude-sonnet-5"
   };
   /* Un GET revisa la clave sin gastar una llamada a la API. Nunca devuelve la clave. */
-  if (req.method === "GET") return new Response(JSON.stringify({ diagnostico }), { status: 200, headers: H });
+  if (req.method === "GET") {
+    /* Con ?prueba=1 hace una llamada mínima para confirmar que la clave sirve de verdad,
+       sin generar nada: gasta una fracción de centavo. */
+    if (key && new URL(req.url).searchParams.get("prueba")) {
+      try {
+        const t = await fetch("https://api.anthropic.com/v1/messages", {
+          method: "POST",
+          headers: { "x-api-key": key, "anthropic-version": "2023-06-01", "content-type": "application/json" },
+          body: JSON.stringify({ model: "claude-sonnet-5", max_tokens: 8, messages: [{ role: "user", content: "di ok" }] })
+        });
+        const dd = await t.json();
+        return new Response(JSON.stringify({ diagnostico, prueba: { ok: t.ok, estado: t.status, detalle: t.ok ? "Anthropic aceptó la clave." : (dd?.error?.message || "").slice(0, 200) } }), { status: 200, headers: H });
+      } catch (e) { return new Response(JSON.stringify({ diagnostico, prueba: { ok: false, detalle: String(e).slice(0, 120) } }), { status: 200, headers: H }); }
+    }
+    return new Response(JSON.stringify({ diagnostico }), { status: 200, headers: H });
+  }
   if (!key) return new Response(JSON.stringify({ error: "falta_clave", mensaje: "Falta configurar ANTHROPIC_API_KEY en Netlify.", diagnostico }), { status: 500, headers: H });
   try {
     const { paquete, imagenes = [] } = await req.json();
