@@ -68,14 +68,14 @@
   /* ── navegación ── */
   let view = "home", ctx = {};
   function go(v, c) { view = v; ctx = c || {}; render(); window.scrollTo({ top: 0 }); }
-  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent })[view](m); }
+  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game })[view](m); }
   function renderTop() {
     const d = daysToTest(); const dl = d > 1 ? `${d} días` : d === 1 ? "¡mañana!" : d === 0 ? "¡hoy!" : "pasó";
     $("#topbar").innerHTML = `<span class="chip streak">🔥 ${S.streak.count} <span class="lbl">día${S.streak.count === 1 ? "" : "s"}</span></span><span class="chip xp">⭐ ${S.xp} <span class="lbl">XP</span></span><span class="chip days">📅 <span class="lbl">Prueba:</span> ${dl}</span><span class="spacer"></span><button class="avatar" data-go="passport" aria-label="Pasaporte">${esc(S.name[0] || "L")}</button>`;
   }
   function renderNav() {
     const items = [["home", "🌴", "Selva"], ["review", "🎯", "Repaso"], ["passport", "🛂", "Pasaporte"], ["parent", "👩‍👧", "Mamá"]];
-    $("#navbar").innerHTML = `<div class="inner">${items.map(([v, i, l]) => `<button class="${view === v || (v === "home" && ["camp", "notes", "mission", "flash", "boss"].includes(view)) ? "on" : ""}" data-go="${v}"><span class="ic">${i}</span>${l}</button>`).join("")}</div>`;
+    $("#navbar").innerHTML = `<div class="inner">${items.map(([v, i, l]) => `<button class="${view === v || (v === "home" && ["camp", "notes", "mission", "flash", "boss", "game"].includes(view)) ? "on" : ""}" data-go="${v}"><span class="ic">${i}</span>${l}</button>`).join("")}</div>`;
   }
   document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
 
@@ -161,6 +161,8 @@
     });
     const sf = el("button", { class: "step" }); sf.innerHTML = `<div class="ic">🃏</div><div><b>Tarjetas de memoria</b><span class="sub">${c.flashcards.length} tarjetas para repasar rápido · ideal antes de dormir</span></div><div class="right">→</div>`;
     sf.addEventListener("click", () => go("flash", { camp: c.id })); steps.appendChild(sf);
+    const sg = el("button", { class: "step" }); sg.innerHTML = `<div class="ic">🐒</div><div><b>Minijuego: Salto de lianas</b><span class="sub">Verdadero o falso contra el reloj · ayuda a Chupaya a cruzar la selva · 2 min</span></div><div class="right">${S.games && S.games["liana-" + c.id] ? "🏆 " + S.games["liana-" + c.id] : "→"}</div>`;
+    sg.addEventListener("click", () => go("game", { camp: c.id })); steps.appendChild(sg);
     h.appendChild(steps); m.appendChild(h);
   }
 
@@ -263,6 +265,32 @@
     qc.innerHTML = `<div class="ctx">✍️ Respuesta escrita · como en la prueba</div><h2>${esc(q.q)}</h2><textarea class="write" id="tx" placeholder="Escribe aquí tu respuesta con tus palabras…"></textarea><div class="actions"><button class="btn g" id="check" disabled>Ver respuesta modelo</button></div>`;
     const tx = $("#tx", qc); tx.addEventListener("input", () => { $("#check", qc).disabled = tx.value.trim().length < 10; });
     $("#check", qc).addEventListener("click", () => { tx.disabled = true; $("#check", qc).remove(); const txt = tx.value.toLowerCase(); const hits = q.keywords.filter(k => txt.includes(k.toLowerCase())); qc.insertAdjacentHTML("beforeend", `<div class="model"><span class="t">Respuesta modelo</span>${esc(q.model)}<div style="margin-top:8px"><span class="small muted">Ideas clave que mencionaste:</span><br>${q.keywords.map(k => `<span class="kw ${hits.includes(k) ? "hit" : ""}">${hits.includes(k) ? "✓ " : ""}${esc(k.replace(/i$/, "iar/ión").replace(/^captur$/, "capturar").replace(/^religi$/, "religión").replace(/^mestiz$/, "mestizaje").replace(/^inver$/, "invertir").replace(/^privad$/, "privada").replace(/^astronom$/, "astronomía").replace(/^financiar\/ión$/, "financiar"))}</span>`).join("")}</div></div><div class="ctx" style="margin-top:12px">Compara con la respuesta modelo. ¿Cómo te fue?</div><div class="opts two"><button class="opt" id="good" style="justify-content:center">😃 Lo tenía bien</button><button class="opt" id="meh" style="justify-content:center">🤔 Me faltó algo</button></div>`); const fin = ok => { $("#good", qc).disabled = $("#meh", qc).disabled = true; qc.insertAdjacentHTML("beforeend", fbBox(ok, ok ? "¡Escribir con tus palabras es la mejor forma de aprender!" : "No pasa nada: vuelve a leer la respuesta modelo y en el repaso lo intentas de nuevo.")); qc.appendChild(contBtn(next)); done(ok); }; $("#good", qc).addEventListener("click", () => fin(true)); $("#meh", qc).addEventListener("click", () => fin(false)); });
+  }
+
+  /* ── MINIJUEGO: salto de lianas ── */
+  function game(m) {
+    const c = C.camps.find(x => x.id === ctx.camp);
+    const other = C.camps.filter(x => x !== c).flatMap(x => x.flashcards);
+    let items = [];
+    c.flashcards.forEach(([f, b]) => { const truth = Math.random() < .55; const back = truth ? b : (shuffle(c.flashcards.filter(x => x[0] !== f)).concat(shuffle(other))[0] || [null, b])[1]; items.push({ txt: `${f}: ${back}`, a: truth }); });
+    c.missions.forEach(ms => ms.questions.forEach(q => { if (q.t === "tf") items.push({ txt: q.q, a: q.a }); }));
+    items = shuffle(items).slice(0, 10);
+    let i = 0, score = 0, timer = null, tleft = 0; const LIMIT = 7;
+    const w = el("div", { class: "mission liana-game" }); m.appendChild(w);
+    const intro = () => { w.innerHTML = `<button class="btn ghost sm" id="back">← ${esc(c.name)}</button><div class="result"><div class="today" style="text-align:left"><div class="char">${monkey("chupaya", "swing", 90)}</div><div class="bubble"><span class="who">Chupaya</span>¡Ayúdame a cruzar la selva! Te diré ${items.length} cosas sobre ${esc(c.topic.toLowerCase())}. Si es verdad toca ✅, si es mentira toca ❌. ¡Tienes ${LIMIT} segundos por liana!</div></div><div class="actions" style="justify-content:center;margin-top:18px"><button class="btn" id="start">¡A saltar! 🐒</button></div></div>`; $("#back", w).addEventListener("click", () => go("camp", { camp: c.id })); $("#start", w).addEventListener("click", () => { i = 0; score = 0; step(); }); };
+    const finish = () => { clearInterval(timer); const xp = 10 + score * 3; addXP(xp); S.games = S.games || {}; S.games["liana-" + c.id] = Math.max(S.games["liana-" + c.id] || 0, score); if (score === items.length) stamp("liana-" + c.id); save(); confetti(); jingle("win"); w.innerHTML = `<div class="result">${monkey("chupaya", "party", 120)}<h2>${score === items.length ? "¡Cruzaste la selva entera!" : score >= items.length * .7 ? "¡Casi al otro lado!" : "¡Buen intento!"}</h2><p class="muted">Chupaya saltó ${score} de ${items.length} lianas.</p><div class="xp">+${xp} XP</div><div class="actions" style="justify-content:center"><button class="btn ghost" id="again">Otra vez</button><button class="btn g" id="back">Volver</button></div></div>`; $("#again", w).addEventListener("click", () => go("game", { camp: c.id })); $("#back", w).addEventListener("click", () => go("camp", { camp: c.id })); };
+    const step = () => {
+      if (i >= items.length) return finish();
+      const it = items[i]; tleft = LIMIT;
+      w.innerHTML = `<div class="mhead"><button class="close" id="quit" aria-label="Salir">✕</button><div class="pbar" id="tb"><b style="width:100%;background:linear-gradient(90deg,var(--gold),var(--coral))"></b></div><span class="small muted" style="min-width:60px;text-align:right">${i + 1}/${items.length} · ⭐${score}</span></div>
+        <div class="lianas"><div class="sky"></div>${items.map((_, k) => `<div class="lstick" style="left:${8 + k * (84 / (items.length - 1))}%"></div>`).join("")}<div class="jumper" style="left:${8 + i * (84 / (items.length - 1))}%">${monkey("chupaya", "swing", 64)}</div></div>
+        <div class="qcard"><div class="ctx">¿Verdadero o falso?</div><h2 style="font-size:21px">${esc(it.txt)}</h2><div class="opts two"><button class="opt" id="t" style="justify-content:center;font-size:20px">✅ Verdadero</button><button class="opt" id="f" style="justify-content:center;font-size:20px">❌ Falso</button></div></div>`;
+      $("#quit", w).addEventListener("click", () => { clearInterval(timer); go("camp", { camp: c.id }); });
+      const answer = v => { clearInterval(timer); const ok = v === it.a; if (ok) { score++; beep(true); } else jingle("lose"); ["t", "f"].forEach(id => { const b = $("#" + id, w); b.disabled = true; if ((id === "t") === it.a) b.classList.add("ok"); else if ((id === "t") === v) b.classList.add("bad"); }); const j = $(".jumper .mk", w); setMood(j, ok ? "party" : "sad"); if (v === null) toast("⏰ ¡Se acabó el tiempo!"); setTimeout(() => { i++; step(); }, ok ? 650 : 1500); };
+      $("#t", w).addEventListener("click", () => answer(true)); $("#f", w).addEventListener("click", () => answer(false));
+      timer = setInterval(() => { tleft -= .1; const b = $("#tb b", w); if (b) b.style.width = Math.max(0, tleft / LIMIT * 100) + "%"; if (tleft <= 0) answer(null); }, 100);
+    };
+    intro();
   }
 
   /* ── TARJETAS ── */
