@@ -228,12 +228,12 @@
   }
 
   function runQuiz(m, cfg) {
-    const qs = cfg.questions; let i = 0, errors = 0, hearts = 5;
+    const qs = cfg.questions; let i = 0, errors = 0, hearts = 5; const perTopic = {};
     const w = el("div", { class: "mission" }); m.appendChild(w);
     function head() { return `<div class="mhead"><button class="close" id="quit" aria-label="Salir">✕</button><div class="pbar"><b style="width:${(i / qs.length) * 100}%"></b></div><div class="hearts">${"❤".repeat(hearts)}${"♡".repeat(5 - hearts)}</div></div>`; }
     function next() { i++; if (i >= qs.length) return finish(); show(); }
     function finish() {
-      const r = cfg.onDone(errors); confetti(); jingle("win");
+      const r = cfg.onDone(errors, perTopic); confetti(); jingle("win");
       const st = r.stars;
       const rescued = cfg.char === "chupaya";
       w.innerHTML = `<div class="result fade"><div class="celebrate">${["🎉", "⭐", "🌟", "🎊", "✨", "🎈"].map((e, k) => `<span style="left:${8 + k * 16}%;animation-delay:${k * .15}s">${e}</span>`).join("")}</div><div class="chars"><span style="animation-delay:0s">${monkey("ovaya", "party", 90)}</span><span style="animation-delay:.3s">${monkey(cfg.char === "ovaya" ? "chupaya" : cfg.char, rescued ? "hang" : "party", 110)}</span><span style="animation-delay:.6s">${monkey("estaya", "party", 90)}</span></div>${rescued ? `<div class="tag" style="background:#DDF3E4;color:var(--jungle-deep);font-size:14px;margin-top:6px">🔎 ¡Encontraste a Chupaya!</div>` : ""}
@@ -252,7 +252,7 @@
       $("#quit", w).addEventListener("click", () => { if (confirm("¿Salir de la misión? Se perderá el avance de esta misión.")) cfg.quit ? cfg.quit() : go("camp", { camp: cfg.camp.id }); });
       const qc = $("#qc", w);
       const done = ok => {
-        stat(cfg.topic, ok); markWrong(key, q.q, cfg.camp ? cfg.camp.id : "", ok);
+        const tp = qs[i].topic || cfg.topic; stat(tp, ok); const pt = perTopic[tp] || (perTopic[tp] = { ok: 0, n: 0, camp: qs[i].campId || (cfg.camp && cfg.camp.id) }); pt.n++; if (ok) pt.ok++; markWrong(key, q.q, qs[i].campId || (cfg.camp ? cfg.camp.id : ""), ok);
         if (!ok) { errors++; hearts = Math.max(0, hearts - 1); $(".hearts", w).textContent = "❤".repeat(hearts) + "♡".repeat(5 - hearts); $("#qc", w).classList.add("shake"); }
         if (ok) beep(true); else jingle("lose"); setMood($(".char .mk", w), ok ? "party" : "sad"); save();
       };
@@ -414,18 +414,20 @@
   /* ── SIMULACRO (jefe) ── */
   function boss(m) {
     const intro = el("div", { class: "mission" });
-    intro.innerHTML = `<button class="btn ghost sm" data-go="home">← Selva</button><div class="result"><div style="font-size:64px">🏆</div><h2>Templo de la Prueba</h2><p class="muted">Un simulacro de 20 preguntas mezcladas de los cinco campamentos, igual que la prueba del jueves. Sin ayuda de la bitácora. Al final verás qué temas repasar.</p>${S.boss ? `<p><b>Tu mejor resultado:</b> ${S.boss.pct}% ${S.boss.pct >= 80 ? "🏅" : ""}</p>` : ""}<div class="today card" style="text-align:left"><div class="char">${monkey("ovaya", "surprised", 84)}</div><div class="bubble"><span class="who">Ovaya</span>¡Este es el gran desafío, ${esc(S.name)}! Respira hondo. Si sacas 80% o más, ganas el sello del Templo.</div></div><div class="actions" style="justify-content:center"><button class="btn" id="start">¡Empezar simulacro!</button></div></div>`;
+    intro.innerHTML = `<button class="btn ghost sm" data-go="home">← Selva</button><div class="result"><div style="font-size:64px">🏆</div><h2>Templo de la Prueba</h2><p class="muted">Un simulacro de 20 preguntas mezcladas de los cinco campamentos, igual que la prueba del jueves. Sin ayuda de la bitácora. Al final verás qué temas repasar.</p>${S.boss ? `<p><b>Tu mejor resultado:</b> ${S.boss.pct}% ${S.boss.pct >= 80 ? "🏅" : ""}</p>` : ""}${S.bossLast ? `<div class="card bars" style="text-align:left;margin-bottom:12px"><div class="eyebrow">Último simulacro · ${S.bossLast.pct}%</div>${C.camps.map(c => { const t = S.bossLast.perTopic[c.topic]; const p = t ? Math.round(t.ok / t.n * 100) : null; return `<div class="r"><span>${c.icon} ${esc(c.topic)}</span><div class="bar"><b style="width:${p || 0}%;background:${p == null ? "#ccc" : p >= 75 ? "var(--ok)" : p >= 50 ? "var(--gold)" : "var(--coral)"}"></b></div><span class="n">${p == null ? "—" : p + "%"}</span></div>`; }).join("")}${(() => { const weak = C.camps.filter(c => { const t = S.bossLast.perTopic[c.topic]; return t && t.ok / t.n < .75; }); return weak.length ? `<div class="alert" style="margin-top:10px"><b>Consejo de Ovaya:</b> repasa ${weak.map(c => `<button class="btn ghost sm" data-camp="${c.id}" style="margin:3px 4px 0 0">${c.icon} ${esc(c.name)}</button>`).join("")}</div>` : `<div class="alert" style="margin-top:10px;background:var(--ok-bg);border-color:var(--ok)"><b>¡Todos los temas sobre 75%!</b> Estás lista para la prueba.</div>`; })()}</div>` : ""}<div class="today card" style="text-align:left"><div class="char">${monkey("ovaya", "surprised", 84)}</div><div class="bubble"><span class="who">Ovaya</span>¡Este es el gran desafío, ${esc(S.name)}! Respira hondo. Si sacas 80% o más, ganas el sello del Templo.</div></div><div class="actions" style="justify-content:center"><button class="btn" id="start">¡Empezar simulacro!</button></div></div>`;
     m.appendChild(intro);
+    intro.querySelectorAll("[data-camp]").forEach(b => b.addEventListener("click", () => go("camp", { camp: b.dataset.camp })));
     $("#start", intro).addEventListener("click", () => {
       m.innerHTML = "";
       let pool = []; C.camps.forEach(c => c.missions.forEach(ms => ms.questions.forEach((q, i) => { if (q.t !== "write") pool.push({ q, key: `${ms.id}:${i}`, topic: c.topic, camp: c }); })));
       const per = {}; C.camps.forEach(c => per[c.id] = shuffle(pool.filter(p => p.camp === c)).slice(0, 4)); const qs = shuffle([].concat(...Object.values(per)));
       const topicErr = {};
-      runQuiz(m, { title: "Simulacro de la prueba", char: "ovaya", story: "20 preguntas de toda la unidad. ¡Tú puedes!", topic: "Simulacro", camp: C.camps[0], questions: qs.map(p => ({ q: p.q, key: p.key })), quit: () => go("home"), onDone: errors => {
+      runQuiz(m, { title: "Simulacro de la prueba", char: "ovaya", story: "20 preguntas de toda la unidad. ¡Tú puedes!", topic: "Simulacro", camp: C.camps[0], questions: qs.map(p => ({ q: p.q, key: p.key, topic: p.topic, campId: p.camp.id })), quit: () => go("home"), onDone: (errors, perTopic) => {
           const pct = Math.round(((qs.length - errors) / qs.length) * 100);
           if (!S.boss || pct > S.boss.pct) S.boss = { pct, date: todayKey() };
+          S.bossLast = { pct, perTopic, date: todayKey() };
           if (pct >= 80) stamp("boss"); const xp = 60 + Math.round(pct / 2); addXP(xp); save();
-          return { xp, stars: pct >= 90 ? 3 : pct >= 70 ? 2 : 1, back: () => go("home"), retry: () => go("boss") };
+          return { xp, stars: pct >= 90 ? 3 : pct >= 70 ? 2 : 1, back: () => go("boss"), retry: () => go("boss") };
         } });
     });
   }
