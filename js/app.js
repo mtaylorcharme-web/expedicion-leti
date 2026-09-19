@@ -76,7 +76,7 @@
 
   /* ── navegación ── */
   let view = "home", ctx = {};
-  function go(v, c) { view = v; ctx = c || {}; render(); window.scrollTo({ top: 0 }); }
+  function go(v, c) { pararVoz(true); view = v; ctx = c || {}; render(); window.scrollTo({ top: 0 }); }
   function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song, daily, fuentes, fuente, ensenar })[view](m); }
   function renderTop() {
     const d = daysToTest(); const dl = d > 1 ? `${d} días` : d === 1 ? "¡mañana!" : d === 0 ? "¡hoy!" : "pasó";
@@ -336,9 +336,9 @@
     draw();
   }
   function qWrite(qc, q, done, next) {
-    qc.innerHTML = `<div class="ctx">✍️ Respuesta escrita · como en la prueba</div><h2>${esc(q.q)}</h2><textarea class="write" id="tx" placeholder="Escribe aquí tu respuesta con tus palabras…"></textarea><div class="actions"><button class="btn g" id="check" disabled>Ver respuesta modelo</button></div>`;
+    qc.innerHTML = `<div class="ctx">✍️ Respuesta escrita · como en la prueba</div><h2>${esc(q.q)}</h2>${campoVoz("tx", "Escribe aquí tu respuesta con tus palabras…")}<div class="actions"><button class="btn g" id="check" disabled>Ver respuesta modelo</button></div>`;
     const tx = $("#tx", qc); tx.addEventListener("input", () => { $("#check", qc).disabled = tx.value.trim().length < 10; });
-    $("#check", qc).addEventListener("click", () => { tx.disabled = true; $("#check", qc).remove(); const txt = tx.value.toLowerCase(); const hits = q.keywords.filter(k => txt.includes(k.toLowerCase())); qc.insertAdjacentHTML("beforeend", `<div class="model"><span class="t">Respuesta modelo</span>${esc(q.model)}<div style="margin-top:8px"><span class="small muted">Ideas clave que mencionaste:</span><br>${q.keywords.map(k => `<span class="kw ${hits.includes(k) ? "hit" : ""}">${hits.includes(k) ? "✓ " : ""}${esc(k.replace(/i$/, "iar/ión").replace(/^captur$/, "capturar").replace(/^religi$/, "religión").replace(/^mestiz$/, "mestizaje").replace(/^inver$/, "invertir").replace(/^privad$/, "privada").replace(/^astronom$/, "astronomía").replace(/^financiar\/ión$/, "financiar"))}</span>`).join("")}</div></div><div class="ctx" style="margin-top:12px">Compara con la respuesta modelo. ¿Cómo te fue?</div><div class="opts two"><button class="opt" id="good" style="justify-content:center">😃 Lo tenía bien</button><button class="opt" id="meh" style="justify-content:center">🤔 Me faltó algo</button></div>`); const fin = ok => { $("#good", qc).disabled = $("#meh", qc).disabled = true; qc.insertAdjacentHTML("beforeend", fbBox(ok, ok ? "¡Escribir con tus palabras es la mejor forma de aprender!" : "No pasa nada: vuelve a leer la respuesta modelo y en el repaso lo intentas de nuevo.")); qc.appendChild(contBtn(next)); done(ok); }; $("#good", qc).addEventListener("click", () => fin(true)); $("#meh", qc).addEventListener("click", () => fin(false)); });
+    $("#check", qc).addEventListener("click", () => { tx.disabled = true; cerrarVoz(qc); $("#check", qc).remove(); const txt = tx.value.toLowerCase(); const hits = q.keywords.filter(k => txt.includes(k.toLowerCase())); qc.insertAdjacentHTML("beforeend", `<div class="model"><span class="t">Respuesta modelo</span>${esc(q.model)}<div style="margin-top:8px"><span class="small muted">Ideas clave que mencionaste:</span><br>${q.keywords.map(k => `<span class="kw ${hits.includes(k) ? "hit" : ""}">${hits.includes(k) ? "✓ " : ""}${esc(k.replace(/i$/, "iar/ión").replace(/^captur$/, "capturar").replace(/^religi$/, "religión").replace(/^mestiz$/, "mestizaje").replace(/^inver$/, "invertir").replace(/^privad$/, "privada").replace(/^astronom$/, "astronomía").replace(/^financiar\/ión$/, "financiar"))}</span>`).join("")}</div></div><div class="ctx" style="margin-top:12px">Compara con la respuesta modelo. ¿Cómo te fue?</div><div class="opts two"><button class="opt" id="good" style="justify-content:center">😃 Lo tenía bien</button><button class="opt" id="meh" style="justify-content:center">🤔 Me faltó algo</button></div>`); const fin = ok => { $("#good", qc).disabled = $("#meh", qc).disabled = true; qc.insertAdjacentHTML("beforeend", fbBox(ok, ok ? "¡Escribir con tus palabras es la mejor forma de aprender!" : "No pasa nada: vuelve a leer la respuesta modelo y en el repaso lo intentas de nuevo.")); qc.appendChild(contBtn(next)); done(ok); }; $("#good", qc).addEventListener("click", () => fin(true)); $("#meh", qc).addEventListener("click", () => fin(false)); });
   }
 
   /* ── MINIJUEGO: salto de lianas ── */
@@ -420,6 +420,61 @@
       step(); };
     draw();
   }
+
+  /* ── RESPONDER HABLANDO (dictado por voz) ── */
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const MIC_OK = !!SR && (location.protocol === "https:" || location.hostname === "localhost" || location.hostname === "127.0.0.1");
+  const campoVoz = (id, ph) => `<div class="campo-voz">
+      <textarea class="write" id="${id}" placeholder="${esc(ph)}"></textarea>
+      ${MIC_OK ? `<div class="voz-barra"><button class="mic" data-target="${id}"><span class="mic-ic">🎤</span><span class="mic-txt">Responder hablando</span></button><span class="voz-hint">o escríbelo con el teclado</span></div>` : ""}
+    </div>`;
+  let rec = null, recBtn = null, recTa = null, recBase = "", recFinal = "";
+  function pararVoz(inmediato) {
+    if (!rec) return; const r = rec;
+    if (inmediato) { try { r.abort(); } catch (e) { } rec = null; limpiaVoz(); return; }
+    try { r.stop(); } catch (e) { try { r.abort(); } catch (e2) { } }
+    setTimeout(() => { if (rec === r) { rec = null; limpiaVoz(); } }, 1500);
+  }
+  const cerrarVoz = cont => { pararVoz(true); const vb = $(".voz-barra", cont); if (vb) vb.remove(); };
+  function limpiaVoz() {
+    if (recBtn) { recBtn.classList.remove("grabando"); const t = recBtn.querySelector(".mic-txt"); if (t) t.textContent = "Responder hablando"; }
+    if (recTa) recTa.classList.remove("escuchando");
+    recBtn = null; recTa = null;
+  }
+  function pulir(t) { t = t.replace(/\s+/g, " ").trim(); if (!t) return t; t = t[0].toUpperCase() + t.slice(1); if (!/[.!?…]$/.test(t)) t += "."; return t; }
+  document.addEventListener("click", e => {
+    const b = e.target.closest(".mic"); if (!b) return;
+    const ta = document.getElementById(b.dataset.target); if (!ta || ta.disabled) return;
+    if (rec) { const mismo = recBtn === b; pararVoz(); if (mismo) return; }
+    const r = new SR();
+    r.lang = "es-CL"; r.continuous = true; r.interimResults = true; r.maxAlternatives = 1;
+    rec = r; recBtn = b; recTa = ta; recBase = ta.value.trim() ? ta.value.trim() + " " : ""; recFinal = "";
+    b.classList.add("grabando"); b.querySelector(".mic-txt").textContent = "Escuchando… toca para terminar";
+    ta.classList.add("escuchando");
+    r.onresult = ev => {
+      let interim = "";
+      for (let i = ev.resultIndex; i < ev.results.length; i++) {
+        const t = ev.results[i][0].transcript;
+        if (ev.results[i].isFinal) recFinal += t + " "; else interim += t;
+      }
+      ta.value = recBase + recFinal + interim;
+      ta.dispatchEvent(new Event("input"));
+      ta.scrollTop = ta.scrollHeight;
+    };
+    r.onerror = ev => {
+      if (ev.error === "not-allowed" || ev.error === "service-not-allowed") toast("Permite el micrófono en el navegador para poder hablar.");
+      else if (ev.error === "no-speech") toast("No te escuché. Toca el micrófono y habla de nuevo.");
+      else if (ev.error === "audio-capture") toast("No encuentro ningún micrófono en este dispositivo.");
+      else if (ev.error === "network") toast("El dictado necesita internet.");
+      else if (ev.error !== "aborted") toast("Hubo un problema con el micrófono.");
+    };
+    r.onend = () => {
+      if (recTa && (recFinal || recTa.value)) { recTa.value = pulir(recBase + recFinal); recTa.dispatchEvent(new Event("input")); }
+      rec = null; limpiaVoz();
+    };
+    try { r.start(); beep(true); toast("Habla con calma. Toca otra vez cuando termines."); }
+    catch (err) { rec = null; limpiaVoz(); toast("No se pudo iniciar el micrófono."); }
+  });
 
   /* ── ENSÉÑALE A CHUPAYA (aprender enseñando) ── */
   const leccionHecha = l => !!(S.lecciones && S.lecciones[l.id]);
@@ -512,12 +567,12 @@
     }
 
     function escribir() {
-      w.innerHTML = cabeza() + dice("Ahora dímelo todo junto, con tus palabras, así lo anoto en mi cuaderno.", "happy") + `<div class="qcard"><div class="ctx">${esc(L.escribir.pregunta)}</div><h2 style="font-size:20px">Escríbeselo con tus palabras</h2><textarea class="write" id="tx" placeholder="Chupaya, esto pasó así…"></textarea><div class="actions"><button class="btn g" id="ver" disabled>Comparar con la respuesta modelo</button></div></div>`;
+      w.innerHTML = cabeza() + dice("Ahora dímelo todo junto, con tus palabras, así lo anoto en mi cuaderno.", "happy") + `<div class="qcard"><div class="ctx">${esc(L.escribir.pregunta)}</div><h2 style="font-size:20px">Escríbeselo con tus palabras</h2>${campoVoz("tx", "Chupaya, esto pasó así…")}<div class="actions"><button class="btn g" id="ver" disabled>Comparar con la respuesta modelo</button></div></div>`;
       $("#quit", w).addEventListener("click", salir);
       const tx = $("#tx", w);
       tx.addEventListener("input", () => { $("#ver", w).disabled = tx.value.trim().length < 20; });
       $("#ver", w).addEventListener("click", () => {
-        tx.disabled = true; $("#ver", w).remove();
+        tx.disabled = true; cerrarVoz(w); $("#ver", w).remove();
         $(".qcard", w).insertAdjacentHTML("beforeend", `<div class="model"><span class="t">Respuesta modelo</span>${esc(L.escribir.modelo)}</div>
           <div class="ctx" style="margin-top:14px">Compara con lo tuyo y marca lo que sí pusiste. Sé honesta: lo que no marques es justo lo que hay que repasar.</div>
           <div class="rubrica" id="ru">${L.escribir.rubrica.map((r, k) => `<label><input type="checkbox" data-k="${k}"><span>${esc(r)}</span></label>`).join("")}</div>
@@ -610,12 +665,12 @@
     }
 
     function escritura(titulo, ayuda, datos, luego) {
-      w.innerHTML = cabeza() + tarjeta() + `<div class="qcard"><div class="ctx">${esc(ayuda)}</div><h2>${esc(titulo)}</h2><textarea class="write" id="tx" placeholder="Escribe aquí con tus propias palabras…"></textarea><div class="actions"><button class="btn g" id="ver" disabled>Comparar con la respuesta modelo</button></div></div>`;
+      w.innerHTML = cabeza() + tarjeta() + `<div class="qcard"><div class="ctx">${esc(ayuda)}</div><h2>${esc(titulo)}</h2>${campoVoz("tx", "Escribe aquí con tus propias palabras…")}<div class="actions"><button class="btn g" id="ver" disabled>Comparar con la respuesta modelo</button></div></div>`;
       $("#quit", w).addEventListener("click", salir);
       const tx = $("#tx", w);
       tx.addEventListener("input", () => { $("#ver", w).disabled = tx.value.trim().length < 15; });
       $("#ver", w).addEventListener("click", () => {
-        tx.disabled = true; $("#ver", w).remove();
+        tx.disabled = true; cerrarVoz(w); $("#ver", w).remove();
         $(".qcard", w).insertAdjacentHTML("beforeend", `<div class="model"><span class="t">Respuesta modelo</span>${esc(datos.modelo)}</div>
           <div class="ctx" style="margin-top:14px">Ahora compara y marca lo que sí pusiste en tu respuesta. Sé honesta: así sabes qué te falta.</div>
           <div class="rubrica" id="ru">${datos.rubrica.map((r, k) => `<label><input type="checkbox" data-k="${k}"><span>${esc(r)}</span></label>`).join("")}</div>

@@ -406,3 +406,17 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .explicacion p{margin:0;font-size:16px;line-height:1.5}
 .bubble.mal{background:#FFF1EC;border:2px dashed var(--coral)}
 .bubble.mal::before{border-right-color:#FFF1EC}
+
+/* ── Responder hablando ── */
+.campo-voz{margin-top:12px}
+.campo-voz .write{margin-top:0}
+.write.escuchando{border-color:var(--coral);box-shadow:0 0 0 4px rgba(242,96,62,.15)}
+.voz-barra{display:flex;align-items:center;gap:12px;flex-wrap:wrap;margin-top:10px}
+.mic{display:inline-flex;align-items:center;gap:9px;background:#fff;border:2px solid var(--line);border-radius:999px;padding:10px 18px 10px 14px;font-weight:800;font-size:15px;box-shadow:0 3px 0 #D9D2BE;transition:transform .08s}
+.mic:active{transform:translateY(3px);box-shadow:0 0 0 #D9D2BE}
+.mic .mic-ic{font-size:20px;line-height:1}
+.mic.grabando{background:var(--coral);color:#fff;border-color:var(--coral);box-shadow:0 3px 0 var(--coral-deep)}
+.mic.grabando .mic-ic{animation:pulso 1s ease-in-out infinite}
+@keyframes pulso{0%,100%{transform:scale(1);opacity:1}50%{transform:scale(1.2);opacity:.65}}
+.voz-hint{font-size:13.5px;color:var(--ink-2);font-weight:700}
+@media(prefers-reduced-motion:reduce){.mic.grabando .mic-ic{animation:none}}
