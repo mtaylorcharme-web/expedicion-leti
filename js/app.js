@@ -141,14 +141,22 @@
         <linearGradient id="cielo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#CBE8B4"/><stop offset=".55" stop-color="#8CC47A"/><stop offset="1" stop-color="#6FB56A"/></linearGradient>
         <linearGradient id="nieve" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="1" stop-color="#BBD4E8"/></linearGradient>
         <linearGradient id="ciudad" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFE9A8"/><stop offset="1" stop-color="#F2B134"/></linearGradient>
+        <linearGradient id="rayo" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#FFF6D8" stop-opacity=".38"/><stop offset="1" stop-color="#FFF6D8" stop-opacity="0"/></linearGradient>
+        <radialGradient id="sombra" cx=".5" cy=".5" r=".72"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#14331F" stop-opacity=".3"/></radialGradient>
+        <filter id="lejos"><feGaussianBlur stdDeviation="7"/></filter>
+        <filter id="cerca"><feGaussianBlur stdDeviation="3"/></filter>
       </defs>
       <rect width="600" height="${mapH}" fill="url(#cielo)"/>
+      <g filter="url(#lejos)" opacity=".5">${[...Array(18)].map((_, i) => { const x = (i * 163 + 40) % 600, y = (i * 271) % mapH, r = 70 + (i % 3) * 34; return `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * .62}" fill="${i % 2 ? "#3E8A4C" : "#2F7440"}"/>`; }).join("")}</g>
+      ${[...Array(5)].map((_, i) => { const x = 70 + i * 118, y = i * (mapH / 5); return `<path d="M ${x} ${y} l 54 0 l -128 ${mapH * .26} l -44 0 Z" fill="url(#rayo)" opacity=".7"/>`; }).join("")}
       ${[...Array(34)].map((_, i) => { const x = (i * 137) % 600, y = (i * 211) % (mapH * .82), r = 28 + (i % 4) * 12; return `<circle cx="${x}" cy="${y}" r="${r}" fill="${i % 3 ? "#5FA95F" : "#4E9A52"}" opacity=".32"/>`; }).join("")}
       <rect x="2" y="-20" width="84" height="${mapH * .78}" rx="26" fill="#3B2A1C"/><rect x="14" y="-20" width="30" height="${mapH * .78}" rx="15" fill="#6B4C33"/><rect x="58" y="-20" width="12" height="${mapH * .78}" rx="6" fill="#2E2116" opacity=".7"/>
       <rect x="514" y="-20" width="84" height="${mapH * .78}" rx="26" fill="#3B2A1C"/><rect x="556" y="-20" width="30" height="${mapH * .78}" rx="15" fill="#6B4C33"/><rect x="530" y="-20" width="12" height="${mapH * .78}" rx="6" fill="#2E2116" opacity=".7"/>
       ${ramas}
       ${lianas}
       ${[...Array(14)].map((_, i) => { const izq = i % 2 === 0; const x = izq ? 22 + (i * 17) % 40 : 522 + (i * 13) % 40, y = (i * 173 + 70) % (mapH * .8); return `<text x="${x}" y="${y}" font-size="30" opacity=".75">${["🌴", "🌿", "🦜", "🌺", "🍃", "🌳"][i % 6]}</text>`; }).join("")}
+      <g filter="url(#cerca)" opacity=".85">${[...Array(9)].map((_, i) => { const izq = i % 2 === 0; const x = izq ? -30 + (i * 11) % 40 : 590 + (i * 7) % 30, y = 60 + i * (mapH / 9); const r = 74 + (i % 3) * 26; return `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * .74}" fill="${i % 2 ? "#1F5A38" : "#2A6B43"}"/><ellipse cx="${x + (izq ? 52 : -52)}" cy="${y + 46}" rx="${r * .6}" ry="${r * .44}" fill="#24603C"/>`; }).join("")}</g>
+      <rect width="600" height="${mapH}" fill="url(#sombra)" pointer-events="none"/>
       <path d="M -20 ${mapH * .88} L 90 ${mapH * .79} L 190 ${mapH * .87} L 300 ${mapH * .72} L 420 ${mapH * .85} L 520 ${mapH * .78} L 620 ${mapH * .89} L 620 ${mapH} L -20 ${mapH} Z" fill="url(#nieve)" opacity=".97"/>
       <path d="M 300 ${mapH * .72} L 272 ${mapH * .77} L 328 ${mapH * .77} Z" fill="#fff"/>
       <circle cx="${P[6][0]}" cy="${P[6][1]}" r="92" fill="url(#ciudad)" opacity=".35"/>
@@ -160,8 +168,8 @@
     const moverAya = (lm, px, py) => {
       if (!lm) return;
       lm.classList.add("saltando"); setTimeout(() => lm.classList.remove("saltando"), 1100);
-      lm.style.left = `calc(${px}% + ${ladoDe(px) * 92}px)`;
-      lm.style.top = `calc(${py}% + 84px)`;
+      lm.style.left = `calc(${px}% + ${ladoDe(px) * 108}px)`;
+      lm.style.top = `calc(${py}% + 126px)`;
     };
     C.camps.forEach((c, i) => {
       const [x, y] = positions[i]; const un = campUnlocked(c); const full = campDone(c) === c.missions.length;
@@ -181,14 +189,21 @@
     ciu.addEventListener("click", () => { beep(true); go("ciudad"); });
     map.appendChild(ciu);
     const idx = allDone ? 5 : C.camps.indexOf(cur); const [lx, ly] = positions[idx];
-    map.appendChild(el("div", { class: "aya-viajero", style: `left:calc(${lx}% + ${ladoDe(lx) * 92}px);top:calc(${ly}% + 84px)` },
+    map.appendChild(el("div", { class: "aya-viajero", style: `left:calc(${lx}% + ${ladoDe(lx) * 108}px);top:calc(${ly}% + 126px)` },
       `<span class="cuerda" aria-hidden="true"></span><img src="assets/chars/ovaya.png" alt="Ovaya"><b>Ovaya</b>`));
     map.insertAdjacentHTML("beforeend", `<img class="map-tree" src="assets/chars/trio-arbol.png" alt="" aria-hidden="true">`);
     map.insertAdjacentHTML("beforeend", `<div class="critter fly" style="top:14%;animation-duration:14s">🦜</div><div class="critter fly" style="top:46%;animation-duration:22s;animation-delay:-9s;font-size:22px">🦋</div><div class="critter walk" style="top:62%;animation-duration:30s;animation-delay:-12s">🐢</div>`);
-    [["chupaya", 86, 40, "swing"], ["estaya", 10, 74, "hang"]].forEach(([id, x, y, md]) => {
-      if (md === "swing") { const l = el("div", { class: "liana", style: `left:calc(${x}% + 25px);top:0;height:${y}%` }); map.appendChild(l); }
-      const mm = el("div", { class: "map-monkey", style: `left:${x}%;top:${y}%` }, monkey(id, md, 52)); map.appendChild(mm);
+    /* Chupaya se columpia de verdad (recorre un trecho de rama, porque siempre anda perdido)
+       y Estaya cuelga cabeza abajo canturreando. Los dos tienen su liana visible. */
+    [["chupaya", 86, 40, "swing", "colgado va"], ["estaya", 10, 74, "hang", "♪ la la la ♪"]].forEach(([id, x, y, md, dice]) => {
+      const l = el("div", { class: "liana", style: `left:calc(${x}% + 25px);top:0;height:${y}%` }); map.appendChild(l);
+      const mm = el("div", { class: `map-monkey vive ${id}` , style: `left:${x}%;top:${y}%` },
+        monkey(id, md, 52) + `<span class="globito">${esc(dice)}</span>`);
+      map.appendChild(mm);
     });
+    /* Estaya compone: le salen notas que suben */
+    map.insertAdjacentHTML("beforeend", [...Array(3)].map((_, i) =>
+      `<span class="nota-musical" style="left:calc(10% + 6px);top:73%;animation-delay:${i * 2.4}s">${["♪", "♫", "♩"][i]}</span>`).join(""));
     /* La portada: el dosel se dibuja, la foto de los Ayas va entera con object-fit:contain
        y nunca se recorta, y la foto real de la selva queda detrás, suave. */
     const hojasDosel = [...Array(16)].map((_, i) => {

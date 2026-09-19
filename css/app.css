@@ -711,3 +711,23 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 @media(max-width:600px){.brujula{padding:12px 14px;gap:10px}.brujula b{font-size:17px}.brujula .ic{width:44px;height:44px;font-size:22px}}
 .seccion{display:flex;align-items:center;gap:10px;margin:6px 2px -4px;font:800 12px Nunito;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-2)}
 .seccion::after{content:"";flex:1;height:2px;border-radius:2px;background:var(--line)}
+
+/* ═══ La selva viva: Chupaya y Estaya hacen algo ═══ */
+.map-monkey.vive{z-index:2}
+.map-monkey.chupaya{animation:recorre 13s ease-in-out infinite alternate}
+.map-monkey.estaya{animation:balanceo 5.2s ease-in-out infinite alternate}
+@keyframes recorre{from{transform:translateX(0)}to{transform:translateX(-64px)}}
+@keyframes balanceo{from{transform:translateX(0) rotate(-3deg)}to{transform:translateX(26px) rotate(3deg)}}
+.map-monkey .globito{position:absolute;left:50%;top:-26px;transform:translateX(-50%);background:#fff;color:var(--ink);
+  padding:2px 9px;border-radius:99px;font:800 11px Nunito;white-space:nowrap;box-shadow:0 2px 0 rgba(0,0,0,.12);
+  opacity:0;animation:asoma 13s ease-in-out infinite}
+.map-monkey.estaya .globito{animation-duration:9s;animation-delay:3s}
+@keyframes asoma{0%,62%{opacity:0;transform:translateX(-50%) translateY(4px)}70%,88%{opacity:1;transform:translateX(-50%) translateY(0)}100%{opacity:0}}
+.nota-musical{position:absolute;z-index:2;font-size:20px;color:#2E4A1C;pointer-events:none;
+  animation:sube 7.2s linear infinite;opacity:0;filter:drop-shadow(0 2px 2px rgba(0,0,0,.25))}
+@keyframes sube{0%{opacity:0;transform:translate(0,0) rotate(0)}12%{opacity:.95}100%{opacity:0;transform:translate(-30px,-124px) rotate(-16deg)}}
+@media(prefers-reduced-motion:reduce){
+  .map-monkey.chupaya,.map-monkey.estaya,.map-monkey .globito,.nota-musical{animation:none}
+  .map-monkey .globito{opacity:1}
+}
+.camp{z-index:4}
