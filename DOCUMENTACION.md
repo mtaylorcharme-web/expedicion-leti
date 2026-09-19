@@ -91,6 +91,14 @@ Las de tipo `write` aceptan dictado por voz automáticamente.
 
 Agregar el `<script>` en `index.html` y el archivo en la lista de `sw.js`, subiendo el número de versión del caché (`aya-vN`) para que los dispositivos tomen la versión nueva.
 
+## La portada
+
+La vista `home` tiene tres piezas y cada una cumple una función:
+
+- **La portada**: la foto recortada de los tres Ayas va entera, con `object-fit: contain`. Nunca se recorta: es la foto de sus monos reales. Detrás va la foto de la selva, difuminada y atenuada, y encima un dosel de hojas dibujado. Los cinco fragmentos del mapa se ven como casillas.
+- **La brújula**: una sola línea que dice qué toca ahora (bitácora, misión concreta o gran salto) y lleva directo ahí. Existe para que nunca haya que adivinar por dónde seguir.
+- **El mapa**: Ovaya cuelga de una liana y se columpia; al tocar otra selva se balancea fuerte y viaja hasta ella. Se sitúa al lado libre del nodo (`ladoDe`) para no tapar el nombre. La selva actual lleva el cartel «Vas aquí» y un latido. Los adornos se quedan en los márgenes a propósito. Al entrar, el mapa se acomoda solo en la rama donde va.
+
 ## Criterios pedagógicos que hay que respetar
 
 Estas decisiones son deliberadas. Si se cambian, se pierde lo que hace que la app enseñe en vez de solo preguntar.

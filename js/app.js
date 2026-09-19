@@ -148,23 +148,32 @@
       <rect x="514" y="-20" width="84" height="${mapH * .78}" rx="26" fill="#3B2A1C"/><rect x="556" y="-20" width="30" height="${mapH * .78}" rx="15" fill="#6B4C33"/><rect x="530" y="-20" width="12" height="${mapH * .78}" rx="6" fill="#2E2116" opacity=".7"/>
       ${ramas}
       ${lianas}
-      ${[...Array(14)].map((_, i) => { const x = (i * 97 + 46) % 600, y = (i * 173 + 70) % (mapH * .8); return `<text x="${x}" y="${y}" font-size="30" opacity=".8">${["🌴", "🌿", "🦜", "🌺", "🍃", "🌳"][i % 6]}</text>`; }).join("")}
+      ${[...Array(14)].map((_, i) => { const izq = i % 2 === 0; const x = izq ? 22 + (i * 17) % 40 : 522 + (i * 13) % 40, y = (i * 173 + 70) % (mapH * .8); return `<text x="${x}" y="${y}" font-size="30" opacity=".75">${["🌴", "🌿", "🦜", "🌺", "🍃", "🌳"][i % 6]}</text>`; }).join("")}
       <path d="M -20 ${mapH * .88} L 90 ${mapH * .79} L 190 ${mapH * .87} L 300 ${mapH * .72} L 420 ${mapH * .85} L 520 ${mapH * .78} L 620 ${mapH * .89} L 620 ${mapH} L -20 ${mapH} Z" fill="url(#nieve)" opacity=".97"/>
       <path d="M 300 ${mapH * .72} L 272 ${mapH * .77} L 328 ${mapH * .77} Z" fill="#fff"/>
       <circle cx="${P[6][0]}" cy="${P[6][1]}" r="92" fill="url(#ciudad)" opacity=".35"/>
       <text x="300" y="${mapH * .845}" font-size="22" font-weight="800" text-anchor="middle" fill="#5B7089" font-family="Nunito,sans-serif">Cordillera del Himalaya</text>
     </svg>`;
+    /* Ovaya se cuelga del lado con espacio libre y bien por debajo del nombre de la selva,
+       para no taparlo nunca. Los nodos van alternando de lado, así que el signo también. */
+    const ladoDe = px => px < 50 ? 1 : -1;
+    const moverAya = (lm, px, py) => {
+      if (!lm) return;
+      lm.classList.add("saltando"); setTimeout(() => lm.classList.remove("saltando"), 1100);
+      lm.style.left = `calc(${px}% + ${ladoDe(px) * 92}px)`;
+      lm.style.top = `calc(${py}% + 84px)`;
+    };
     C.camps.forEach((c, i) => {
       const [x, y] = positions[i]; const un = campUnlocked(c); const full = campDone(c) === c.missions.length;
       const node = el("button", { class: `camp ${un ? "" : "locked"} ${c === cur && !allDone ? "here" : ""}`, style: `left:${x}%;top:${y}%`, "aria-label": c.name });
       node.innerHTML = `<div class="land" style="background:${c.color}"><span class="n">${c.n}</span>${un ? c.icon : "🔒"}${campDone(c) ? `<span class="stars">${"★".repeat(Math.min(3, Math.round(campStars(c) / c.missions.length)))}${full ? " ✓" : ""}</span>` : ""}</div><span class="name">${esc(c.name)}<small>${un ? esc(c.lugar) + " · " + esc(c.epoca) : "selva desconocida"}</small></span>`;
-      node.addEventListener("click", () => { if (!un) return toast("Salta primero por la selva anterior para llegar a esta rama."); const lm = $(".leti-marker", map); if (lm) { lm.style.left = `calc(${x}% + 58px)`; lm.style.top = `calc(${y}% + 8px)`; lm.classList.add("walking"); } beep(true); setTimeout(() => go("camp", { camp: c.id }), 650); });
+      node.addEventListener("click", () => { if (!un) return toast("Salta primero por la selva anterior para llegar a esta rama."); const lm = $(".aya-viajero", map); if (lm) { moverAya(lm, x, y); lm.classList.add("walking"); } beep(true); setTimeout(() => go("camp", { camp: c.id }), 650); });
       map.appendChild(node);
     });
     const [bx, by] = positions[5]; const bossOpen = C.camps.filter(c => campDone(c) >= 1).length >= 3;
     const boss = el("button", { class: `camp boss ${bossOpen ? "" : "locked"}`, style: `left:${bx}%;top:${by}%` });
     boss.innerHTML = `<div class="land">${bossOpen ? "🏆" : "🔒"}${S.boss ? `<span class="stars">${S.boss.pct}%</span>` : ""}</div><span class="name">El gran salto<small>${bossOpen ? "simulacro de la prueba" : "abre con 3 selvas"}</small></span>`;
-    boss.addEventListener("click", () => { if (!bossOpen) return toast("Los Ayas necesitan al menos 3 selvas recorridas antes del gran salto."); const lm = $(".leti-marker", map); if (lm) { lm.style.left = `calc(${bx}% + 58px)`; lm.style.top = `calc(${by}% + 8px)`; lm.classList.add("walking"); } beep(true); setTimeout(() => go("boss"), 650); });
+    boss.addEventListener("click", () => { if (!bossOpen) return toast("Los Ayas necesitan al menos 3 selvas recorridas antes del gran salto."); const lm = $(".aya-viajero", map); if (lm) { moverAya(lm, bx, by); lm.classList.add("walking"); } beep(true); setTimeout(() => go("boss"), 650); });
     map.appendChild(boss);
     const [cx2, cy2] = positions[6]; const nPistas = (S.pistas || []).length; const quedanCand = CANDIDATOS.length - nPistas;
     const ciu = el("button", { class: "camp ciudad", style: `left:${cx2}%;top:${cy2}%` });
@@ -172,15 +181,45 @@
     ciu.addEventListener("click", () => { beep(true); go("ciudad"); });
     map.appendChild(ciu);
     const idx = allDone ? 5 : C.camps.indexOf(cur); const [lx, ly] = positions[idx];
-    map.appendChild(el("div", { class: "leti-marker", style: `left:calc(${lx}% + 58px);top:calc(${ly}% + 8px)` }, `<img src="assets/chars/ovaya.png" alt="Ovaya">`));
+    map.appendChild(el("div", { class: "aya-viajero", style: `left:calc(${lx}% + ${ladoDe(lx) * 92}px);top:calc(${ly}% + 84px)` },
+      `<span class="cuerda" aria-hidden="true"></span><img src="assets/chars/ovaya.png" alt="Ovaya"><b>Ovaya</b>`));
     map.insertAdjacentHTML("beforeend", `<img class="map-tree" src="assets/chars/trio-arbol.png" alt="" aria-hidden="true">`);
     map.insertAdjacentHTML("beforeend", `<div class="critter fly" style="top:14%;animation-duration:14s">🦜</div><div class="critter fly" style="top:46%;animation-duration:22s;animation-delay:-9s;font-size:22px">🦋</div><div class="critter walk" style="top:62%;animation-duration:30s;animation-delay:-12s">🐢</div>`);
     [["chupaya", 86, 40, "swing"], ["estaya", 10, 74, "hang"]].forEach(([id, x, y, md]) => {
       if (md === "swing") { const l = el("div", { class: "liana", style: `left:calc(${x}% + 25px);top:0;height:${y}%` }); map.appendChild(l); }
       const mm = el("div", { class: "map-monkey", style: `left:${x}%;top:${y}%` }, monkey(id, md, 52)); map.appendChild(mm);
     });
-    const hero = el("div", { class: "hero-jungle" }, `<div class="txt"><div class="eyebrow" style="color:#CFEFD8">De rama en rama, de vuelta a casa</div><h1>Misión Aya</h1><p>Los Ayas buscan la Ciudad Aya, en el Himalaya. Llevan <b>${fragmentos} de 5</b> fragmentos del mapa.</p></div></div>`);
-    const shell = el("div"); shell.appendChild(hero); shell.appendChild(wrap); m.appendChild(shell);
+    /* La portada: el dosel se dibuja, la foto de los Ayas va entera con object-fit:contain
+       y nunca se recorta, y la foto real de la selva queda detrás, suave. */
+    const hojasDosel = [...Array(16)].map((_, i) => {
+      const x = i * 68 - 20, y = 6 + (i % 3) * 16, r = 26 + (i % 4) * 5, giro = (i % 2 ? 1 : -1) * (12 + i % 7);
+      return `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * .46}" fill="${i % 3 ? "#2E7D4F" : "#1F5A38"}" opacity=".9" transform="rotate(${giro} ${x} ${y})"/>`;
+    }).join("");
+    const hero = el("div", { class: "hero-jungle" }, `
+      <div class="fondo" aria-hidden="true"></div>
+      <svg class="dosel" viewBox="0 0 1000 90" preserveAspectRatio="none" aria-hidden="true">${hojasDosel}</svg>
+      <div class="txt">
+        <div class="eyebrow">De rama en rama, de vuelta a casa</div>
+        <h1>Misión Aya</h1>
+        <p>Los Ayas buscan la Ciudad Aya, en el Himalaya.</p>
+        <div class="fragmentos" aria-label="${fragmentos} de 5 fragmentos del mapa">
+          ${[...Array(5)].map((_, i) => `<span class="frag ${i < fragmentos ? "hay" : ""}">${i < fragmentos ? "🗺️" : ""}</span>`).join("")}
+          <b>${fragmentos} de 5 fragmentos</b>
+        </div>
+      </div>
+      <img class="trio" src="assets/chars/trio.png" alt="Ovaya, Chupaya y Estaya">`);
+    /* La brújula: una sola línea que dice exactamente qué toca ahora. Es lo primero
+       que se ve después de la portada, para que nunca haya que adivinar por dónde seguir. */
+    const proxima = cur.missions.find(x => !S.done[x.id]);
+    const leidas = !!S.done[cur.id + "-notes"];
+    const quePasa = allDone ? { que: "El gran salto", dir: "Simulacro completo de la prueba", ir: () => go("boss") }
+      : !leidas ? { que: `Selva ${cur.n} · Bitácora`, dir: `Lee las ${cur.notes.length} páginas de ${cur.lugar} antes de saltar`, ir: () => go("notes", { camp: cur.id }) }
+      : proxima ? { que: `Selva ${cur.n} · ${proxima.title}`, dir: `Con ${CH[proxima.char].name} · ${proxima.questions.length} desafíos`, ir: () => go("mission", { camp: cur.id, mission: proxima.id }) }
+      : { que: `Selva ${cur.n}`, dir: "Te quedan actividades por hacer en esta selva", ir: () => go("camp", { camp: cur.id }) };
+    const brujula = el("button", { class: "brujula" }, `<span class="ic">🧭</span><span class="cual"><span class="eyebrow">Sigue por aquí</span><b>${esc(quePasa.que)}</b><small>${esc(quePasa.dir)}</small></span><span class="ve">→</span>`);
+    brujula.addEventListener("click", () => { beep(true); quePasa.ir(); });
+
+    const shell = el("div"); shell.appendChild(hero); shell.appendChild(brujula); shell.appendChild(wrap); m.appendChild(shell);
     wrap.appendChild(map);
 
     const side = el("div", { style: "display:grid;gap:14px" });
@@ -189,6 +228,7 @@
     side.innerHTML = `<div class="card"><div class="today"><div class="char">${monkey(guide, allDone ? "party" : "happy", 96)}</div><div class="bubble"><span class="who">${CH[guide].name}</span><span class="tw">${esc(msg)}</span>${SAYBTN}</div></div><div class="actions" style="justify-content:flex-start"><button class="btn" id="goNext">${allDone ? "Ir a la Ciudad Aya 🏔️" : "¡A saltar! 🐒"}</button><button class="btn ghost" data-go="review">Repaso 🎯</button></div></div>`;
     $("#goNext", side).addEventListener("click", () => allDone ? go("boss") : go("camp", { camp: cur.id }));
 
+    side.appendChild(el("div", { class: "seccion" }, "<span>Para hoy</span>"));
     const dailyDone = S.daily && S.daily.date === todayKey();
     const dc = el("div", { class: "card daily" + (dailyDone ? " done" : "") });
     dc.innerHTML = `<div class="row" style="justify-content:space-between;gap:10px"><div><div class="eyebrow">Reto del día</div><b style="font-family:Fredoka;font-size:18px;font-weight:600">${dailyDone ? "¡Reto de hoy superado! ✅" : "5 preguntas sorpresa · +30 XP"}</b><div class="muted small">${dailyDone ? `Sacaste ${S.daily.score}/5. Mañana hay uno nuevo.` : "De las selvas que ya recorriste. ¡Mantén tu racha!"}</div></div>${dailyDone ? "" : `<button class="btn y sm" id="goDaily">¡Jugar! 🎲</button>`}</div>`;
@@ -199,6 +239,7 @@
     fc.innerHTML = `<div class="row" style="justify-content:space-between;gap:10px"><div><div class="eyebrow" style="color:#7A4BB8">Taller de fuentes</div><b style="font-family:Fredoka;font-size:18px;font-weight:600">La carpa del detective</b><div class="muted small">${fxh} de ${fx.length} fuentes analizadas. Mapas, diarios y cartas reales de la época.</div></div><button class="btn sm" id="goFx" style="background:#8E6BC7;box-shadow:0 3px 0 #6B49A0">Analizar 🔍</button></div>`;
     $("#goFx", fc).addEventListener("click", () => go("fuentes"));
     side.appendChild(fc);
+    side.appendChild(el("div", { class: "seccion" }, "<span>Para explorar</span>"));
     const hc = el("div", { class: "card himno" });
     const pintaHimno = () => { const son = himno && !himno.paused; hc.innerHTML = `<div class="row"><button class="btn y" data-himno="1" style="width:56px;height:56px;border-radius:50%;padding:0;font-size:22px">${son ? "⏸" : "▶"}</button><div style="flex:1"><div class="eyebrow" style="color:#A8801A">El himno de la expedición</div><b style="font-family:Fredoka;font-size:19px;font-weight:600">${esc(HIMNO.titulo)}</b><div class="hbar"><b id="hb" style="width:${himno ? (himno.currentTime / (himno.duration || HIMNO.dur)) * 100 : 0}%"></b></div></div><span class="notas-mini">${son ? "♪ ♫ ♪" : ""}</span></div>`; };
     pintaHimno();
@@ -210,6 +251,7 @@
     cc.innerHTML = `<div class="row" style="justify-content:space-between;gap:10px"><div><div class="eyebrow" style="color:#A8801A">La búsqueda de casa</div><b style="font-family:Fredoka;font-size:18px;font-weight:600">${cand === 1 ? "¡Encontraron la Ciudad Aya!" : `Quedan ${cand} lugares posibles`}</b><div class="muted small">${nPis} de 8 pistas y ${nPis} de 8 notas de la melodía.</div></div><button class="btn y sm" id="goCiu">Investigar 🏔️</button></div>`;
     $("#goCiu", cc).addEventListener("click", () => go("ciudad"));
     side.appendChild(cc);
+    side.appendChild(el("div", { class: "seccion" }, "<span>La prueba</span>"));
     const cd = el("div", { class: "card" });
     cd.innerHTML = `<div class="eyebrow">${esc(C.unit.subject)} · ${esc(C.unit.title)}</div><div class="countdown" style="margin-top:6px"><div class="big">${d >= 0 ? d : 0}</div><div><b style="font-family:Fredoka;font-size:18px">${d > 1 ? "días para la prueba" : d === 1 ? "día para la prueba" : d === 0 ? "¡La prueba es hoy!" : "La prueba ya pasó"}</b><div class="muted small">${esc(C.unit.test.label)} · ${doneMissions()}/${totalMissions} misiones completadas</div></div></div>`;
     side.appendChild(cd);
@@ -220,6 +262,15 @@
     plan.innerHTML = `<h3 style="font-size:19px;font-weight:600">Ruta de regreso hasta la prueba</h3><div class="plan" style="margin-top:10px">${C.plan.map(p => { const dt = new Date(start); dt.setDate(dt.getDate() + p.day); const isT = dt.getTime() === t0.getTime(), past = dt < t0; const camps = p.camps.map(id => C.camps.find(c => c.id === id)); const ok = camps.every(c => campDone(c) === c.missions.length); return `<div class="d ${isT ? "today" : past ? "past" : ""}"><div class="dn">${dn[dt.getDay()]}<b>${dt.getDate()}</b></div><div><b>${esc(p.label)}</b><div class="muted small">${camps.map(c => c.icon + " " + esc(c.name)).join(", ")} · ${esc(p.extra)}</div></div><div class="st">${ok ? "✅" : isT ? "👉" : ""}</div></div>`; }).join("")}</div>`;
     side.appendChild(plan);
     wrap.appendChild(side);
+
+    /* El mapa mide mil píxeles: si no se acomoda solo, se entra mirando cielo. */
+    requestAnimationFrame(() => {
+      const aqui = $(".camp.here", map) || $(".aya-viajero", map);
+      if (!aqui) return;
+      const suave = !matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const y = aqui.getBoundingClientRect().top + window.scrollY - window.innerHeight * .42;
+      if (y > 60) window.scrollTo({ top: y, behavior: suave ? "smooth" : "auto" });
+    });
   }
 
   /* ── CAMPAMENTO ── */
