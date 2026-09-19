@@ -357,3 +357,9 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .notebook h2{font-size:24px;margin:4px 0 10px}
 .nbody{font-size:17px;line-height:1.6}
 .nbody b{color:var(--jungle-deep);background:#E6F6EC;padding:0 4px;border-radius:5px}
+/* avatar y marcador con la foto de Ovaya */
+.avatar{overflow:hidden;background:#DDF3E4}
+.avatar img{width:100%;height:100%;object-fit:cover;object-position:top}
+.leti-marker{overflow:hidden;background:#DDF3E4;width:44px;height:44px;margin-left:-22px;margin-top:-22px}
+.leti-marker img{width:100%;height:100%;object-fit:cover;object-position:top}
+.leti-marker::after{content:"Ovaya";top:44px}

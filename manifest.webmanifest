@@ -1,7 +1,7 @@
 {
-  "name": "Expedición Leti",
-  "short_name": "Leti",
-  "description": "Aventuras para estudiar 5º básico con Ovaya, Chupaya y Estaya.",
+  "name": "Misión Aya",
+  "short_name": "Misión Aya",
+  "description": "Ovaya, Chupaya y Estaya te acompañan a estudiar 5º básico.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

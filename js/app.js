@@ -1,4 +1,4 @@
-/* Expedición Leti · motor de la app (sin dependencias) */
+/* Misión Aya · motor de la app (sin dependencias) */
 (function () {
   "use strict";
   const C = window.CONTENT, CH = window.CHARS, monkey = window.monkey;
@@ -10,8 +10,8 @@
   const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 
   /* ── estado ── */
-  const KEY = "expedicion-leti-v1";
-  const DEF = { name: "Leti", xp: 0, streak: { last: null, count: 0 }, days: [], done: {}, wrong: {}, stats: {}, stamps: [], pin: "1234", boss: null, sound: true, log: [] };
+  const KEY = "mision-aya-v1";
+  const DEF = { name: "Ovaya", xp: 0, streak: { last: null, count: 0 }, days: [], done: {}, wrong: {}, stats: {}, stamps: [], pin: "1234", boss: null, sound: true, log: [] };
   let S = load();
   function load() { try { const s = JSON.parse(localStorage.getItem(KEY)); return s ? Object.assign({}, DEF, s) : Object.assign({}, DEF); } catch (e) { return Object.assign({}, DEF); } }
   function save() { try { localStorage.setItem(KEY, JSON.stringify(S)); } catch (e) { } }
@@ -80,10 +80,10 @@
   function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song, daily })[view](m); }
   function renderTop() {
     const d = daysToTest(); const dl = d > 1 ? `${d} días` : d === 1 ? "¡mañana!" : d === 0 ? "¡hoy!" : "pasó";
-    $("#topbar").innerHTML = `<span class="chip streak">🔥 ${S.streak.count} <span class="lbl">día${S.streak.count === 1 ? "" : "s"}</span></span><span class="chip xp">⭐ ${S.xp} <span class="lbl">XP</span></span><span class="chip days">📅 <span class="lbl">Prueba:</span> ${dl}</span><span class="spacer"></span><button class="avatar" data-go="passport" aria-label="Pasaporte">${esc(S.name[0] || "L")}</button>`;
+    $("#topbar").innerHTML = `<span class="chip streak">🔥 ${S.streak.count} <span class="lbl">día${S.streak.count === 1 ? "" : "s"}</span></span><span class="chip xp">⭐ ${S.xp} <span class="lbl">XP</span></span><span class="chip days">📅 <span class="lbl">Prueba:</span> ${dl}</span><span class="spacer"></span><button class="avatar" data-go="passport" aria-label="Pasaporte"><img src="assets/chars/ovaya.png" alt="Ovaya"></button>`;
   }
   function renderNav() {
-    const items = [["home", "🌴", "Selva"], ["review", "🎯", "Repaso"], ["passport", "🛂", "Pasaporte"], ["parent", "👩‍👧", "Mamá"]];
+    const items = [["home", "🌴", "Selva"], ["review", "🎯", "Repaso"], ["passport", "🛂", "Pasaporte"], ["parent", "👨‍👩‍👧", "Papás"]];
     $("#navbar").innerHTML = `<div class="inner">${items.map(([v, i, l]) => `<button class="${view === v || (v === "home" && ["camp", "notes", "mission", "flash", "boss", "game", "memo", "song"].includes(view)) ? "on" : ""}" data-go="${v}"><span class="ic">${i}</span>${l}</button>`).join("")}</div>`;
   }
   document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
@@ -91,10 +91,10 @@
   /* ── BIENVENIDA (primera vez) ── */
   function welcome(m) {
     const steps = [
-      { id: "ovaya", mood: "surprised", t: `¡Hola, ${esc(S.name)}! Soy Ovaya, el más curioso de Los Ayas. ¡Encontré un mapa de una selva llena de secretos de Historia!` },
-      { id: "chupaya", mood: "think", t: "Yo soy Chupaya… y ya me perdí. Si respondes bien las preguntas, me vas a encontrar en cada campamento." },
+      { id: "ovaya", mood: "surprised", t: "¡Hola! Soy Ovaya, el más curioso de Los Ayas, y esta es mi misión: cruzar una selva llena de secretos de Historia. ¿Me acompañas?" },
+      { id: "chupaya", mood: "think", t: "Yo soy Chupaya… y ya me perdí. Si Ovaya y tú responden bien las preguntas, me van a encontrar en cada campamento." },
       { id: "estaya", mood: "happy", t: "♪ Y yo soy Estaya ♪. Traigo tarjetas, canciones y juegos para que todo se te quede en la memoria." },
-      { id: "ovaya", mood: "party", t: "Cada campamento es un tema de tu prueba. Gana estrellas, sellos y XP. ¿Lista para zarpar?" }
+      { id: "ovaya", mood: "party", t: "Cada campamento es un tema de tu prueba. Ganamos estrellas, sellos y XP juntos. ¿Empezamos la Misión Aya?" }
     ];
     let i = 0; const w = el("div", { class: "welcome" }); m.appendChild(w);
     const draw = () => { const st = steps[i]; w.innerHTML = `<div class="wl-stage">${i === steps.length - 1 ? `<img class="trio" src="assets/chars/trio.png" alt="Los Ayas">` : monkey(st.id, st.mood, 150)}</div><div class="bubble wl"><span class="who">${CH[st.id].name}</span><span class="tw">${st.t}</span>${SAYBTN}</div><div class="actions" style="justify-content:center"><button class="btn ${i === steps.length - 1 ? "" : "g"}" id="nx">${i === steps.length - 1 ? "¡Sí, vamos! ⛵" : "Siguiente →"}</button></div><div class="dots">${steps.map((_, k) => `<i class="${k === i ? "on" : ""}"></i>`).join("")}</div>`; typewrite($(".tw", w)); beep(true); $("#nx", w).addEventListener("click", () => { i++; if (i >= steps.length) { S.welcomed = true; save(); confetti(); jingle("win"); go("home"); } else draw(); }); };
@@ -137,7 +137,7 @@
     boss.addEventListener("click", () => { if (!bossOpen) return toast("Abre al menos 3 campamentos para entrar al Templo de la Prueba."); const lm = $(".leti-marker", map); if (lm) { lm.style.left = `calc(${bx}% + 58px)`; lm.style.top = `calc(${by}% + 8px)`; lm.classList.add("walking"); } beep(true); setTimeout(() => go("boss"), 650); });
     map.appendChild(boss);
     const idx = allDone ? 5 : C.camps.indexOf(cur); const [lx, ly] = positions[idx];
-    map.appendChild(el("div", { class: "leti-marker", style: `left:calc(${lx}% + 58px);top:calc(${ly}% + 8px)` }, esc(S.name[0] || "L")));
+    map.appendChild(el("div", { class: "leti-marker", style: `left:calc(${lx}% + 58px);top:calc(${ly}% + 8px)` }, `<img src="assets/chars/ovaya.png" alt="Ovaya">`));
     map.insertAdjacentHTML("beforeend", `<img class="map-tree" src="assets/chars/trio-arbol.png" alt="" aria-hidden="true">`);
     // animales que cruzan la selva
     map.insertAdjacentHTML("beforeend", `<div class="critter fly" style="top:18%;animation-duration:14s">🦜</div><div class="critter fly" style="top:52%;animation-duration:22s;animation-delay:-9s;font-size:22px">🦋</div><div class="critter walk" style="top:66%;animation-duration:30s;animation-delay:-12s">🐢</div>`);
@@ -146,7 +146,7 @@
       if (md === "swing") { const l = el("div", { class: "liana", style: `left:calc(${x}% + 25px);top:0;height:${y}%` }); map.appendChild(l); }
       const mm = el("div", { class: "map-monkey", style: `left:${x}%;top:${y}%` }, monkey(id, md, 52)); map.appendChild(mm);
     });
-    const hero = el("div", { class: "hero-jungle" }, `<div class="txt"><div class="eyebrow" style="color:#CFEFD8">Los Ayas te acompañan</div><h1>Expedición ${esc(S.name)}</h1><p>${esc(C.unit.subject)} · ${esc(C.unit.title)} · ${C.unit.test.label.split("·")[1] ? "prueba el" + C.unit.test.label.split("·")[1] : ""}</p></div>`);
+    const hero = el("div", { class: "hero-jungle" }, `<div class="txt"><div class="eyebrow" style="color:#CFEFD8">Los Ayas te acompañan</div><h1>Misión Aya</h1><p>${esc(C.unit.subject)} · ${esc(C.unit.title)} · ${C.unit.test.label.split("·")[1] ? "prueba el" + C.unit.test.label.split("·")[1] : ""}</p></div>`);
     const shell = el("div"); shell.appendChild(hero); shell.appendChild(wrap); m.appendChild(shell);
     wrap.appendChild(map);
 
@@ -262,7 +262,7 @@
         <div class="eyebrow">${esc(cfg.topic || "")}</div><h2>${st === 3 ? "¡Misión perfecta!" : st === 2 ? "¡Misión cumplida!" : "¡Lo lograste!"}</h2>
         <div class="stars" aria-label="${st} estrellas">${starStr(st)}</div>
         <div class="xp">+${r.xp} XP</div>
-        <p class="muted">${errors === 0 ? "Sin errores. ¡Eres una exploradora experta!" : errors === 1 ? "Solo un error. Lo repasarás en «Repaso»." : `Tuviste ${errors} errores. Aparecerán en «Repaso» para que los domines.`}</p>
+        <p class="muted">${errors === 0 ? "Sin errores. ¡Ovaya está orgulloso de ti!" : errors === 1 ? "Solo un error. Lo repasarás en «Repaso»." : `Tuviste ${errors} errores. Aparecerán en «Repaso» para que los domines.`}</p>
         ${chestHTML()}
         <div class="actions" style="justify-content:center"><button class="btn g" id="cont">Continuar</button>${r.retry ? `<button class="btn ghost" id="retry">Repetir</button>` : ""}</div></div>`;
       $("#cont", w).addEventListener("click", r.back);
@@ -437,7 +437,7 @@
   /* ── SIMULACRO (jefe) ── */
   function boss(m) {
     const intro = el("div", { class: "mission" });
-    intro.innerHTML = `<button class="btn ghost sm" data-go="home">← Selva</button><div class="result"><div style="font-size:64px">🏆</div><h2>Templo de la Prueba</h2><p class="muted">Un simulacro de 20 preguntas mezcladas de los cinco campamentos, igual que la prueba del jueves. Sin ayuda de la bitácora. Al final verás qué temas repasar.</p>${S.boss ? `<p><b>Tu mejor resultado:</b> ${S.boss.pct}% ${S.boss.pct >= 80 ? "🏅" : ""}</p>` : ""}${S.bossLast ? `<div class="card bars" style="text-align:left;margin-bottom:12px"><div class="eyebrow">Último simulacro · ${S.bossLast.pct}%</div>${C.camps.map(c => { const t = S.bossLast.perTopic[c.topic]; const p = t ? Math.round(t.ok / t.n * 100) : null; return `<div class="r"><span>${c.icon} ${esc(c.topic)}</span><div class="bar"><b style="width:${p || 0}%;background:${p == null ? "#ccc" : p >= 75 ? "var(--ok)" : p >= 50 ? "var(--gold)" : "var(--coral)"}"></b></div><span class="n">${p == null ? "—" : p + "%"}</span></div>`; }).join("")}${(() => { const weak = C.camps.filter(c => { const t = S.bossLast.perTopic[c.topic]; return t && t.ok / t.n < .75; }); return weak.length ? `<div class="alert" style="margin-top:10px"><b>Consejo de Ovaya:</b> repasa ${weak.map(c => `<button class="btn ghost sm" data-camp="${c.id}" style="margin:3px 4px 0 0">${c.icon} ${esc(c.name)}</button>`).join("")}</div>` : `<div class="alert" style="margin-top:10px;background:var(--ok-bg);border-color:var(--ok)"><b>¡Todos los temas sobre 75%!</b> Estás lista para la prueba.</div>`; })()}</div>` : ""}<div class="today card" style="text-align:left"><div class="char">${monkey("ovaya", "surprised", 84)}</div><div class="bubble"><span class="who">Ovaya</span>¡Este es el gran desafío, ${esc(S.name)}! Respira hondo. Si sacas 80% o más, ganas el sello del Templo.</div></div><div class="actions" style="justify-content:center"><button class="btn" id="start">¡Empezar simulacro!</button></div></div>`;
+    intro.innerHTML = `<button class="btn ghost sm" data-go="home">← Selva</button><div class="result"><div style="font-size:64px">🏆</div><h2>Templo de la Prueba</h2><p class="muted">Un simulacro de 20 preguntas mezcladas de los cinco campamentos, igual que la prueba del jueves. Sin ayuda de la bitácora. Al final verás qué temas repasar.</p>${S.boss ? `<p><b>Tu mejor resultado:</b> ${S.boss.pct}% ${S.boss.pct >= 80 ? "🏅" : ""}</p>` : ""}${S.bossLast ? `<div class="card bars" style="text-align:left;margin-bottom:12px"><div class="eyebrow">Último simulacro · ${S.bossLast.pct}%</div>${C.camps.map(c => { const t = S.bossLast.perTopic[c.topic]; const p = t ? Math.round(t.ok / t.n * 100) : null; return `<div class="r"><span>${c.icon} ${esc(c.topic)}</span><div class="bar"><b style="width:${p || 0}%;background:${p == null ? "#ccc" : p >= 75 ? "var(--ok)" : p >= 50 ? "var(--gold)" : "var(--coral)"}"></b></div><span class="n">${p == null ? "—" : p + "%"}</span></div>`; }).join("")}${(() => { const weak = C.camps.filter(c => { const t = S.bossLast.perTopic[c.topic]; return t && t.ok / t.n < .75; }); return weak.length ? `<div class="alert" style="margin-top:10px"><b>Consejo de Ovaya:</b> repasa ${weak.map(c => `<button class="btn ghost sm" data-camp="${c.id}" style="margin:3px 4px 0 0">${c.icon} ${esc(c.name)}</button>`).join("")}</div>` : `<div class="alert" style="margin-top:10px;background:var(--ok-bg);border-color:var(--ok)"><b>¡Todos los temas sobre 75%!</b> Estás lista para la prueba.</div>`; })()}</div>` : ""}<div class="today card" style="text-align:left"><div class="char">${monkey("ovaya", "surprised", 84)}</div><div class="bubble"><span class="who">Ovaya</span>¡Este es el gran desafío! Respira hondo. Si sacamos 80% o más, ganamos el sello del Templo.</div></div><div class="actions" style="justify-content:center"><button class="btn" id="start">¡Empezar simulacro!</button></div></div>`;
     m.appendChild(intro);
     intro.querySelectorAll("[data-camp]").forEach(b => b.addEventListener("click", () => go("camp", { camp: b.dataset.camp })));
     $("#start", intro).addEventListener("click", () => {
@@ -477,7 +477,7 @@
     const dn = ["L", "M", "X", "J", "V", "S", "D"]; const now = new Date(); const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay() + 6) % 7)); mon.setHours(0, 0, 0, 0);
     const week = [...Array(7)].map((_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); const k = localKey(d); return `<span class="${S.days.includes(k) ? "d" : ""} ${k === todayKey() ? "t" : ""}">${dn[i]}</span>`; }).join("");
     const w = el("div");
-    w.innerHTML = `<div class="card"><div class="row"><div class="avatar" style="width:72px;height:72px;font-size:30px;border-radius:24px">${esc(S.name[0] || "L")}</div><div><h2 style="font-size:26px;font-weight:600">${esc(S.name)}, exploradora nivel ${level()}</h2><div class="muted">${S.xp} XP · ${S.streak.count} día${S.streak.count === 1 ? "" : "s"} seguidos 🔥 · ${doneMissions()}/${totalMissions} misiones</div></div></div>
+    w.innerHTML = `<div class="card"><div class="row"><div class="avatar" style="width:72px;height:72px;border-radius:24px"><img src="assets/chars/ovaya.png" alt="Ovaya"></div><div><h2 style="font-size:26px;font-weight:600">Ovaya, explorador nivel ${level()}</h2><div class="muted">${S.xp} XP · ${S.streak.count} día${S.streak.count === 1 ? "" : "s"} seguidos 🔥 · ${doneMissions()}/${totalMissions} misiones</div></div></div>
       <div class="bars" style="margin-top:10px"><div class="r"><span>Nivel ${level()}</span><div class="bar"><b style="width:${((S.xp % 250) / 250) * 100}%;background:var(--jungle)"></b></div><span class="n">${S.xp % 250}/250</span></div></div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:8px">Esta semana</h3><div class="week">${week}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:10px">Sellos del pasaporte</h3><div class="stamps">${ST.map(([id, ic, t]) => `<div class="stamp ${S.stamps.includes(id) ? "got" : ""}"><div><span class="big">${S.stamps.includes(id) ? ic : "·"}</span>${esc(t)}</div></div>`).join("")}</div></div>
@@ -491,25 +491,24 @@
   /* ── PANEL MAMÁ ── */
   let parentOK = false;
   function parent(m) {
-    if (!parentOK) { const p = el("div", { class: "pin card" }); p.innerHTML = `<div style="font-size:40px">🔒</div><h2 style="font-size:22px">Panel para mamá</h2><p class="muted small">Escribe el PIN (al inicio es 1234).</p><input id="pin" inputmode="numeric" maxlength="6" autocomplete="off" aria-label="PIN"><button class="btn g" id="ok">Entrar</button>`; m.appendChild(p); const tryPin = () => { if ($("#pin", p).value === S.pin) { parentOK = true; render(); } else { $("#pin", p).value = ""; toast("PIN incorrecto"); } }; $("#ok", p).addEventListener("click", tryPin); $("#pin", p).addEventListener("keydown", e => { if (e.key === "Enter") tryPin(); }); $("#pin", p).focus(); return; }
+    if (!parentOK) { const p = el("div", { class: "pin card" }); p.innerHTML = `<div style="font-size:40px">🔒</div><h2 style="font-size:22px">Panel de Mariana y Francisco</h2><p class="muted small">Escribe el PIN (al inicio es 1234).</p><input id="pin" inputmode="numeric" maxlength="6" autocomplete="off" aria-label="PIN"><button class="btn g" id="ok">Entrar</button>`; m.appendChild(p); const tryPin = () => { if ($("#pin", p).value === S.pin) { parentOK = true; render(); } else { $("#pin", p).value = ""; toast("PIN incorrecto"); } }; $("#ok", p).addEventListener("click", tryPin); $("#pin", p).addEventListener("keydown", e => { if (e.key === "Enter") tryPin(); }); $("#pin", p).focus(); return; }
     const topics = C.camps.map(c => { const s = S.stats[c.topic] || { ok: 0, n: 0 }; return { c, s, pct: s.n ? Math.round(s.ok / s.n * 100) : null }; });
     const totalN = topics.reduce((a, t) => a + t.s.n, 0), totalOK = topics.reduce((a, t) => a + t.s.ok, 0);
     const wrong = Object.values(S.wrong);
     const w = el("div");
-    w.innerHTML = `<div class="row" style="justify-content:space-between"><h2 style="font-size:26px;font-weight:600">Panel de progreso</h2><button class="btn ghost sm" id="lock">Cerrar 🔒</button></div>
+    w.innerHTML = `<div class="row" style="justify-content:space-between"><h2 style="font-size:26px;font-weight:600">Panel de Mariana y Francisco</h2><button class="btn ghost sm" id="lock">Cerrar 🔒</button></div>
       <div class="kpi" style="margin-top:12px"><div><b>${doneMissions()}/${totalMissions}</b><small>misiones completadas</small></div><div><b>${totalN ? Math.round(totalOK / totalN * 100) : 0}%</b><small>aciertos (${totalN} respuestas)</small></div><div><b>${S.streak.count}</b><small>días seguidos</small></div><div><b>${S.boss ? S.boss.pct + "%" : "—"}</b><small>mejor simulacro</small></div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600">Aciertos por tema de la prueba</h3><div class="bars" style="margin-top:6px">${topics.map(t => `<div class="r"><span>${t.c.n}. ${esc(t.c.topic)}</span><div class="bar"><b style="width:${t.pct || 0}%;background:${t.pct == null ? "#ccc" : t.pct >= 80 ? "var(--ok)" : t.pct >= 60 ? "var(--gold)" : "var(--coral)"}"></b></div><span class="n">${t.pct == null ? "sin datos" : t.pct + "%"}</span></div>`).join("")}</div></div>
-      <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600">Para reforzar (${wrong.length})</h3><p class="muted small" style="margin:4px 0 10px">Preguntas falladas que siguen pendientes. Desaparecen cuando Leti las responde bien dos veces en «Repaso».</p><div class="wrongs">${wrong.length ? wrong.map(x => `<div>${esc(x.q)}</div>`).join("") : "<div class='muted' style='border-color:var(--ok)'>Nada pendiente por ahora.</div>"}</div></div>
+      <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600">Para reforzar (${wrong.length})</h3><p class="muted small" style="margin:4px 0 10px">Preguntas falladas que siguen pendientes. Desaparecen cuando se responden bien dos veces en «Repaso».</p><div class="wrongs">${wrong.length ? wrong.map(x => `<div>${esc(x.q)}</div>`).join("") : "<div class='muted' style='border-color:var(--ok)'>Nada pendiente por ahora.</div>"}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600">Ajustes</h3>
-        <div class="field"><label for="nm">Nombre de la exploradora</label><input id="nm" value="${esc(S.name)}"></div>
-        <div class="field"><label for="np">Cambiar PIN</label><input id="np" inputmode="numeric" maxlength="6" placeholder="Nuevo PIN (4 a 6 números)"></div>
+                <div class="field"><label for="np">Cambiar PIN</label><input id="np" inputmode="numeric" maxlength="6" placeholder="Nuevo PIN (4 a 6 números)"></div>
         <div class="field"><label><input type="checkbox" id="snd" ${S.sound ? "checked" : ""} style="width:auto;margin-right:8px">Sonidos activados</label></div>
         <div class="actions" style="justify-content:flex-start"><button class="btn g sm" id="saveS">Guardar ajustes</button><button class="btn ghost sm" id="reset">Reiniciar todo el progreso</button></div>
         <p class="muted small" style="margin-top:12px">Próximamente: subir fotos, texto o enlaces del colegio para crear nuevas expediciones con inteligencia artificial (requiere clave de API de Anthropic).</p></div>`;
     m.appendChild(w);
     $("#lock", w).addEventListener("click", () => { parentOK = false; go("home"); });
-    $("#saveS", w).addEventListener("click", () => { const nm = $("#nm", w).value.trim(); if (nm) S.name = nm; const np = $("#np", w).value.trim(); if (np) { if (/^\d{4,6}$/.test(np)) S.pin = np; else return toast("El PIN debe tener 4 a 6 números."); } S.sound = $("#snd", w).checked; save(); toast("Ajustes guardados"); render(); });
-    $("#reset", w).addEventListener("click", () => { if (confirm("¿Borrar TODO el progreso de Leti? Esta acción no se puede deshacer.")) { const pin = S.pin; S = Object.assign({}, DEF, { pin }); save(); toast("Progreso reiniciado"); go("home"); } });
+    $("#saveS", w).addEventListener("click", () => { const np = $("#np", w).value.trim(); if (np) { if (/^\d{4,6}$/.test(np)) S.pin = np; else return toast("El PIN debe tener 4 a 6 números."); } S.sound = $("#snd", w).checked; save(); toast("Ajustes guardados"); render(); });
+    $("#reset", w).addEventListener("click", () => { if (confirm("¿Borrar TODO el progreso de la Misión Aya? Esta acción no se puede deshacer.")) { const pin = S.pin; S = Object.assign({}, DEF, { pin }); save(); toast("Progreso reiniciado"); go("home"); } });
   }
 
   /* ── arranque ── */

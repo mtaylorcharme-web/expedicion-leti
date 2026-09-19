@@ -1,4 +1,4 @@
-/* Expedición Leti · Historia 5º básico · Unidad 3: La expansión europea (s. XV–XVI)
+/* Misión Aya · Historia 5º básico · Unidad 3: La expansión europea (s. XV–XVI)
    Contenido alineado a la prueba del jueves 24 de septiembre (Colegio Bradford) y al currículo MINEDUC.
    Tipos de pregunta: mc (alternativas), tf (verdadero/falso), order (ordenar), match (emparejar),
    fill (completar), classify (clasificar), write (respuesta escrita con autocorrección). */
@@ -24,7 +24,7 @@ window.CONTENT = {
   {
     id: "c1", n: 1, name: "Puerto de las Carabelas", topic: "Los viajes de exploración europea", icon: "⛵", color: "#4FB3C9",
     guide: "ovaya",
-    intro: "¡Leti! Encontré un mapa antiguo con una carabela dibujada. Antes de zarpar tenemos que entender POR QUÉ los europeos se lanzaron al océano en el siglo XV. ¡Vamos a la bitácora!",
+    intro: "¡Encontré un mapa antiguo con una carabela dibujada. Antes de zarpar tenemos que entender POR QUÉ los europeos se lanzaron al océano en el siglo XV. ¡Vamos a la bitácora!",
     notes: [
       { title: "Acontecimiento vs. proceso", body: "Un <b>acontecimiento</b> es un hecho puntual, que ocurre en un momento (por ejemplo, la llegada de Colón a América el 12 de octubre de 1492). Un <b>proceso histórico</b> es un conjunto de hechos relacionados que se desarrollan durante un tiempo largo (por ejemplo, la expansión europea de los siglos XV y XVI)." },
       { title: "Multicausalidad", body: "<b>Ningún acontecimiento o proceso histórico se explica por una sola causa.</b> La multicausalidad es la existencia de diversas causas que explican un mismo hecho. Los viajes de exploración tuvieron tres grandes causas: rutas comerciales, desarrollo económico y avances tecnológicos." },
@@ -92,7 +92,7 @@ window.CONTENT = {
   {
     id: "c2", n: 2, name: "Templo de las Tres Culturas", topic: "Culturas americanas pre-Conquista", icon: "🏛️", color: "#F2B134",
     guide: "estaya",
-    intro: "Escucha, Leti… ¿oyes tambores? Antes de que llegaran los europeos, en América vivían millones de personas con ciudades enormes, calendarios y caminos gigantes. Te presento a mayas, aztecas e incas.",
+    intro: "Escucha… ¿oyes tambores? Antes de que llegaran los europeos, en América vivían millones de personas con ciudades enormes, calendarios y caminos gigantes. Te presento a mayas, aztecas e incas.",
     notes: [
       { title: "América antes de 1492", body: "Cuando llegaron los europeos, América ya estaba habitada por muchos pueblos con distintas formas de vida. Tres grandes civilizaciones destacaban: los <b>mayas</b>, los <b>aztecas</b> (o mexicas) y los <b>incas</b>. Además había muchos otros pueblos, como los que vivían en Chile (atacameños, diaguitas, mapuches, entre otros)." },
       { title: "Los mayas", body: "Vivieron en la <b>península de Yucatán</b> y Centroamérica (actuales México, Guatemala, Belice, Honduras). No formaron un imperio: se organizaban en <b>ciudades-estado</b> independientes (como Tikal y Chichén Itzá). Destacaron por su <b>escritura</b> de glifos, su <b>calendario</b> muy preciso, sus <b>matemáticas con el cero</b>, la astronomía y las <b>pirámides</b>. Cultivaban maíz. Su mayor esplendor fue antes de la llegada de los españoles." },
@@ -141,7 +141,7 @@ window.CONTENT = {
   {
     id: "c3", n: 3, name: "Campamento de la Hueste", topic: "La empresa de Conquista europea", icon: "📜", color: "#C97B4A",
     guide: "ovaya",
-    intro: "¡Mira, Leti! Un contrato con sello real: una capitulación. Así funcionaba la Conquista: como una empresa. ¿Quién ponía el dinero? ¿Quién ganaba? ¡Investiguemos!",
+    intro: "¡Mira! Un contrato con sello real: una capitulación. Así funcionaba la Conquista: como una empresa. ¿Quién ponía el dinero? ¿Quién ganaba? ¡Investiguemos!",
     notes: [
       { title: "La Conquista como empresa", body: "La conquista de América <b>no la hizo un ejército del rey</b>. Fue una <b>empresa privada</b>: un capitán conseguía dinero de socios (burgueses, comerciantes, él mismo) para armar una expedición, con la esperanza de ganar riquezas, tierras y títulos." },
       { title: "La capitulación", body: "Era el <b>contrato entre la Corona (el rey) y el capitán</b>. El rey daba <b>permiso</b> para conquistar un territorio y prometía <b>títulos</b> (como adelantado o gobernador) y parte de las riquezas. A cambio, el conquistador debía entregar al rey el <b>quinto real</b> (la quinta parte de lo obtenido) y extender la <b>religión católica</b>." },
@@ -189,7 +189,7 @@ window.CONTENT = {
   {
     id: "c4", n: 4, name: "Cascada de las Líneas de Tiempo", topic: "Conquista de México y Perú", icon: "⏳", color: "#8E6BC7",
     guide: "chupaya",
-    intro: "Leti, ¡esta vez me perdí en el TIEMPO! Estoy entre 1519 y 1535 y no sé en qué orden pasaron las cosas. Ayúdame a armar las líneas de tiempo de México y Perú.",
+    intro: "¡Esta vez me perdí en el TIEMPO! Estoy entre 1519 y 1535 y no sé en qué orden pasaron las cosas. Ayúdame a armar las líneas de tiempo de México y Perú.",
     notes: [
       { title: "Conquista de México (1519–1521)", body: "Protagonistas: <b>Hernán Cortés</b> (español) y <b>Moctezuma</b> (emperador azteca).<br>• <b>Febrero 1519</b>: Cortés zarpa desde Cuba.<br>• <b>Julio 1519</b>: Cortés se alía con los <b>totonacas</b>, pueblo dominado por los aztecas.<br>• <b>Agosto 1519</b>: Cortés y sus aliados inician la marcha hacia <b>Tenochtitlan</b>.<br>• <b>Noviembre 1519</b>: Moctezuma recibe pacíficamente a Cortés.<br>• <b>Junio 1520</b>: Cortés captura y asesina a Moctezuma. Los españoles son atacados y <b>expulsados</b> de Tenochtitlan (la «Noche Triste»).<br>• La población de Tenochtitlan es arrasada por <b>enfermedades</b> traídas por los españoles (viruela).<br>• <b>Mayo 1521</b>: los españoles vuelven a <b>sitiar</b> la ciudad.<br>• <b>Agosto 1521</b>: Tenochtitlan <b>cae</b> y es ocupada por Cortés." },
       { title: "Conquista del Perú (1531–1535)", body: "Protagonistas: <b>Francisco Pizarro</b> (español) y <b>Atahualpa</b> (Inca).<br>• <b>1528</b>: estalla la <b>guerra civil</b> incaica entre Huáscar y Atahualpa.<br>• <b>Enero 1531</b>: Pizarro inicia su expedición hacia Perú.<br>• <b>Mayo 1532</b>: Pizarro se entera de la existencia de los incas y de Atahualpa.<br>• <b>Junio 1532</b>: Atahualpa cita a Pizarro a una reunión en <b>Cajamarca</b>.<br>• <b>Noviembre 1532</b>: Pizarro se encuentra con Atahualpa en Cajamarca y lo captura.<br>• Atahualpa es <b>asesinado</b> (en la línea de tiempo de la clase aparece «15 de noviembre»; ocurrió después de su captura y de pagar un rescate en oro).<br>• <b>Agosto 1533</b>: Pizarro y su hueste parten a <b>Cuzco</b>, capital del imperio.<br>• <b>Noviembre 1533</b>: los españoles llegan a Cuzco y <b>saquean</b> la ciudad.<br>• <b>Enero 1535</b>: Pizarro derrota la última resistencia inca y controla el imperio." },
@@ -255,7 +255,7 @@ window.CONTENT = {
   {
     id: "c5", n: 5, name: "Mirador de los Dos Mundos", topic: "Impacto de la Conquista en América y Europa", icon: "🌎", color: "#3FA66B",
     guide: "ovaya",
-    intro: "Desde este mirador se ven los dos mundos, Leti. Después de la Conquista, ni América ni Europa volvieron a ser iguales. ¿Qué cambió a cada lado del océano?",
+    intro: "Desde este mirador se ven los dos mundos. Después de la Conquista, ni América ni Europa volvieron a ser iguales. ¿Qué cambió a cada lado del océano?",
     notes: [
       { title: "Impacto en América (1)", body: "• <b>Caída de la población</b>: millones de indígenas murieron por <b>enfermedades</b> (viruela, sarampión), guerras y trabajo forzado. Fue la consecuencia más grave.<br>• <b>Fin de los imperios</b> azteca e inca y pérdida de la libertad de los pueblos.<br>• <b>Trabajo forzado</b>: la <b>encomienda</b>, en que un español recibía indígenas para que trabajaran para él a cambio de «protegerlos» y evangelizarlos." },
       { title: "Impacto en América (2)", body: "• <b>Nueva religión</b>: la evangelización impuso el cristianismo; muchas creencias se mezclaron (sincretismo).<br>• <b>Nuevo idioma</b>: el español (y el portugués en Brasil).<br>• <b>Mestizaje</b>: nacieron hijos de españoles e indígenas (mestizos); más tarde llegaron africanos esclavizados.<br>• <b>Nuevas ciudades</b> al estilo europeo (Lima, Santiago) y nuevos <b>animales y plantas</b>: caballo, vaca, cerdo, oveja, trigo, caña de azúcar." },

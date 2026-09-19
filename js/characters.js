@@ -1,4 +1,4 @@
-/* Personajes de Expedición Leti: Ovaya, Chupaya y Estaya (Los Ayas), fotos recortadas con animaciones.
+/* Personajes de Misión Aya: Ovaya, Chupaya y Estaya (Los Ayas), fotos recortadas con animaciones.
    monkey(id, mood, size) devuelve HTML. mood: happy | surprised | think | sad | party | swing | hang */
 window.CHARS = {
   ovaya:   { name: "Ovaya",   role: "el curioso", color: "#E9A0B4", img: "assets/chars/ovaya.png",   desc: "Curioso, inquieto y juguetón. Se sorprende de todo y le encanta la aventura." },
