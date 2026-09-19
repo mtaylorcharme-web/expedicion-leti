@@ -323,3 +323,15 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .celebrate span{position:absolute;top:120px;font-size:30px;animation:rise 1.8s ease-out forwards;opacity:0}
 @keyframes rise{0%{transform:translateY(0) scale(.6);opacity:0}20%{opacity:1}100%{transform:translateY(-190px) rotate(20deg) scale(1.2);opacity:0}}
 @media(prefers-reduced-motion:reduce){.result .chars>span,.celebrate span{animation:none}}
+/* álbum */
+.album{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
+.photo{margin:0;background:#fff;padding:8px 8px 6px;border-radius:12px;box-shadow:0 4px 0 rgba(0,0,0,.08);transform:rotate(-1.5deg);cursor:pointer;transition:transform .15s}
+.photo:nth-child(even){transform:rotate(1.5deg)}
+.photo:hover{transform:scale(1.04) rotate(0)}
+.photo img{width:100%;aspect-ratio:1;object-fit:cover;border-radius:6px;display:block}
+.photo.locked img{filter:blur(8px) grayscale(.6);opacity:.6}
+.photo.locked{cursor:default}
+.photo figcaption{font:700 12px Nunito;text-align:center;margin-top:6px;color:var(--ink-2)}
+.lightbox{position:fixed;inset:0;background:rgba(20,30,20,.85);z-index:60;display:grid;place-items:center;padding:20px;cursor:pointer}
+.lightbox img{max-width:min(92vw,700px);max-height:78vh;border-radius:14px;border:8px solid #fff;box-shadow:0 20px 50px rgba(0,0,0,.5)}
+.lightbox p{color:#fff;font:700 16px Nunito;margin:12px 0 0}
