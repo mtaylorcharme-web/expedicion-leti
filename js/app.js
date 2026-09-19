@@ -77,14 +77,14 @@
   /* ── navegación ── */
   let view = "home", ctx = {};
   function go(v, c) { view = v; ctx = c || {}; render(); window.scrollTo({ top: 0 }); }
-  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song, daily, fuentes, fuente })[view](m); }
+  function render() { renderTop(); renderNav(); const m = $("#view"); m.innerHTML = ""; m.className = "view fade"; ({ home, camp, notes, mission, flash, boss, review, passport, parent, game, memo, song, daily, fuentes, fuente, ensenar })[view](m); }
   function renderTop() {
     const d = daysToTest(); const dl = d > 1 ? `${d} días` : d === 1 ? "¡mañana!" : d === 0 ? "¡hoy!" : "pasó";
     $("#topbar").innerHTML = `<span class="chip streak">🔥 ${S.streak.count} <span class="lbl">día${S.streak.count === 1 ? "" : "s"}</span></span><span class="chip xp">⭐ ${S.xp} <span class="lbl">XP</span></span><span class="chip days">📅 <span class="lbl">Prueba:</span> ${dl}</span><span class="spacer"></span><button class="avatar" data-go="passport" aria-label="Pasaporte"><img src="assets/chars/ovaya.png" alt="Ovaya"></button>`;
   }
   function renderNav() {
     const items = [["home", "🌴", "Selva"], ["review", "🎯", "Repaso"], ["passport", "🛂", "Pasaporte"], ["parent", "👨‍👩‍👧", "Papás"]];
-    $("#navbar").innerHTML = `<div class="inner">${items.map(([v, i, l]) => `<button class="${view === v || (v === "home" && ["camp", "notes", "mission", "flash", "boss", "game", "memo", "song", "fuentes", "fuente"].includes(view)) ? "on" : ""}" data-go="${v}"><span class="ic">${i}</span>${l}</button>`).join("")}</div>`;
+    $("#navbar").innerHTML = `<div class="inner">${items.map(([v, i, l]) => `<button class="${view === v || (v === "home" && ["camp", "notes", "mission", "flash", "boss", "game", "memo", "song", "fuentes", "fuente", "ensenar"].includes(view)) ? "on" : ""}" data-go="${v}"><span class="ic">${i}</span>${l}</button>`).join("")}</div>`;
   }
   document.addEventListener("click", e => { const b = e.target.closest("[data-go]"); if (b) go(b.dataset.go); });
 
@@ -195,6 +195,10 @@
       b.addEventListener("click", () => un ? go("mission", { camp: c.id, mission: ms.id }) : toast("Primero completa la misión anterior."));
       steps.appendChild(b);
     });
+    if (LECCIONES.some(l => l.camp === c.id)) { const L = LECCIONES.find(l => l.camp === c.id); const hecha = leccionHecha(L);
+      const se = el("button", { class: `step destacado ${hecha ? "done" : ""}` });
+      se.innerHTML = `<div class="ic">🧠</div><div><b>Enséñale a Chupaya</b><span class="sub">${esc(L.titulo)} · explícaselo y él te repregunta</span><span class="sub" style="color:var(--jungle);font-weight:800">Lo que le explicas se te queda</span></div><div class="right">${hecha ? "★".repeat(S.lecciones[L.id].estrellas) : "→"}</div>`;
+      se.addEventListener("click", () => go("ensenar", { camp: c.id })); steps.appendChild(se); }
     const sf = el("button", { class: "step" }); sf.innerHTML = `<div class="ic">🃏</div><div><b>Tarjetas de memoria</b><span class="sub">${c.flashcards.length} tarjetas para repasar rápido · ideal antes de dormir</span></div><div class="right">→</div>`;
     sf.addEventListener("click", () => go("flash", { camp: c.id })); steps.appendChild(sf);
     const sg = el("button", { class: "step" }); sg.innerHTML = `<div class="ic">🐒</div><div><b>Minijuego: Salto de lianas</b><span class="sub">Verdadero o falso contra el reloj · ayuda a Chupaya a cruzar la selva · 2 min</span></div><div class="right">${S.games && S.games["liana-" + c.id] ? "🏆 " + S.games["liana-" + c.id] : "→"}</div>`;
@@ -417,6 +421,144 @@
     draw();
   }
 
+  /* ── ENSÉÑALE A CHUPAYA (aprender enseñando) ── */
+  const leccionHecha = l => !!(S.lecciones && S.lecciones[l.id]);
+
+  function ensenar(m) {
+    const c = C.camps.find(x => x.id === ctx.camp);
+    const L = LECCIONES.find(x => x.camp === c.id);
+    let memoria = 0, momento = 0;
+    const w = el("div", { class: "mission" }); m.appendChild(w);
+    const subir = (n) => { memoria = Math.min(100, memoria + n); const b = $("#mem b", w); if (b) { b.style.width = memoria + "%"; $("#mem .pct", w).textContent = Math.round(memoria) + "%"; } };
+    const barra = () => `<div class="memoria" id="mem"><span class="lbl">🧠 Memoria de Chupaya</span><div class="mbar"><b style="width:${memoria}%"></b></div><span class="pct">${Math.round(memoria)}%</span></div>`;
+    const cabeza = () => `<div class="mhead"><button class="close" id="quit" aria-label="Salir">✕</button><div class="pbar"><b style="width:${(momento / 4) * 100}%;background:linear-gradient(90deg,#2E7D4F,#6FD394)"></b></div><span class="small muted" style="min-width:70px;text-align:right">Paso ${Math.min(momento + 1, 4)}/4</span></div>` + barra();
+    const salir = () => { if (confirm("¿Dejar a Chupaya a medias? Se perderá el avance de esta lección.")) go("camp", { camp: c.id }); };
+    const dice = (texto, mood, clase) => `<div class="scene"><div class="char">${monkey("chupaya", mood || "think", 84)}<span class="nm">Chupaya</span></div><div class="bubble ${clase || ""}"><span class="who">Chupaya pregunta</span><span class="tw">${esc(texto)}</span>${SAYBTN}</div></div>`;
+
+    function intro() {
+      w.innerHTML = `<button class="btn ghost sm" id="back">← ${esc(c.name)}</button>` + barra() + `
+        <div class="result" style="margin-top:8px"><div class="chars"><span>${monkey("chupaya", "think", 130)}</span></div>
+        <h2>Chupaya se olvidó de todo</h2>
+        <p class="muted">Explicárselo a alguien es la mejor forma de aprenderlo tú. Si él entiende, es porque tú entendiste.</p>
+        <div class="bubble wl" style="text-align:left;margin-top:12px"><span class="who">Chupaya</span><span class="tw">${esc(L.pregunta)}</span>${SAYBTN}</div>
+        <div class="actions" style="justify-content:center;margin-top:16px"><button class="btn" id="go">Explicarle 🐒</button></div></div>`;
+      typewrite($(".bubble .tw", w));
+      $("#back", w).addEventListener("click", () => go("camp", { camp: c.id }));
+      $("#go", w).addEventListener("click", armar);
+    }
+
+    function armar() {
+      momento = 0;
+      const ops = L.armar.bloques.map((b, i) => ({ ...b, i }));
+      const sel = new Set();
+      w.innerHTML = cabeza() + dice(L.pregunta, "think") + `<div class="qcard"><div class="ctx">${esc(L.armar.instruccion)}</div><h2 style="font-size:20px">Arma tu explicación</h2><div class="bloques" id="bl"></div><div class="actions"><button class="btn g" id="ok" disabled>Explicárselo a Chupaya</button></div></div>`;
+      $("#quit", w).addEventListener("click", salir);
+      const cont = $("#bl", w);
+      shuffle(ops).forEach(op => {
+        const b = el("button", { class: "bloque" }, `<span class="tick">+</span><span>${esc(op.t)}</span>`);
+        b.addEventListener("click", () => { const t = b.querySelector(".tick"); if (sel.has(op.i)) { sel.delete(op.i); b.classList.remove("sel"); t.textContent = "+"; } else { sel.add(op.i); b.classList.add("sel"); t.textContent = "\u2713"; beep(true); } $("#ok", w).disabled = sel.size === 0; });
+        cont.appendChild(b);
+      });
+      $("#ok", w).addEventListener("click", () => {
+        const buenos = L.armar.bloques.filter(b => b.ok).length;
+        let bien = 0, mal = 0;
+        const hijos = [...cont.children];
+        hijos.forEach(b => {
+          const txt = b.querySelector("span:last-child").textContent;
+          const dat = L.armar.bloques.find(x => x.t === txt);
+          b.disabled = true;
+          const elegido = b.classList.contains("sel");
+          if (dat.ok && elegido) { b.classList.add("ok"); bien++; }
+          else if (!dat.ok && elegido) { b.classList.add("bad"); mal++; b.insertAdjacentHTML("beforeend", `<span class="nota">${esc(dat.why)}</span>`); }
+          else if (dat.ok && !elegido) { b.classList.add("falta"); b.insertAdjacentHTML("beforeend", `<span class="nota">Esta también servía.</span>`); }
+        });
+        const parrafo = L.armar.bloques.filter(x => x.ok && [...sel].some(i => L.armar.bloques[i] === x)).map(x => x.t).join(" ");
+        $("#ok", w).remove();
+        const perfecto = bien === buenos && mal === 0;
+        subir(Math.max(0, 25 * (bien / buenos) - 5 * mal));
+        if (perfecto) { beep(true); } else jingle("lose");
+        $(".qcard", w).insertAdjacentHTML("beforeend", parrafo ? `<div class="explicacion"><span class="t">Le explicaste a Chupaya</span><p>${esc(parrafo)}</p></div>` : "");
+        $(".qcard", w).insertAdjacentHTML("beforeend", fbBox(perfecto, perfecto ? "Explicación completa y sin errores. Chupaya está entendiendo." : `Elegiste ${bien} de ${buenos} ideas correctas${mal ? ` y ${mal} que no servía${mal > 1 ? "n" : ""}` : ""}. Lee las notas en rojo y en amarillo.`));
+        $(".qcard", w).appendChild(contBtn(() => { momento = 1; repregunta(); }, "Chupaya quiere preguntarte algo →"));
+        $(".char .mk", w) && setMood($(".char .mk", w), perfecto ? "happy" : "think");
+      });
+    }
+
+    function eleccionSimple(datos, textoChupaya, mood, clase, titulo, luego, etiqueta) {
+      w.innerHTML = cabeza() + dice(textoChupaya, mood, clase) + `<div class="qcard"><div class="ctx">${esc(titulo)}</div><h2 style="font-size:20px">${esc(datos.q || "¿Qué le respondes?")}</h2><div class="opts" id="o"></div></div>`;
+      $("#quit", w).addEventListener("click", salir);
+      typewrite($(".bubble .tw", w));
+      const orden = shuffle(datos.opts.map((t, k) => ({ t, k })));
+      orden.forEach((op, n) => {
+        const b = el("button", { class: "opt" }, `<span class="k">${"ABC"[n]}</span><span>${esc(op.t)}</span>`);
+        b.addEventListener("click", () => {
+          const ok = op.k === datos.a;
+          [...$("#o", w).children].forEach((x, j) => { x.disabled = true; if (orden[j].k === datos.a) x.classList.add("ok"); else if (x === b) x.classList.add("bad"); });
+          if (ok) { subir(25); beep(true); } else jingle("lose");
+          setMood($(".char .mk", w), ok ? "party" : "sad");
+          $(".qcard", w).insertAdjacentHTML("beforeend", fbBox(ok, datos.why));
+          $(".qcard", w).appendChild(contBtn(luego, etiqueta));
+        });
+        $("#o", w).appendChild(b);
+      });
+    }
+
+    const repregunta = () => eleccionSimple(L.repregunta, L.repregunta.q, "think", "", "Chupaya te repregunta. Responderle bien es la prueba de que entendiste.", () => { momento = 2; confusion(); }, "Seguir →");
+
+    function confusion() {
+      const d = { q: "¿Qué le respondes?", opts: L.confusion.opts, a: L.confusion.a, why: L.confusion.why };
+      eleccionSimple(d, L.confusion.dice, "happy", "mal", "¡Cuidado! Chupaya entendió mal. Corrígelo.", () => { momento = 3; escribir(); }, "Último paso →");
+      const b = $(".bubble .who", w); if (b) b.textContent = "Chupaya cree que entendió";
+    }
+
+    function escribir() {
+      w.innerHTML = cabeza() + dice("Ahora dímelo todo junto, con tus palabras, así lo anoto en mi cuaderno.", "happy") + `<div class="qcard"><div class="ctx">${esc(L.escribir.pregunta)}</div><h2 style="font-size:20px">Escríbeselo con tus palabras</h2><textarea class="write" id="tx" placeholder="Chupaya, esto pasó así…"></textarea><div class="actions"><button class="btn g" id="ver" disabled>Comparar con la respuesta modelo</button></div></div>`;
+      $("#quit", w).addEventListener("click", salir);
+      const tx = $("#tx", w);
+      tx.addEventListener("input", () => { $("#ver", w).disabled = tx.value.trim().length < 20; });
+      $("#ver", w).addEventListener("click", () => {
+        tx.disabled = true; $("#ver", w).remove();
+        $(".qcard", w).insertAdjacentHTML("beforeend", `<div class="model"><span class="t">Respuesta modelo</span>${esc(L.escribir.modelo)}</div>
+          <div class="ctx" style="margin-top:14px">Compara con lo tuyo y marca lo que sí pusiste. Sé honesta: lo que no marques es justo lo que hay que repasar.</div>
+          <div class="rubrica" id="ru">${L.escribir.rubrica.map((r, k) => `<label><input type="checkbox" data-k="${k}"><span>${esc(r)}</span></label>`).join("")}</div>
+          <div class="actions"><button class="btn g" id="listo">Listo</button></div>`);
+        $("#listo", w).addEventListener("click", () => {
+          const marcadas = [...$("#ru", w).querySelectorAll("input")].filter(i => i.checked).length;
+          const tot = L.escribir.rubrica.length;
+          subir(25 * (marcadas / tot));
+          $("#ru", w).querySelectorAll("input").forEach(i => i.disabled = true); $("#listo", w).remove();
+          const msg = marcadas === tot ? "Explicación completa. Chupaya lo anotó todo." : marcadas === 0 ? "Vuelve a leer la respuesta modelo: ahí están las ideas que hay que decir." : `Pusiste ${marcadas} de ${tot} ideas clave. Las que faltaron son las que conviene repasar.`;
+          $(".qcard", w).insertAdjacentHTML("beforeend", fbBox(marcadas >= Math.ceil(tot / 2), msg));
+          $(".qcard", w).appendChild(contBtn(fin, "Ver cómo quedó Chupaya →"));
+        });
+      });
+    }
+
+    function fin() {
+      const pct = Math.round(memoria);
+      const estrellas = pct >= 90 ? 3 : pct >= 65 ? 2 : 1;
+      S.lecciones = S.lecciones || {};
+      const prev = S.lecciones[L.id]; const primera = !prev;
+      S.lecciones[L.id] = { pct: Math.max(pct, prev ? prev.pct : 0), estrellas: Math.max(estrellas, prev ? prev.estrellas : 0) };
+      const xp = primera ? 40 + estrellas * 10 : 15 + estrellas * 4; addXP(xp);
+      const todas = LECCIONES.filter(leccionHecha).length;
+      if (todas >= 1) stamp("maestra");
+      if (todas === LECCIONES.length) stamp("maestra-max");
+      save(); confetti(); jingle("win");
+      w.innerHTML = `<div class="result"><div class="celebrate">${["🧠", "🎉", "⭐", "📓", "✨"].map((e, k) => `<span style="left:${10 + k * 19}%;animation-delay:${k * .15}s">${e}</span>`).join("")}</div>
+        <div class="chars"><span>${monkey("chupaya", pct >= 65 ? "party" : "think", 130)}</span></div>
+        <h2>${pct >= 90 ? "¡Chupaya lo entendió todo!" : pct >= 65 ? "¡Chupaya entendió casi todo!" : "Chupaya entendió a medias"}</h2>
+        ${barra()}
+        <div class="stars" aria-label="${estrellas} estrellas">${starStr(estrellas)}</div><div class="xp">+${xp} XP</div>
+        <div class="bubble wl" style="text-align:left;margin-top:14px"><span class="who">Chupaya</span>${esc(pct >= 65 ? L.final : "Creo que me falta un poquito… ¿me lo explicas otra vez?")}</div>
+        <div class="actions" style="justify-content:center"><button class="btn ghost" id="otra">Explicárselo de nuevo</button><button class="btn g" id="volver">Volver al campamento</button></div></div>`;
+      $("#otra", w).addEventListener("click", () => go("ensenar", { camp: c.id }));
+      $("#volver", w).addEventListener("click", () => go("camp", { camp: c.id }));
+    }
+
+    intro();
+  }
+
   /* ── TALLER DE FUENTES ── */
   const FMT = ["Escrita", "Visual", "Arqueológica", "Audiovisual"];
   const ORG = ["Primaria", "Secundaria"];
@@ -619,7 +761,7 @@
 
   /* ── PASAPORTE ── */
   function passport(m) {
-    const ST = [["first", "🧭", "Primera misión"], ...C.camps.map(c => [c.id, c.icon, c.name]), ["boss", "🏆", "Templo conquistado"], ["streak3", "🔥", "3 días seguidos"], ["daily5", "🎲", "Reto del día perfecto"], ["detective", "🔍", "Detective de fuentes"], ["detective-max", "📜", "Todas las fuentes"], ...C.camps.map(c => ["flash-" + c.id, "🃏", "Tarjetas " + c.n]), ...C.camps.map(c => ["liana-" + c.id, "🐒", "Lianas " + c.n]), ...C.camps.map(c => ["memo-" + c.id, "🎵", "Memorice " + c.n])];
+    const ST = [["first", "🧭", "Primera misión"], ...C.camps.map(c => [c.id, c.icon, c.name]), ["boss", "🏆", "Templo conquistado"], ["streak3", "🔥", "3 días seguidos"], ["daily5", "🎲", "Reto del día perfecto"], ["maestra", "🧠", "Le enseñaste a Chupaya"], ["maestra-max", "🎓", "Maestra de Chupaya"], ["detective", "🔍", "Detective de fuentes"], ["detective-max", "📜", "Todas las fuentes"], ...C.camps.map(c => ["flash-" + c.id, "🃏", "Tarjetas " + c.n]), ...C.camps.map(c => ["liana-" + c.id, "🐒", "Lianas " + c.n]), ...C.camps.map(c => ["memo-" + c.id, "🎵", "Memorice " + c.n])];
     if (S.streak.count >= 3) stamp("streak3");
     const dn = ["L", "M", "X", "J", "V", "S", "D"]; const now = new Date(); const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay() + 6) % 7)); mon.setHours(0, 0, 0, 0);
     const week = [...Array(7)].map((_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); const k = localKey(d); return `<span class="${S.days.includes(k) ? "d" : ""} ${k === todayKey() ? "t" : ""}">${dn[i]}</span>`; }).join("");
