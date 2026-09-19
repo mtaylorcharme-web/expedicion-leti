@@ -133,7 +133,7 @@ Si la app vive en GitHub Pages, hay que pegar las direcciones completas del siti
 
 ## Dónde vive todo
 
-- App en Netlify (la buena, con memoria): `https://elaborate-lebkuchen-daa190.netlify.app`
+- App en Netlify (la buena, con memoria): `https://mision-aya.netlify.app`
 - Código: `github.com/mtaylorcharme-web/expedicion-leti`
 - App publicada: `mtaylorcharme-web.github.io/expedicion-leti`
 - Panel de Mariana y Francisco: pestaña Papás, PIN inicial 1234
