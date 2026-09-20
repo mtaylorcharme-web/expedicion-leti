@@ -861,3 +861,12 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .adelantada span{font-weight:700;font-size:13.5px;color:var(--ink-2);line-height:1.35}
 /* El punto del mapa mide 26px pero el dedo necesita 44: se agranda el área de toque */
 .pin::after{content:"";position:absolute;left:50%;top:50%;width:44px;height:44px;transform:translate(-50%,-50%);border-radius:50%}
+
+/* ═══ Selfies: el Aya se asoma al encuadre, entero y separado del cuadro ═══ */
+.selfie .foto{overflow:hidden}
+.selfie .aya{right:4px;bottom:0;width:auto;transform:rotate(-6deg);transform-origin:bottom right;
+  filter:drop-shadow(0 0 2px #fff) drop-shadow(0 0 6px rgba(255,255,255,.85)) drop-shadow(0 6px 8px rgba(0,0,0,.5))}
+.selfie .aya .mk{--s:70px!important}
+.selfies .selfie .aya .mk{--s:46px!important}
+.selfie .foto::after{content:"";position:absolute;right:0;bottom:0;width:58%;height:46%;z-index:1;
+  background:radial-gradient(120% 100% at 100% 100%,rgba(0,0,0,.34),transparent 70%);border-radius:6px}

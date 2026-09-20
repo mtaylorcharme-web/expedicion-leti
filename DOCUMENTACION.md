@@ -122,6 +122,10 @@ En el código: `campUnlocked()` y `missionUnlocked()` devuelven siempre verdader
 
 La expectativa vive en lo que todavía no tiene, no en lo que no puede abrir.
 
+## Las selfies
+
+El Aya se asoma dentro del encuadre, entero, con un halo blanco y una sombra que lo separan del cuadro antiguo: sobre un retrato oscuro, sin ese contraste, se confundía con la pintura y solo se le distinguían los brazos. Va inclinado, como quien se mete en la foto. En el álbum se dibuja más pequeño (`--s:46px`) para no comerse la miniatura.
+
 ## Cuidado con `.pin`
 
 `.pin` se usaba para dos cosas distintas: la tarjeta donde se escribe el PIN del panel de adultos y los puntos del mapa mundi. Las reglas del mapa ganaban por orden y aplastaban la tarjeta a 26 píxeles, así que la primera pantalla que veían Mariana y Francisco estaba rota. La tarjeta se llama ahora `.clave`. Al agregar clases, conviene revisar que el nombre no exista ya.
