@@ -976,3 +976,26 @@ details.receta[open] > summary::after{transform:translateY(-50%) rotate(180deg)}
 details.receta > summary b{font:600 16px Fredoka}
 details.receta > *:not(summary){margin-left:16px;margin-right:16px}
 details.receta > *:last-child{margin-bottom:14px}
+
+/* ═══ Salto de lianas: una selva que se cruza, no un rectángulo con postes ═══ */
+.lianas{height:170px;background:linear-gradient(180deg,#1F5A38 0%,#2E7D4F 18%,#77BE78 62%,#A9D68E 100%)}
+.lianas .sky{background:
+  radial-gradient(circle at 18% 68%,rgba(46,125,79,.55) 38px,transparent 39px),
+  radial-gradient(circle at 44% 76%,rgba(31,90,56,.5) 46px,transparent 47px),
+  radial-gradient(circle at 72% 70%,rgba(46,125,79,.5) 40px,transparent 41px),
+  radial-gradient(circle at 92% 78%,rgba(31,90,56,.45) 50px,transparent 51px)}
+.lianas .rama{position:absolute;left:0;right:0;top:16px;height:16px;background:#3B2A1C;border-radius:8px;
+  box-shadow:0 2px 0 rgba(0,0,0,.2)}
+.lianas .rama::after{content:"";position:absolute;left:0;right:0;top:3px;height:5px;border-radius:3px;background:#6B4C33;opacity:.75}
+.lianas .suelo{position:absolute;left:0;right:0;bottom:0;height:26px;
+  background:linear-gradient(180deg,rgba(46,125,79,.1),rgba(31,90,56,.45))}
+.lstick{top:28px;width:5px;height:84px;margin-left:30px;border-radius:3px;
+  background:linear-gradient(180deg,#6B9E43,#2E4A1C);box-shadow:0 0 0 1px rgba(0,0,0,.15)}
+.lstick .hoja{position:absolute;left:50%;bottom:-7px;width:16px;height:9px;margin-left:-8px;border-radius:50%;
+  background:#3FA66B;box-shadow:0 1px 0 rgba(0,0,0,.2)}
+.lstick.pasada{opacity:.45}
+.lstick.aqui{background:linear-gradient(180deg,#FFE9A8,var(--gold));box-shadow:0 0 0 1px rgba(0,0,0,.15),0 0 12px rgba(242,177,52,.85)}
+.lstick.aqui .hoja{background:var(--gold)}
+.jumper{top:24px;z-index:3}
+.jumper .mk{filter:drop-shadow(0 5px 5px rgba(0,0,0,.45))}
+@media(max-width:560px){.lianas{height:148px}.lstick{height:70px}}

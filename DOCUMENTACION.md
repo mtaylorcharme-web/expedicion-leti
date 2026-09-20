@@ -122,6 +122,10 @@ En el código: `campUnlocked()` y `missionUnlocked()` devuelven siempre verdader
 
 La expectativa vive en lo que todavía no tiene, no en lo que no puede abrir.
 
+## Salto de lianas
+
+La tira de arriba es el juego: una **rama** cruza el ancho, de ella **cuelgan las lianas** —una por pregunta, con su hoja en la punta— y Chupaya va colgado de la del momento, en dorado. Las ya cruzadas quedan apagadas, así que el avance se ve sin leer el contador. Antes eran postes verticales sobre un rectángulo verde plano: un minijuego que no parecía un minijuego.
+
 ## Las canciones
 
 Mientras una canción no tenga su MP3, la pantalla la abre **Estaya hablándole a Leti**: «todavía no tengo la música, pero la letra ya está escrita; puedes cantarla tú». Las instrucciones para grabarla en Suno van plegadas bajo «Para Mariana y Francisco», porque son tarea de adultos: antes eran seis pasos técnicos —con rutas de carpetas— como primera cosa que veía una niña de once años.
