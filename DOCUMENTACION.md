@@ -122,6 +122,10 @@ En el código: `campUnlocked()` y `missionUnlocked()` devuelven siempre verdader
 
 La expectativa vive en lo que todavía no tiene, no en lo que no puede abrir.
 
+## Cuidado con `.pin`
+
+`.pin` se usaba para dos cosas distintas: la tarjeta donde se escribe el PIN del panel de adultos y los puntos del mapa mundi. Las reglas del mapa ganaban por orden y aplastaban la tarjeta a 26 píxeles, así que la primera pantalla que veían Mariana y Francisco estaba rota. La tarjeta se llama ahora `.clave`. Al agregar clases, conviene revisar que el nombre no exista ya.
+
 ## El pasaporte
 
 Los sellos que faltan muestran **su propio símbolo en silueta gris** y una línea que dice cómo se ganan («Analiza una fuente entera», «Supera el gran salto»), más el contador de conseguidos. Antes eran veinte círculos vacíos idénticos con un punto al centro: un hueco no es una meta.

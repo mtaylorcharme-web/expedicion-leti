@@ -215,8 +215,10 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .bars .n{text-align:right;font-variant-numeric:tabular-nums;color:var(--ink-2)}
 .wrongs{display:grid;gap:8px}
 .wrongs div{background:#fff;border-left:4px solid var(--coral);border-radius:10px;padding:9px 12px;font-size:14.5px}
-.pin{display:grid;gap:12px;max-width:340px;margin:40px auto;text-align:center}
-.pin input,.field input{width:100%;font:700 22px Nunito;text-align:center;padding:12px;border:2px solid var(--line);border-radius:14px;letter-spacing:.3em}
+/* Ojo: .pin también son los puntos del mapa mundi. La tarjeta del PIN se llama
+   .clave justamente porque ese choque de nombres la aplastaba. */
+.clave{display:grid;gap:12px;max-width:340px;margin:40px auto;text-align:center;justify-items:stretch}
+.clave input,.field input{width:100%;font:700 22px Nunito;text-align:center;padding:12px;border:2px solid var(--line);border-radius:14px;letter-spacing:.3em}
 .field{display:grid;gap:6px;margin-top:10px}
 .field label{font-weight:800;font-size:14px}
 .field input{font-size:16px;text-align:left;letter-spacing:0}
@@ -857,3 +859,5 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .adelantada .ic{font-size:26px;flex:none}
 .adelantada b{display:block;font:600 16px Fredoka}
 .adelantada span{font-weight:700;font-size:13.5px;color:var(--ink-2);line-height:1.35}
+/* El punto del mapa mide 26px pero el dedo necesita 44: se agranda el área de toque */
+.pin::after{content:"";position:absolute;left:50%;top:50%;width:44px;height:44px;transform:translate(-50%,-50%);border-radius:50%}
