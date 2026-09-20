@@ -1656,11 +1656,45 @@ reconocer, distractores que sean confusiones reales, y nada de ranking.`;
   function review(m) {
     const keys = Object.keys(S.wrong);
     const w = el("div", { class: "mission" });
-    if (!keys.length) { w.innerHTML = `<div class="result">${monkey("chupaya", "party", 120)}<h2>¡Nada pendiente!</h2><p class="muted">Aquí aparecen las preguntas que fallaste, para que las domines. Por ahora no hay ninguna. ¡Sigue explorando!</p><div class="actions" style="justify-content:center"><button class="btn g" data-go="home">Ir a la selva</button></div></div>`; m.appendChild(w); return; }
-    w.innerHTML = `<div class="result">${monkey("chupaya", "think", 110)}<h2>Repaso de errores</h2><p class="muted">Tienes <b>${keys.length}</b> pregunta${keys.length === 1 ? "" : "s"} para dominar. Cada una que respondas bien dos veces desaparece de aquí.</p><div class="actions" style="justify-content:center"><button class="btn" id="start">Repasar ahora</button></div></div>
+    if (!keys.length) { w.innerHTML = `<div class="result">${monkey("chupaya", "party", 120)}<h2>¡Nada pendiente!</h2><p class="muted">Aquí aparecen las preguntas que fallaste, para que las domines. Por ahora no hay ninguna. ¡Sigue explorando!</p><div class="actions" style="justify-content:center"><button class="btn g" data-go="home">Ir a la selva</button></div></div>`; }
+    if (keys.length) w.innerHTML = `<div class="result">${monkey("chupaya", "think", 110)}<h2>Repaso de errores</h2><p class="muted">Tienes <b>${keys.length}</b> pregunta${keys.length === 1 ? "" : "s"} para dominar. Cada una que respondas bien dos veces desaparece de aquí.</p><div class="actions" style="justify-content:center"><button class="btn" id="start">Repasar ahora</button></div></div>
       <div class="card" style="margin-top:12px"><div class="eyebrow">Pendientes</div><div class="wrongs" style="margin-top:8px">${keys.slice(0, 12).map(k => `<div>${esc(S.wrong[k].q)}</div>`).join("")}${keys.length > 12 ? `<div class="muted small">…y ${keys.length - 12} más</div>` : ""}</div></div>`;
+    /* Repaso solo repasaba errores. A días de la prueba hace falta poder elegir un
+       tema y practicarlo, aunque no lo hayas fallado nunca. */
+    const elegidas = new Set(C.camps.filter(c => campDone(c) > 0).map(c => c.id));
+    if (!elegidas.size) C.camps.forEach(c => elegidas.add(c.id));
+    const medida = el("div", { class: "card ala-medida" });
+    medida.innerHTML = `<div class="eyebrow">Repaso a la medida</div>
+      <h3 style="font-size:19px;font-weight:600;margin-bottom:2px">Elige qué quieres practicar</h3>
+      <p class="muted small" style="margin:0 0 10px">No hace falta haberlo fallado: puedes repasar cualquier selva cuando quieras.</p>
+      <div class="temas">${C.camps.map(c => `<button class="tema ${elegidas.has(c.id) ? "on" : ""}" data-camp="${c.id}"><span class="ic" style="background:${c.color}">${c.icon}</span><span><b>${esc(c.name)}</b><small>${esc(c.topic)}</small></span><span class="tick">✓</span></button>`).join("")}</div>
+      <div class="actions"><span class="muted small" id="cuantas"></span><button class="btn g" id="practicar">Practicar →</button></div>`;
+    w.appendChild(medida);
+    const contar = () => {
+      const n = C.camps.filter(c => elegidas.has(c.id)).reduce((a, c) => a + c.missions.reduce((b, ms) => b + ms.questions.filter(q => q.t !== "write").length, 0), 0);
+      $("#cuantas", medida).textContent = elegidas.size ? `${Math.min(10, n)} preguntas de ${elegidas.size} selva${elegidas.size === 1 ? "" : "s"}` : "Elige al menos una selva";
+      $("#practicar", medida).disabled = !elegidas.size;
+    };
+    contar();
+    $(".temas", medida).addEventListener("click", e => {
+      const b = e.target.closest(".tema"); if (!b) return;
+      const id = b.dataset.camp;
+      elegidas.has(id) ? elegidas.delete(id) : elegidas.add(id);
+      b.classList.toggle("on", elegidas.has(id)); beep(true); contar();
+    });
+    $("#practicar", medida).addEventListener("click", () => {
+      const pool = [];
+      C.camps.filter(c => elegidas.has(c.id)).forEach(c => c.missions.forEach(ms => ms.questions.forEach((q, i) => { if (q.t !== "write") pool.push({ q, key: ms.id + ":" + i, camp: c }); })));
+      if (!pool.length) return toast("Esas selvas todavía no tienen preguntas.");
+      const qs = shuffle(pool).slice(0, 10);
+      m.innerHTML = "";
+      runQuiz(m, { title: "Repaso a la medida", char: "ovaya", story: "Tú eliges qué practicar. ¡Vamos con estas!", topic: "Repaso", camp: qs[0].camp, questions: qs, quit: () => go("review"),
+        onDone: errors => { const xp = 20 + (10 - errors) * 3; addXP(xp); save(); return { stars: stars(errors), xp, back: () => go("review") }; } });
+    });
+
     m.appendChild(w);
-    $("#start", w).addEventListener("click", () => {
+    const btnStart = $("#start", w);
+    if (btnStart) btnStart.addEventListener("click", () => {
       m.innerHTML = ""; const qs = [];
       shuffle(keys).slice(0, 10).forEach(k => { const [mid, idx] = k.split(":"); C.camps.forEach(c => c.missions.forEach(ms => { if (ms.id === mid) qs.push({ q: ms.questions[+idx], key: k, camp: c }); })); });
       runQuiz(m, { title: "Rescate de errores", char: "chupaya", story: "Estas son las preguntas donde me perdí contigo. ¡Esta vez las encontramos!", topic: "Repaso", camp: qs[0].camp, questions: qs, quit: () => go("review"), onDone: errors => { const xp = 20 + (qs.length - errors) * 4; addXP(xp); save(); return { xp, stars: stars(errors), back: () => go("review") }; } });

@@ -122,6 +122,12 @@ En el código: `campUnlocked()` y `missionUnlocked()` devuelven siempre verdader
 
 La expectativa vive en lo que todavía no tiene, no en lo que no puede abrir.
 
+## Repaso
+
+Tiene dos partes. **Repaso de errores**, que es la repetición espaciada de lo que falló, y **Repaso a la medida**, donde elige qué selvas quiere practicar y se arma una ronda de diez preguntas, haya fallado o no. Lo segundo es lo que se usa de verdad la semana de la prueba: poder decir «hoy quiero la Conquista de México» sin depender de haberse equivocado antes.
+
+El bloque a la medida aparece siempre, también cuando no queda ningún error pendiente.
+
 ## La bitácora
 
 El encabezado lleva un índice de páginas tocable: dorada la actual, crema las que ya vio, gris las que no. Se puede saltar a cualquiera, que es lo que hace falta al repasar la víspera de la prueba; antes había que pasar una por una. El botón de terminar aparece en cuanto ha visto todas, no solo estando en la última.

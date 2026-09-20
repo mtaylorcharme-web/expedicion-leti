@@ -881,3 +881,18 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .pg::after{content:"";position:absolute;width:44px;height:44px;border-radius:12px}
 .pg{position:relative}
 @media(max-width:560px){.pg{width:30px;height:30px;border-radius:9px;font-size:13px}}
+
+/* ═══ Repaso a la medida: elegir qué practicar ═══ */
+.ala-medida{margin-top:14px}
+.temas{display:grid;gap:8px;margin-bottom:6px}
+.tema{display:grid;grid-template-columns:44px 1fr 28px;align-items:center;gap:11px;text-align:left;
+  padding:9px 12px;border-radius:16px;background:#fff;border:2px solid var(--line);box-shadow:0 3px 0 rgba(0,0,0,.05);min-height:56px}
+.tema .ic{width:44px;height:44px;border-radius:14px;display:grid;place-items:center;font-size:21px}
+.tema b{display:block;font:600 15.5px Fredoka;line-height:1.15}
+.tema small{font-weight:700;font-size:12px;color:var(--ink-2)}
+.tema .tick{width:26px;height:26px;border-radius:50%;border:2px solid var(--line);display:grid;place-items:center;
+  font:800 13px Nunito;color:transparent;background:#fff}
+.tema.on{border-color:var(--jungle);background:#F2FBF4}
+.tema.on .tick{background:var(--jungle);border-color:var(--jungle);color:#fff}
+.tema:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.05)}
+.ala-medida .actions{justify-content:space-between;align-items:center;gap:10px}
