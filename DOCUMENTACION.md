@@ -112,6 +112,12 @@ La vista `camp` no es una lista de actividades: es una ruta con tres grupos, por
 
 Arriba va una barra de avance con las misiones completadas y las estrellas. Si se agrega una actividad nueva, hay que decidir a qué grupo pertenece: `camino`, `hondo` o `repaso`.
 
+## El taller de fuentes
+
+En la lista, cada fuente muestra **la fuente misma**: las visuales, su propia imagen; las escritas, un papelito con un trozo del documento real. Antes había un emoji genérico igual para todas, que en un taller de análisis de fuentes es justo lo contrario de lo que se quiere enseñar: mirar la fuente.
+
+Si se agrega una fuente nueva con `img`, la miniatura sale sola; si es escrita, se recorta de su campo `texto`.
+
 ## Escribir sin quedarse atascada
 
 `medidorEscritura(cont, idTexto, idBoton, minPalabras)` acompaña cualquier campo de escritura: muestra cuántas palabras faltan, se pone verde al llegar, y **deja el botón siempre activo**. Si todavía falta, al tocarlo avisa, tiembla y devuelve el foco al campo, en vez de quedarse apagado sin decir nada. Ya está en «Aquí y ahora»; conviene usarlo en el resto de los campos de escritura.

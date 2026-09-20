@@ -1446,7 +1446,13 @@ reconocer, distractores que sean confusiones reales, y nada de ranking.`;
     FU().forEach(f => {
       const c = C.camps.find(x => x.id === f.camp); const un = campUnlocked(c); const hecha = fuenteHecha(f);
       const b = el("button", { class: `step ${hecha ? "done" : ""} ${un ? "" : "locked"}` });
-      b.innerHTML = `<div class="ic">${un ? (hecha ? "✅" : (f.img ? "🖼️" : "📜")) : "🔒"}</div><div><b>${esc(f.titulo)}</b><span class="sub">${esc(f.ficha)}</span><span class="sub" style="color:${c.color};font-weight:800">${c.icon} ${esc(c.name)}</span></div><div class="right">${hecha ? "★".repeat(S.fuentes[f.id].estrellas) : un ? "→" : ""}</div>`;
+      /* En un taller de fuentes hay que VER la fuente. Las visuales muestran su propia
+         imagen; las escritas, un trocito del documento real en un papelito. Un emoji
+         genérico no dice nada y no da ganas de entrar. */
+      const mini = !un ? `<div class="ic">🔒</div>`
+        : f.img ? `<div class="miniatura"><img src="${f.img}" alt="" loading="lazy">${hecha ? `<span class="visto">✓</span>` : ""}</div>`
+        : `<div class="miniatura papel"><span class="recorte">${esc((f.texto || "").replace(/[«»]/g, "").slice(0, 46))}</span>${hecha ? `<span class="visto">✓</span>` : ""}</div>`;
+      b.innerHTML = mini + `<div><b>${esc(f.titulo)}</b><span class="sub">${esc(f.ficha)}</span><span class="sub" style="color:${c.color};font-weight:800">${c.icon} ${esc(c.name)}</span></div><div class="right">${hecha ? "★".repeat(S.fuentes[f.id].estrellas) : un ? "→" : ""}</div>`;
       b.addEventListener("click", () => un ? go("fuente", { id: f.id }) : toast(`Esta fuente se abre cuando llegues a ${c.name}.`));
       lst.appendChild(b);
     });

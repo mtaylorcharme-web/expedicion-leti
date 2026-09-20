@@ -807,3 +807,16 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .medidor.avisa{animation:tiembla .4s ease-in-out;border-color:var(--gold);background:#FFF7E0}
 @keyframes tiembla{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
 @media(prefers-reduced-motion:reduce){.medidor.avisa{animation:none}}
+
+/* ═══ Taller de fuentes: que se vea la fuente ═══ */
+.step .miniatura{position:relative;width:64px;height:64px;border-radius:14px;overflow:hidden;flex:none;
+  background:#E3DCC8;box-shadow:0 3px 0 rgba(0,0,0,.1),inset 0 0 0 2px rgba(255,255,255,.7)}
+.step .miniatura img{width:100%;height:100%;object-fit:cover;display:block}
+.step .miniatura.papel{background:#FBF6E6;display:grid;align-content:start;padding:7px 8px}
+.step .miniatura.papel .recorte{font:700 8.5px/1.35 Nunito;color:#6B5B3E;overflow:hidden;
+  display:-webkit-box;-webkit-line-clamp:5;-webkit-box-orient:vertical}
+.step .miniatura.papel::after{content:"";position:absolute;left:0;right:0;bottom:0;height:16px;
+  background:linear-gradient(180deg,rgba(251,246,230,0),#FBF6E6)}
+.step .miniatura .visto{position:absolute;right:3px;bottom:3px;width:20px;height:20px;border-radius:50%;
+  background:var(--ok);color:#fff;font:800 12px Nunito;display:grid;place-items:center;box-shadow:0 1px 0 rgba(0,0,0,.2);z-index:2}
+.step:has(.miniatura){grid-template-columns:64px 1fr auto}
