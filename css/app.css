@@ -896,3 +896,22 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .tema.on .tick{background:var(--jungle);border-color:var(--jungle);color:#fff}
 .tema:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.05)}
 .ala-medida .actions{justify-content:space-between;align-items:center;gap:10px}
+
+/* ═══ El Himalaya: los ocho lugares en un mapa de verdad ═══ */
+.himalaya{position:relative;aspect-ratio:16/10;border-radius:20px;overflow:hidden;background:#20364A;
+  box-shadow:inset 0 0 0 2px rgba(255,255,255,.5),0 6px 0 rgba(0,0,0,.08)}
+.himalaya .capa{position:absolute;max-width:none;filter:saturate(.9) contrast(1.05)}
+.himalaya::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(120% 90% at 50% 45%,transparent 45%,rgba(12,28,20,.45))}
+.sitio{position:absolute;z-index:2;display:grid;justify-items:center;gap:3px;transform:translate(-50%,-50%);padding:0}
+.sitio .punto{width:20px;height:20px;border-radius:50%;background:var(--coral);border:3px solid #fff;
+  box-shadow:0 2px 6px rgba(0,0,0,.55);display:grid;place-items:center;font:800 11px Nunito;color:#fff}
+.sitio .rotulo{background:rgba(255,255,255,.94);color:var(--ink);border-radius:99px;padding:1px 8px;
+  font:800 11px Nunito;white-space:nowrap;box-shadow:0 2px 0 rgba(0,0,0,.15)}
+.sitio::after{content:"";position:absolute;left:50%;top:6px;width:44px;height:44px;transform:translate(-50%,-50%);border-radius:50%}
+.sitio.fuera .punto{background:#6E7A72;border-color:#D9D2BE}
+.sitio.fuera .rotulo{opacity:.6;text-decoration:line-through}
+.sitio.casa .punto{background:var(--gold);border-color:#fff;box-shadow:0 0 0 6px rgba(242,177,52,.45),0 2px 8px rgba(0,0,0,.5)}
+.sitio.casa .rotulo{background:var(--gold);font-size:12px}
+.cand.resalta{outline:3px solid var(--gold);outline-offset:3px}
+@media(max-width:560px){.himalaya{aspect-ratio:1/1}.sitio .rotulo{font-size:10px;padding:1px 6px}}

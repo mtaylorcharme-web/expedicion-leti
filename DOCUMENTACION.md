@@ -122,6 +122,12 @@ En el código: `campUnlocked()` y `missionUnlocked()` devuelven siempre verdader
 
 La expectativa vive en lo que todavía no tiene, no en lo que no puede abrir.
 
+## La Ciudad Aya
+
+La búsqueda de casa tiene ahora un **mapa del Himalaya** con los ocho lugares candidatos en sus coordenadas reales. No es un mapa nuevo: es el mismo `assets/mapa/mundi.jpg`, que es equirectangular, agrandado nueve veces y corrido hasta centrar 31°N 84°E. Los puntos se calculan con la misma proyección, así que caen donde están de verdad. Se recalcula al cambiar el tamaño de la ventana.
+
+Cada pista tacha un lugar y eso ahora **se ve**: el punto se apaga, el nombre se tacha. Cuando queda uno solo, se enciende en dorado. Tocar un punto resalta su ficha más abajo.
+
 ## Repaso
 
 Tiene dos partes. **Repaso de errores**, que es la repetición espaciada de lo que falló, y **Repaso a la medida**, donde elige qué selvas quiere practicar y se arma una ronda de diez preguntas, haya fallado o no. Lo segundo es lo que se usa de verdad la semana de la prueba: poder decir «hoy quiero la Conquista de México» sin depender de haberse equivocado antes.

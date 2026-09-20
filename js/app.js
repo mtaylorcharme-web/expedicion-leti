@@ -1453,11 +1453,51 @@ reconocer, distractores que sean confusiones reales, y nada de ranking.`;
       <div class="today card"><div class="char">${monkey("ovaya", encontrada ? "party" : "think", 76)}</div><div class="bubble"><span class="who">Ovaya</span><span class="tw">${encontrada ? `¡Es ahí! ${esc(quedan[0].n)}, en ${esc(quedan[0].pais)}. Todos los demás lugares quedaron descartados. ¡Vamos a casa!` : "No me acuerdo dónde queda mi ciudad, pero sí me acuerdo de cosas que NO eran. Con cada pista tachamos un lugar del mapa."}</span>${SAYBTN}</div></div>
       <div class="melodia card"><div class="row" style="justify-content:space-between"><div><div class="eyebrow">La melodía de casa</div><div class="muted small">${n} de ${MELODIA.length} notas recordadas</div></div><button class="btn y sm" id="tocar">Escuchar 🎵</button></div><div class="notas">${MELODIA.map((_, k) => `<span class="${k < n ? "on" : ""}"></span>`).join("")}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600">Pistas que recuerdan Los Ayas</h3><div class="pistas">${n === 0 ? `<p class="muted small">Todavía ninguna. Completa una selva entera para conseguir la primera.</p>` : PISTAS.slice(0, n).map(p => `<div class="pista"><span class="ic">💭</span><div><p>«${esc(p.txt)}»</p><small>${esc(p.nota)}</small></div></div>`).join("")}</div></div>
+      <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:4px">Dónde buscar</h3><p class="muted small" style="margin:0 0 10px">Los ocho lugares están en el Himalaya de verdad. Cada pista tacha uno.</p>
+        <div class="himalaya" id="hima"><img class="capa" src="assets/mapa/mundi.jpg" alt="El Himalaya">
+          ${CANDIDATOS.map(c => { const fuera = descartados.includes(c.id); const es = encontrada && !fuera;
+            return `<button class="sitio ${fuera ? "fuera" : ""} ${es ? "casa" : ""}" data-sitio="${c.id}" style="left:${((c.lon + 180) / 360) * 100}%;top:${((90 - c.lat) / 180) * 100}%" aria-label="${esc(c.n)}"><span class="punto">${fuera ? "✕" : es ? "★" : ""}</span><span class="rotulo">${esc(c.n)}</span></button>`; }).join("")}
+        </div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:4px">Los ocho lugares posibles</h3><p class="muted small" style="margin:0 0 10px">Todos existen de verdad. Tócalos para verlos en Google Earth.</p>
-        <div class="candidatos">${CANDIDATOS.map(c => { const fuera = descartados.includes(c.id); const es = encontrada && !fuera; return `<div class="cand ${fuera ? "fuera" : ""} ${es ? "casa" : ""}"><div class="cab"><b>${esc(c.n)}</b><span>${esc(c.pais)} · ${esc(c.alt)}</span></div><p>${esc(c.dato)}</p><a class="btn ghost sm" href="${earthURL(c.lat, c.lon)}" target="_blank" rel="noopener">Google Earth 🌎</a>${fuera ? `<span class="sello-fuera">Descartado</span>` : es ? `<span class="sello-casa">¡Es aquí!</span>` : ""}</div>`; }).join("")}</div></div>
+        <div class="candidatos">${CANDIDATOS.map(c => { const fuera = descartados.includes(c.id); const es = encontrada && !fuera; return `<div class="cand ${fuera ? "fuera" : ""} ${es ? "casa" : ""}" data-cand="${c.id}"><div class="cab"><b>${esc(c.n)}</b><span>${esc(c.pais)} · ${esc(c.alt)}</span></div><p>${esc(c.dato)}</p><a class="btn ghost sm" href="${earthURL(c.lat, c.lon)}" target="_blank" rel="noopener">Google Earth 🌎</a>${fuera ? `<span class="sello-fuera">Descartado</span>` : es ? `<span class="sello-casa">¡Es aquí!</span>` : ""}</div>`; }).join("")}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:4px">La ruta del año</h3><p class="muted small" style="margin:0 0 10px">Cada expedición trae más pistas. Los Ayas no pueden volver a casa con una sola asignatura.</p>
         <div class="exped">${EXPEDICIONES.map(e => `<div class="exp ${e.estado}"><span class="ic">${e.icono}</span><div><b>${esc(e.asignatura)}</b><span>${esc(e.nombre)}</span><small>${esc(e.nota)}</small></div><span class="est">${e.estado === "activa" ? "En curso" : "Próxima"}</span></div>`).join("")}</div></div>`;
-    m.appendChild(w); typewrite($(".bubble .tw", w));
+    m.appendChild(w);
+
+    /* El mundi mide 1390x700 y es equirectangular. Para asomarse al Himalaya se
+       agranda y se corre hasta centrar 31°N 84°E; los sitios van por la misma
+       proyección, así que caen donde corresponde de verdad. */
+    (function encuadrarHimalaya() {
+      const caja = $("#hima", w); if (!caja) return;
+      const capa = $(".capa", caja);
+      const Z = 9, LAT = 31, LON = 84, RATIO = 700 / 1390;
+      const ubicar = () => {
+        const W = caja.clientWidth, H = caja.clientHeight; if (!W) return;
+        const iw = W * Z, ih = iw * RATIO;
+        const left = W / 2 - iw * ((LON + 180) / 360);
+        const top = H / 2 - ih * ((90 - LAT) / 180);
+        capa.style.width = iw + "px"; capa.style.height = ih + "px";
+        capa.style.left = left + "px"; capa.style.top = top + "px";
+        caja.querySelectorAll(".sitio").forEach(b => {
+          b.style.marginLeft = left + "px"; b.style.marginTop = top + "px";
+          b.style.left = ""; b.style.top = "";
+          const c = CANDIDATOS.find(x => x.id === b.dataset.sitio);
+          b.style.left = (iw * ((c.lon + 180) / 360) + left) + "px";
+          b.style.top = (ih * ((90 - c.lat) / 180) + top) + "px";
+          b.style.marginLeft = ""; b.style.marginTop = "";
+        });
+      };
+      ubicar(); requestAnimationFrame(ubicar); setTimeout(ubicar, 320);
+      window.addEventListener("resize", ubicar);
+      caja.addEventListener("click", e => {
+        const b = e.target.closest(".sitio"); if (!b) return;
+        const c = CANDIDATOS.find(x => x.id === b.dataset.sitio);
+        const tarjeta = w.querySelector(`.cand[data-cand="${c.id}"]`);
+        if (tarjeta) { tarjeta.scrollIntoView({ block: "center", behavior: "smooth" }); tarjeta.classList.add("resalta"); setTimeout(() => tarjeta.classList.remove("resalta"), 1400); }
+        beep(true);
+      });
+    })();
+ typewrite($(".bubble .tw", w));
     $("#tocar", w).addEventListener("click", () => { if (n === 0) return toast("Todavía no recuerdan ninguna nota."); sonarMelodia(n); });
   }
 
