@@ -112,6 +112,12 @@ La vista `camp` no es una lista de actividades: es una ruta con tres grupos, por
 
 Arriba va una barra de avance con las misiones completadas y las estrellas. Si se agrega una actividad nueva, hay que decidir a qué grupo pertenece: `camino`, `hondo` o `repaso`.
 
+## Escribir sin quedarse atascada
+
+`medidorEscritura(cont, idTexto, idBoton, minPalabras)` acompaña cualquier campo de escritura: muestra cuántas palabras faltan, se pone verde al llegar, y **deja el botón siempre activo**. Si todavía falta, al tocarlo avisa, tiembla y devuelve el foco al campo, en vez de quedarse apagado sin decir nada. Ya está en «Aquí y ahora»; conviene usarlo en el resto de los campos de escritura.
+
+Un botón deshabilitado sin explicación es de los peores momentos de una interfaz para un niño: escribe, toca, no pasa nada y no sabe por qué.
+
 ## El salto a ciegas, por dentro
 
 La pantalla de revelación premia **haber apostado**, no haber acertado: medalla dorada arriba («¡Apostaste sin red!»), la apuesta propia en ámbar cálido —nunca en gris de error— y la explicación como pieza principal, en verde y con más cuerpo de texto. Chupaya celebra igual cuando ella falla.

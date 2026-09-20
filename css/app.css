@@ -796,3 +796,14 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .revelacion{margin-top:14px;border-radius:18px;padding:15px 17px;background:#E6F6EC;border:2px solid var(--ok)}
 .revelacion .t{display:block;font:600 16px Fredoka;color:var(--jungle-deep);margin-bottom:5px}
 .revelacion p{margin:0;font-size:16px;line-height:1.5}
+
+/* ═══ Medidor de escritura: nunca un botón muerto sin explicación ═══ */
+.medidor{display:flex;align-items:center;gap:10px;margin-top:10px;padding:9px 13px;border-radius:14px;
+  background:#F4F1E8;border:2px solid var(--line);font-weight:700;font-size:14px;color:var(--ink-2);transition:background .2s,border-color .2s}
+.medidor .marca{width:28px;height:28px;flex:none;border-radius:50%;display:grid;place-items:center;
+  background:#E3DCC8;color:var(--ink);font:800 13px Nunito}
+.medidor.listo{background:var(--ok-bg);border-color:var(--ok);color:var(--jungle-deep)}
+.medidor.listo .marca{background:var(--ok);color:#fff;font-size:15px}
+.medidor.avisa{animation:tiembla .4s ease-in-out;border-color:var(--gold);background:#FFF7E0}
+@keyframes tiembla{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+@media(prefers-reduced-motion:reduce){.medidor.avisa{animation:none}}
