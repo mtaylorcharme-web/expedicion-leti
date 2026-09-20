@@ -1947,12 +1947,15 @@ reconocer, distractores que sean confusiones reales, y nada de ranking.`;
       if (ok) aciertos++;
       beep(ok);
       const nota = (c.notes || []).find(n => n.title === r.nota);
-      marco(burbuja(ok ? "¡Le achuntaste sin leer! Cuéntame cómo lo supiste." : "¡Fallaste! Perfecto: ahora se te va a quedar grabado.", ok ? "party" : "happy") +
-        `<div class="qcard">
+      /* Aquí se premia haber apostado, no haber acertado. Si el fallo se pinta en gris
+         apagado al lado de un verde triunfal, el diseño desmiente lo que dice el texto. */
+      marco(burbuja(ok ? "¡Le achuntaste sin leer! Cuéntame cómo lo supiste." : "¡Te arriesgaste! Eso es lo que vale. Y ahora se te queda grabado.", ok ? "party" : "party") +
+        `<div class="qcard ciega-fin">
+          <div class="premio"><span class="medalla">🪂</span><div><b>${ok ? "¡Apostaste y acertaste!" : "¡Apostaste sin red!"}</b><small>${ok ? "Ya sabías más de lo que creías." : "Intentar antes de leer es lo que hace que se te fije."}</small></div></div>
           <h2 style="font-size:19px">${esc(r.q)}</h2>
-          <div class="apuesta ${ok ? "ok" : "no"}"><span class="lab">Lo que apostaste</span>${esc(r.opciones[k])}</div>
-          ${ok ? "" : `<div class="apuesta real"><span class="lab">Lo que pasó de verdad</span>${esc(r.opciones[r.correcta])}</div>`}
-          <div class="model"><span class="t">${ok ? "Y además" : "Por qué"}</span><p style="margin:0">${esc(r.revelacion)}</p></div>
+          <div class="apuesta tuya ${ok ? "acierta" : ""}"><span class="lab">🎲 Tu apuesta</span>${esc(r.opciones[k])}</div>
+          ${ok ? "" : `<div class="apuesta real"><span class="lab">✔ Lo que pasó de verdad</span>${esc(r.opciones[r.correcta])}</div>`}
+          <div class="revelacion"><span class="t">${ok ? "Y además" : "Lo que casi nadie sabe"}</span><p>${esc(r.revelacion)}</p></div>
           ${nota ? `<div class="enlace-nota">📖 Está explicado en la bitácora, en la página «${esc(nota.title)}».</div>` : ""}
         </div>`, ((i + 1) / D.retos.length) * 100);
       w.appendChild(contBtn(() => { i++; i < D.retos.length ? reto() : fin(); }, i + 1 < D.retos.length ? "Siguiente apuesta →" : "Ver cómo me fue →"));

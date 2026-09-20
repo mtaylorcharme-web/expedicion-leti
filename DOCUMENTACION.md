@@ -112,6 +112,12 @@ La vista `camp` no es una lista de actividades: es una ruta con tres grupos, por
 
 Arriba va una barra de avance con las misiones completadas y las estrellas. Si se agrega una actividad nueva, hay que decidir a qué grupo pertenece: `camino`, `hondo` o `repaso`.
 
+## El salto a ciegas, por dentro
+
+La pantalla de revelación premia **haber apostado**, no haber acertado: medalla dorada arriba («¡Apostaste sin red!»), la apuesta propia en ámbar cálido —nunca en gris de error— y la explicación como pieza principal, en verde y con más cuerpo de texto. Chupaya celebra igual cuando ella falla.
+
+Si el fallo se pinta apagado al lado de un verde triunfal, el diseño desmiente lo que dice el texto, y el niño aprende lo que ve, no lo que lee.
+
 ## El hilo de las causas, por dentro
 
 El paso de unir causas lleva una barra pegada arriba (`.estadohilo`) que dice en todo momento qué toca hacer: «Toca el hecho que fue la causa» y, cuando hay uno elegido, «Ahora toca lo que provocó «…»» con un botón Soltar. Al lado va un tramo por unión y el conteo. Cada tarjeta indica de cuántas flechas ya forma parte.
