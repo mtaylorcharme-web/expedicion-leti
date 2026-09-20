@@ -732,3 +732,17 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
   .map-monkey .globito{opacity:1}
 }
 .camp{z-index:4}
+
+/* ═══ Dentro de una selva: una ruta, no una lista ═══ */
+.avance{display:flex;align-items:center;gap:12px;margin:14px 0 2px;font:800 13px Nunito;color:var(--ink-2)}
+.avance .barra{flex:1;height:10px;border-radius:99px;background:#E3DCC8;overflow:hidden}
+.avance .barra b{display:block;height:100%;border-radius:99px;background:linear-gradient(90deg,var(--jungle-light),var(--jungle));transition:width .5s}
+.avance span{white-space:nowrap}
+.steps.camino{position:relative;padding-left:18px}
+.steps.camino::before{content:"";position:absolute;left:5px;top:18px;bottom:18px;width:5px;border-radius:3px;
+  background:linear-gradient(180deg,#6B9E43,#2E4A1C);opacity:.45}
+.step.siguiente{border-color:var(--jungle);box-shadow:0 6px 0 rgba(31,90,56,.2);background:linear-gradient(180deg,#F2FBF4,var(--paper))}
+.step .marca{position:absolute;right:14px;top:-11px;background:var(--jungle);color:#fff;padding:2px 10px;border-radius:99px;
+  font:800 11px Nunito;letter-spacing:.03em;box-shadow:0 2px 0 var(--jungle-deep)}
+.step{position:relative}
+.steps{display:grid;gap:10px}

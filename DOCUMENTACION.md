@@ -102,6 +102,16 @@ La vista `home` tiene tres piezas y cada una cumple una función:
 - El mapa son unos 1.600 nodos de SVG. Si alguna vez va lento en tablet, el ahorro está en las hojas: son lo más numeroso.
 - **El mapa**: Ovaya cuelga de una liana y se columpia; al tocar otra selva se balancea fuerte y viaja hasta ella. Se sitúa al lado libre del nodo (`ladoDe`) para no tapar el nombre. La selva actual lleva el cartel «Vas aquí» y un latido. Los adornos se quedan en los márgenes a propósito. Al entrar, el mapa se acomoda solo en la rama donde va.
 
+## Dentro de una selva
+
+La vista `camp` no es una lista de actividades: es una ruta con tres grupos, porque once filas idénticas no dicen cuál tocar.
+
+- **La ruta de esta selva**: el salto a ciegas (opcional, va primero a propósito), la bitácora y las misiones, unidas por una liana vertical. El siguiente paso obligatorio lleva la marca «Sigue aquí».
+- **Para entenderlo de verdad**: el hilo de las causas, aquí y ahora, enséñale a Chupaya y el taller de fuentes.
+- **Para repasar jugando**: tarjetas, salto de lianas, piezas de la nave y la canción.
+
+Arriba va una barra de avance con las misiones completadas y las estrellas. Si se agrega una actividad nueva, hay que decidir a qué grupo pertenece: `camino`, `hondo` o `repaso`.
+
 ## Criterios pedagógicos que hay que respetar
 
 Estas decisiones son deliberadas. Si se cambian, se pierde lo que hace que la app enseñe en vez de solo preguntar.

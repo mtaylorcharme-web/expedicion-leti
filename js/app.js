@@ -407,46 +407,61 @@
     const h = el("div");
     h.innerHTML = `<button class="btn ghost sm" data-go="home">← Selva</button>
       <div class="camphead" style="margin-top:12px"><div class="icon" style="background:${c.color}">${c.icon}</div><div><div class="eyebrow">Selva ${c.n} de 5 · ${esc(c.lugar)} · ${esc(c.epoca)}</div><h2 style="font-size:26px;font-weight:600">${esc(c.name)}</h2><div class="muted small">${esc(c.topic)}</div></div></div>
+      <div class="avance"><div class="barra"><b style="width:${Math.round(campDone(c) / c.missions.length * 100)}%"></b></div><span>${campDone(c)} de ${c.missions.length} misiones · ${"★".repeat(Math.min(3, Math.round(campStars(c) / Math.max(1, c.missions.length))))}${"☆".repeat(3 - Math.min(3, Math.round(campStars(c) / Math.max(1, c.missions.length))))}</span></div>
       <div class="today card"><div class="char">${monkey(c.guide, "happy", 84)}</div><div class="bubble"><span class="who">${CH[c.guide].name}</span><span class="tw">${esc(c.intro)}</span>${SAYBTN}</div></div>`;
-    const steps = el("div", { class: "steps" });
+    const steps = el("div");
+    /* Tres grupos, no once filas iguales: la ruta obligatoria, lo que hace pensar hondo
+       y lo que sirve para repasar jugando. Sin esto la vista es una lista de iguales
+       donde no se sabe qué tocar. */
+    const camino = el("div", { class: "steps camino" });
+    const hondo = el("div", { class: "steps" });
+    const repaso = el("div", { class: "steps" });
     if (desafioDe(c.id)) { const D = desafioDe(c.id); const hh = S.ciegos && S.ciegos[D.id];
       const sd = el("button", { class: `step opcional ${hh ? "done" : ""}` });
       sd.innerHTML = `<div class="ic">🙈</div><div><b>El salto a ciegas <span class="etiqueta">modo opcional</span></b><span class="sub">${D.retos.length} apuestas con Chupaya <i class="fuerte">antes</i> de leer la bitácora · 3 min</span><span class="sub" style="color:var(--coral-deep);font-weight:800">Aquí se puede fallar: fallar es el punto</span></div><div class="right">${hh ? hh.mejor + "/" + hh.de : "→"}</div>`;
-      sd.addEventListener("click", () => go("ciego", { camp: c.id })); steps.appendChild(sd); }
+      sd.addEventListener("click", () => go("ciego", { camp: c.id })); camino.appendChild(sd); }
     const s0 = el("button", { class: `step ${notesDone ? "done" : ""}` }); s0.innerHTML = `<div class="ic">📖</div><div><b>Bitácora de esta selva</b><span class="sub">${c.notes.length} páginas sobre ${esc(c.lugar)}, ${esc(c.epoca)} · léelas antes de saltar · 5 min</span></div><div class="right">${notesDone ? "✅" : "→"}</div>`;
-    s0.addEventListener("click", () => go("notes", { camp: c.id })); steps.appendChild(s0);
+    s0.addEventListener("click", () => go("notes", { camp: c.id })); camino.appendChild(s0);
     c.missions.forEach((ms, i) => {
       const un = missionUnlocked(c, i) && (notesDone || i > 0 || true); const dn = S.done[ms.id];
       const b = el("button", { class: `step ${dn ? "done" : ""} ${un ? "" : "locked"}` });
       b.innerHTML = `<div class="ic">${un ? (dn ? "✅" : "🧭") : "🔒"}</div><div><b>Misión ${i + 1}: ${esc(ms.title)}</b><span class="sub">Con ${CH[ms.char].name} · ${ms.questions.length} desafíos · ${Math.round(ms.questions.length * 1.4)} min</span></div><div class="right">${dn ? starStr(dn.stars) : un ? "→" : ""}</div>`;
       b.addEventListener("click", () => un ? go("mission", { camp: c.id, mission: ms.id }) : toast("Primero completa la misión anterior."));
-      steps.appendChild(b);
+      camino.appendChild(b);
     });
     if (causasDe(c.id)) { const A = causasDe(c.id); const hh = S.causas && S.causas[A.id];
       const sc = el("button", { class: `step destacado ${hh ? "done" : ""}` });
       sc.innerHTML = `<div class="ic">🧵</div><div><b>El hilo de las causas</b><span class="sub">${esc(A.titulo)} · ordena los hechos y une qué provocó qué</span><span class="sub" style="color:var(--jungle);font-weight:800">Aquí se aprende la multicausalidad</span></div><div class="right">${hh ? "★".repeat(hh.estrellas) : "→"}</div>`;
-      sc.addEventListener("click", () => go("causas", { camp: c.id })); steps.appendChild(sc); }
+      sc.addEventListener("click", () => go("causas", { camp: c.id })); hondo.appendChild(sc); }
     if (transferDe(c.id)) { const T = transferDe(c.id); const hh = (S.aqui && S.aqui[T.id]) || null; const listo = hh && hh.texto;
       const sq = el("button", { class: `step aqui ${listo ? "done" : ""}` });
       sq.innerHTML = `<div class="ic">${listo ? "🔁" : hh && hh.pendiente ? "🏠" : "🔁"}</div><div><b>Aquí y ahora <span class="etiqueta verde">caso real</span></b><span class="sub">${esc(T.titulo)} · usa «${esc(T.concepto)}» en tu propia vida</span><span class="sub" style="color:var(--jungle);font-weight:800">${hh && hh.pendiente && !listo ? "Lo dejaste pendiente para hacerlo en casa" : "Si solo funciona con Colón, no lo aprendiste"}</span></div><div class="right">${listo ? hh.marcadas + "/" + hh.de : "→"}</div>`;
-      sq.addEventListener("click", () => go("aqui", { camp: c.id })); steps.appendChild(sq); }
+      sq.addEventListener("click", () => go("aqui", { camp: c.id })); hondo.appendChild(sq); }
     if (LE().some(l => l.camp === c.id)) { const L = LE().find(l => l.camp === c.id); const hecha = leccionHecha(L);
       const se = el("button", { class: `step destacado ${hecha ? "done" : ""}` });
       se.innerHTML = `<div class="ic">🧠</div><div><b>Enséñale a Chupaya</b><span class="sub">${esc(L.titulo)} · explícaselo y él te repregunta</span><span class="sub" style="color:var(--jungle);font-weight:800">Lo que le explicas se te queda</span></div><div class="right">${hecha ? "★".repeat(S.lecciones[L.id].estrellas) : "→"}</div>`;
-      se.addEventListener("click", () => go("ensenar", { camp: c.id })); steps.appendChild(se); }
+      se.addEventListener("click", () => go("ensenar", { camp: c.id })); hondo.appendChild(se); }
     const sf = el("button", { class: "step" }); sf.innerHTML = `<div class="ic">🃏</div><div><b>Tarjetas de memoria</b><span class="sub">${c.flashcards.length} tarjetas para repasar rápido · ideal antes de dormir</span></div><div class="right">→</div>`;
-    sf.addEventListener("click", () => go("flash", { camp: c.id })); steps.appendChild(sf);
+    sf.addEventListener("click", () => go("flash", { camp: c.id })); repaso.appendChild(sf);
     const sg = el("button", { class: "step" }); sg.innerHTML = `<div class="ic">🐒</div><div><b>Salto de lianas</b><span class="sub">Verdadero o falso contra el reloj · cruza esta selva con Chupaya · 2 min</span></div><div class="right">${S.games && S.games["liana-" + c.id] ? "🏆 " + S.games["liana-" + c.id] : "→"}</div>`;
-    sg.addEventListener("click", () => go("game", { camp: c.id })); steps.appendChild(sg);
+    sg.addEventListener("click", () => go("game", { camp: c.id })); repaso.appendChild(sg);
     const sm = el("button", { class: "step" }); sm.innerHTML = `<div class="ic">🎵</div><div><b>Piezas de la nave</b><span class="sub">Empareja concepto y definición con Estaya y recupera piezas · 3 min</span></div><div class="right">${S.games && S.games["memo-" + c.id] ? "🏆 " + S.games["memo-" + c.id] + " mov." : "→"}</div>`;
-    sm.addEventListener("click", () => go("memo", { camp: c.id })); steps.appendChild(sm);
+    sm.addEventListener("click", () => go("memo", { camp: c.id })); repaso.appendChild(sm);
     const fxc = FU().filter(f => f.camp === c.id);
     if (fxc.length) { const sfx = el("button", { class: "step" }); const hh = fxc.filter(fuenteHecha).length;
       sfx.innerHTML = `<div class="ic">🔍</div><div><b>Taller de fuentes</b><span class="sub">${fxc.length} fuente${fxc.length === 1 ? "" : "s"} real${fxc.length === 1 ? "" : "es"} de este tema · analízalas con la guía de tu clase</span></div><div class="right">${hh === fxc.length ? "✅" : hh ? hh + "/" + fxc.length : "→"}</div>`;
-      sfx.addEventListener("click", () => go("fuentes")); steps.appendChild(sfx); }
+      sfx.addEventListener("click", () => go("fuentes")); hondo.appendChild(sfx); }
     if (cancionDe(c.id)) {
     const ss = el("button", { class: "step" }); ss.innerHTML = `<div class="ic">🎤</div><div><b>La canción de Estaya</b><span class="sub">${esc((cancionDe(c.id) || {}).titulo || "Karaoke")} · escúchala, cántala y completa la letra · 3 min</span></div><div class="right">${S.games && S.games["song-" + c.id] ? "🏆" : "→"}</div>`;
-    ss.addEventListener("click", () => go("song", { camp: c.id })); steps.appendChild(ss); }
+    ss.addEventListener("click", () => go("song", { camp: c.id })); repaso.appendChild(ss); }
+    /* La ruta se arma con encabezados y el siguiente paso queda marcado, para que
+       nunca haya que deducir cuál tocar. */
+    steps.appendChild(el("div", { class: "seccion" }, "<span>La ruta de esta selva</span>"));
+    steps.appendChild(camino);
+    if (hondo.children.length) { steps.appendChild(el("div", { class: "seccion" }, "<span>Para entenderlo de verdad</span>")); steps.appendChild(hondo); }
+    if (repaso.children.length) { steps.appendChild(el("div", { class: "seccion" }, "<span>Para repasar jugando</span>")); steps.appendChild(repaso); }
+    const siguiente = [...camino.children].find(n => !n.classList.contains("done") && !n.classList.contains("locked") && !n.classList.contains("opcional"));
+    if (siguiente) { siguiente.classList.add("siguiente"); siguiente.insertAdjacentHTML("afterbegin", `<span class="marca">Sigue aquí</span>`); }
     h.appendChild(steps); m.appendChild(h);
   }
 
