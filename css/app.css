@@ -820,3 +820,15 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .step .miniatura .visto{position:absolute;right:3px;bottom:3px;width:20px;height:20px;border-radius:50%;
   background:var(--ok);color:#fff;font:800 12px Nunito;display:grid;place-items:center;box-shadow:0 1px 0 rgba(0,0,0,.2);z-index:2}
 .step:has(.miniatura){grid-template-columns:64px 1fr auto}
+
+/* ═══ Pasaporte: el sello que falta se ve como silueta, no como hueco ═══ */
+.stamps{grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:14px}
+.stamp{aspect-ratio:1;padding:10px 12px;min-height:140px}
+.stamp > div{display:grid;gap:3px;align-content:center;justify-items:center}
+.stamp .big{font-size:30px;line-height:1;filter:grayscale(1) opacity(.32);transition:filter .3s}
+.stamp .t{font-weight:800;font-size:12.5px;line-height:1.2}
+.stamp .como{font-weight:700;font-size:10.5px;line-height:1.25;color:#8A9184;max-width:14ch}
+.stamp.got .big{filter:none}
+.stamp.got{box-shadow:0 4px 0 rgba(31,90,56,.18)}
+.stamp.got .t{color:var(--jungle-deep)}
+@media(max-width:560px){.stamps{grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px}.stamp{min-height:118px}.stamp .como{font-size:9.5px}}

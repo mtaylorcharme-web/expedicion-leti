@@ -112,6 +112,12 @@ La vista `camp` no es una lista de actividades: es una ruta con tres grupos, por
 
 Arriba va una barra de avance con las misiones completadas y las estrellas. Si se agrega una actividad nueva, hay que decidir a qué grupo pertenece: `camino`, `hondo` o `repaso`.
 
+## El pasaporte
+
+Los sellos que faltan muestran **su propio símbolo en silueta gris** y una línea que dice cómo se ganan («Analiza una fuente entera», «Supera el gran salto»), más el contador de conseguidos. Antes eran veinte círculos vacíos idénticos con un punto al centro: un hueco no es una meta.
+
+Si se agrega un sello nuevo, hay que sumarle su pista en `comoSeGana(id)`; por defecto devuelve la de completar una selva.
+
 ## El taller de fuentes
 
 En la lista, cada fuente muestra **la fuente misma**: las visuales, su propia imagen; las escritas, un papelito con un trozo del documento real. Antes había un emoji genérico igual para todas, que en un taller de análisis de fuentes es justo lo contrario de lo que se quiere enseñar: mirar la fuente.

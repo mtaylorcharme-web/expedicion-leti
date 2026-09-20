@@ -1636,6 +1636,24 @@ reconocer, distractores que sean confusiones reales, y nada de ranking.`;
   /* ── PASAPORTE ── */
   function passport(m) {
     const ST = [["first", "🧭", "Primera misión"], ...C.camps.map(c => [c.id, c.icon, c.name]), ["boss", "🏔️", "Llegaron a casa"], ["streak3", "🔥", "3 días seguidos"], ["daily5", "🎲", "Reto del día perfecto"], ["maestra", "🧠", "Le enseñaste a Chupaya"], ["maestra-max", "🎓", "Maestra de Chupaya"], ["detective", "🔍", "Detective de fuentes"], ["detective-max", "📜", "Todas las fuentes"], ...C.camps.map(c => ["flash-" + c.id, "🃏", "Tarjetas " + c.n]), ...C.camps.map(c => ["liana-" + c.id, "🐒", "Lianas " + c.n]), ...C.camps.map(c => ["memo-" + c.id, "🎵", "Memorice " + c.n])];
+    /* Veinte círculos vacíos iguales no invitan a nada. Cada sello muestra su símbolo
+       en silueta y dice cómo se consigue: es la diferencia entre un hueco y una meta. */
+    const comoSeGana = id => {
+      if (id === "first") return "Completa tu primera misión";
+      if (id === "boss") return "Supera el gran salto";
+      if (id === "streak3") return "Estudia tres días seguidos";
+      if (id === "daily5") return "Acierta el reto del día completo";
+      if (id === "maestra") return "Explícale una lección a Chupaya";
+      if (id === "maestra-max") return "Explícaselas todas";
+      if (id === "detective") return "Analiza una fuente entera";
+      if (id === "detective-max") return "Analiza las ocho fuentes";
+      if (id.startsWith("flash-")) return "Repasa todas las tarjetas de esa selva";
+      if (id.startsWith("liana-")) return "Cruza la selva saltando lianas";
+      if (id.startsWith("memo-")) return "Junta las piezas de la nave";
+      if (id.startsWith("causas-")) return "Explica la causa completa";
+      if (id.startsWith("aqui-")) return "Lleva lo aprendido a tu propia vida";
+      return "Completa todas las misiones de esa selva";
+    };
     if (S.streak.count >= 3) stamp("streak3");
     const dn = ["L", "M", "X", "J", "V", "S", "D"]; const now = new Date(); const mon = new Date(now); mon.setDate(now.getDate() - ((now.getDay() + 6) % 7)); mon.setHours(0, 0, 0, 0);
     const week = [...Array(7)].map((_, i) => { const d = new Date(mon); d.setDate(mon.getDate() + i); const k = localKey(d); return `<span class="${S.days.includes(k) ? "d" : ""} ${k === todayKey() ? "t" : ""}">${dn[i]}</span>`; }).join("");
@@ -1643,7 +1661,8 @@ reconocer, distractores que sean confusiones reales, y nada de ranking.`;
     w.innerHTML = `<div class="card"><div class="row"><div class="avatar" style="width:72px;height:72px;border-radius:24px"><img src="assets/chars/ovaya.png" alt="Ovaya"></div><div><h2 style="font-size:26px;font-weight:600">Ovaya, explorador nivel ${level()}</h2><div class="muted">${S.xp} XP · ${S.streak.count} día${S.streak.count === 1 ? "" : "s"} seguidos 🔥 · ${doneMissions()}/${totalMissions} misiones</div></div></div>
       <div class="bars" style="margin-top:10px"><div class="r"><span>Nivel ${level()}</span><div class="bar"><b style="width:${((S.xp % 250) / 250) * 100}%;background:var(--jungle)"></b></div><span class="n">${S.xp % 250}/250</span></div></div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:8px">Esta semana</h3><div class="week">${week}</div></div>
-      <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:10px">Sellos de cada selva</h3><div class="stamps">${ST.map(([id, ic, t]) => `<div class="stamp ${S.stamps.includes(id) ? "got" : ""}"><div><span class="big">${S.stamps.includes(id) ? ic : "·"}</span>${esc(t)}</div></div>`).join("")}</div></div>
+      <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:4px">Sellos de cada selva</h3><p class="muted small" style="margin:0 0 12px">${ST.filter(([id]) => S.stamps.includes(id)).length} de ${ST.length} conseguidos. Toca uno para ver cómo se gana.</p><div class="stamps">${ST.map(([id, ic, t]) => { const ok = S.stamps.includes(id);
+        return `<div class="stamp ${ok ? "got" : ""}" title="${ok ? "Conseguido" : esc(comoSeGana(id))}"><div><span class="big">${ic}</span><span class="t">${esc(t)}</span>${ok ? "" : `<span class="como">${esc(comoSeGana(id))}</span>`}</div></div>`; }).join("")}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:4px">Álbum de selfies</h3><p class="muted small" style="margin:0 0 10px">${PERSONAJES.filter(selfieHecha).length} de ${PERSONAJES.length}. Se consigue una en cada misión completada.</p>
         <div class="selfies">${PERSONAJES.map(p => selfieHecha(p) ? selfieHTML(p, false) : `<figure class="selfie vacia"><div class="foto"><span class="q">?</span></div><figcaption><b>Por descubrir</b><span>${esc(p.anio)}</span></figcaption></figure>`).join("")}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:4px">Álbum de Los Ayas</h3><p class="muted small" style="margin:0 0 10px">Cada campamento completo desbloquea una foto real de la tripulación.</p><div class="album">${[["c1", "Concierto en el piano"], ["c2", "Trepando el árbol"], ["c3", "La casa de Los Ayas"], ["c4", "Paseo en bote"], ["c5", "Colgados en la cocina"], ["boss", "Abrazo de campeones"]].map(([k, t]) => { const un = k === "boss" ? S.stamps.includes("boss") : S.stamps.includes(k); return `<figure class="photo ${un ? "" : "locked"}"><img src="assets/album/${k}.jpg" alt="${esc(t)}" loading="lazy"><figcaption>${un ? esc(t) : "🔒 " + (k === "boss" ? "Templo de la Prueba" : "Campamento " + k.slice(1))}</figcaption></figure>`; }).join("")}</div></div>
