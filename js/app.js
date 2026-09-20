@@ -83,6 +83,13 @@
      fragmento del mapa, el sello y la pista hacia la Ciudad Aya se ganan completando—
      y el camino sugerido, que se marca con «Vas aquí». La expectativa vive en lo que
      todavía no tiene, no en lo que no puede abrir. */
+  /* Los límites exactos del recorte satelital de assets/mapa/himalaya.jpg. Si se
+     cambia la imagen, hay que cambiar estos números: los ocho lugares se colocan
+     con ellos. Ver assets/mapa/FUENTES.txt */
+  const LIMITES_HIMALAYA = { sur: 20, norte: 42, oeste: 70, este: 100 };
+  /* Cuatro de los ocho lugares quedan casi encima (Katmandú, Namche, Paro y Thimphu
+     están a pocos kilómetros), así que cada rótulo tiene su lado asignado a mano. */
+  const LADO_ROTULO = { gilgit: "arriba", leh: "arriba", lhasa: "arriba", shigatse: "izq", katmandu: "izq", namche: "abajo", paro: "der", thimphu: "arriba" };
   const campUnlocked = () => true;
   const missionUnlocked = () => true;
   /* En orden = hasta dónde llegó siguiendo el camino. Sirve para marcar lo que se
@@ -1454,9 +1461,12 @@ reconocer, distractores que sean confusiones reales, y nada de ranking.`;
       <div class="melodia card"><div class="row" style="justify-content:space-between"><div><div class="eyebrow">La melodía de casa</div><div class="muted small">${n} de ${MELODIA.length} notas recordadas</div></div><button class="btn y sm" id="tocar">Escuchar 🎵</button></div><div class="notas">${MELODIA.map((_, k) => `<span class="${k < n ? "on" : ""}"></span>`).join("")}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600">Pistas que recuerdan Los Ayas</h3><div class="pistas">${n === 0 ? `<p class="muted small">Todavía ninguna. Completa una selva entera para conseguir la primera.</p>` : PISTAS.slice(0, n).map(p => `<div class="pista"><span class="ic">💭</span><div><p>«${esc(p.txt)}»</p><small>${esc(p.nota)}</small></div></div>`).join("")}</div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:4px">Dónde buscar</h3><p class="muted small" style="margin:0 0 10px">Los ocho lugares están en el Himalaya de verdad. Cada pista tacha uno.</p>
-        <div class="himalaya" id="hima"><img class="capa" src="assets/mapa/mundi.jpg" alt="El Himalaya">
+        <div class="himalaya" id="hima"><img class="capa" src="assets/mapa/himalaya.jpg" alt="Imagen satelital del Himalaya">
           ${CANDIDATOS.map(c => { const fuera = descartados.includes(c.id); const es = encontrada && !fuera;
-            return `<button class="sitio ${fuera ? "fuera" : ""} ${es ? "casa" : ""}" data-sitio="${c.id}" style="left:${((c.lon + 180) / 360) * 100}%;top:${((90 - c.lat) / 180) * 100}%" aria-label="${esc(c.n)}"><span class="punto">${fuera ? "✕" : es ? "★" : ""}</span><span class="rotulo">${esc(c.n)}</span></button>`; }).join("")}
+            const x = ((c.lon - LIMITES_HIMALAYA.oeste) / (LIMITES_HIMALAYA.este - LIMITES_HIMALAYA.oeste)) * 100;
+            const y = ((LIMITES_HIMALAYA.norte - c.lat) / (LIMITES_HIMALAYA.norte - LIMITES_HIMALAYA.sur)) * 100;
+            return `<button class="sitio r-${LADO_ROTULO[c.id] || "abajo"} ${fuera ? "fuera" : ""} ${es ? "casa" : ""}" data-sitio="${c.id}" style="left:${x.toFixed(2)}%;top:${y.toFixed(2)}%" aria-label="${esc(c.n)}"><span class="punto">${fuera ? "✕" : es ? "★" : ""}</span><span class="rotulo">${esc(c.n)}</span></button>`; }).join("")}
+          <span class="credito">Imagen: NASA</span>
         </div></div>
       <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:4px">Los ocho lugares posibles</h3><p class="muted small" style="margin:0 0 10px">Todos existen de verdad. Tócalos para verlos en Google Earth.</p>
         <div class="candidatos">${CANDIDATOS.map(c => { const fuera = descartados.includes(c.id); const es = encontrada && !fuera; return `<div class="cand ${fuera ? "fuera" : ""} ${es ? "casa" : ""}" data-cand="${c.id}"><div class="cab"><b>${esc(c.n)}</b><span>${esc(c.pais)} · ${esc(c.alt)}</span></div><p>${esc(c.dato)}</p><a class="btn ghost sm" href="${earthURL(c.lat, c.lon)}" target="_blank" rel="noopener">Google Earth 🌎</a>${fuera ? `<span class="sello-fuera">Descartado</span>` : es ? `<span class="sello-casa">¡Es aquí!</span>` : ""}</div>`; }).join("")}</div></div>
@@ -1464,35 +1474,14 @@ reconocer, distractores que sean confusiones reales, y nada de ranking.`;
         <div class="exped">${EXPEDICIONES.map(e => `<div class="exp ${e.estado}"><span class="ic">${e.icono}</span><div><b>${esc(e.asignatura)}</b><span>${esc(e.nombre)}</span><small>${esc(e.nota)}</small></div><span class="est">${e.estado === "activa" ? "En curso" : "Próxima"}</span></div>`).join("")}</div></div>`;
     m.appendChild(w);
 
-    /* El mundi mide 1390x700 y es equirectangular. Para asomarse al Himalaya se
-       agranda y se corre hasta centrar 31°N 84°E; los sitios van por la misma
-       proyección, así que caen donde corresponde de verdad. */
-    (function encuadrarHimalaya() {
+    /* La imagen ya es el recorte exacto del Himalaya, así que los lugares se colocan
+       con una regla de tres sobre sus límites. Solo queda enlazar cada punto con su
+       ficha de más abajo. */
+    (function enlazarSitios() {
       const caja = $("#hima", w); if (!caja) return;
-      const capa = $(".capa", caja);
-      const Z = 9, LAT = 31, LON = 84, RATIO = 700 / 1390;
-      const ubicar = () => {
-        const W = caja.clientWidth, H = caja.clientHeight; if (!W) return;
-        const iw = W * Z, ih = iw * RATIO;
-        const left = W / 2 - iw * ((LON + 180) / 360);
-        const top = H / 2 - ih * ((90 - LAT) / 180);
-        capa.style.width = iw + "px"; capa.style.height = ih + "px";
-        capa.style.left = left + "px"; capa.style.top = top + "px";
-        caja.querySelectorAll(".sitio").forEach(b => {
-          b.style.marginLeft = left + "px"; b.style.marginTop = top + "px";
-          b.style.left = ""; b.style.top = "";
-          const c = CANDIDATOS.find(x => x.id === b.dataset.sitio);
-          b.style.left = (iw * ((c.lon + 180) / 360) + left) + "px";
-          b.style.top = (ih * ((90 - c.lat) / 180) + top) + "px";
-          b.style.marginLeft = ""; b.style.marginTop = "";
-        });
-      };
-      ubicar(); requestAnimationFrame(ubicar); setTimeout(ubicar, 320);
-      window.addEventListener("resize", ubicar);
       caja.addEventListener("click", e => {
         const b = e.target.closest(".sitio"); if (!b) return;
-        const c = CANDIDATOS.find(x => x.id === b.dataset.sitio);
-        const tarjeta = w.querySelector(`.cand[data-cand="${c.id}"]`);
+        const tarjeta = w.querySelector(`.cand[data-cand="${b.dataset.sitio}"]`);
         if (tarjeta) { tarjeta.scrollIntoView({ block: "center", behavior: "smooth" }); tarjeta.classList.add("resalta"); setTimeout(() => tarjeta.classList.remove("resalta"), 1400); }
         beep(true);
       });

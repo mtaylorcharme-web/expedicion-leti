@@ -1,0 +1,8 @@
+mundi.jpg     Mapa del mundo equirectangular.
+himalaya.jpg  Imagen satelital del Himalaya. NASA Worldview / GIBS, capa
+              "BlueMarble_ShadedRelief_Bathymetry". Dominio público (NASA).
+              Proyección equirectangular EPSG:4326.
+              Recorte exacto: latitud 20°N a 42°N, longitud 70°E a 100°E.
+              Si se reemplaza, hay que mantener esos límites o actualizar
+              LIMITES_HIMALAYA en js/app.js, porque los ocho lugares se
+              posicionan con esas coordenadas.

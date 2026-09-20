@@ -898,13 +898,19 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .ala-medida .actions{justify-content:space-between;align-items:center;gap:10px}
 
 /* ═══ El Himalaya: los ocho lugares en un mapa de verdad ═══ */
-.himalaya{position:relative;aspect-ratio:16/10;border-radius:20px;overflow:hidden;background:#20364A;
+.himalaya{position:relative;aspect-ratio:1600/1173;border-radius:20px;overflow:hidden;background:#20364A;
   box-shadow:inset 0 0 0 2px rgba(255,255,255,.5),0 6px 0 rgba(0,0,0,.08)}
-.himalaya .capa{position:absolute;max-width:none;filter:saturate(.9) contrast(1.05)}
+.himalaya .capa{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;filter:saturate(1.02) contrast(1.03)}
+.himalaya .credito{position:absolute;right:8px;bottom:6px;z-index:3;font:700 10px Nunito;color:rgba(255,255,255,.75);text-shadow:0 1px 2px rgba(0,0,0,.6)}
 .himalaya::after{content:"";position:absolute;inset:0;pointer-events:none;
   background:radial-gradient(120% 90% at 50% 45%,transparent 45%,rgba(12,28,20,.45))}
-.sitio{position:absolute;z-index:2;display:grid;justify-items:center;gap:3px;transform:translate(-50%,-50%);padding:0}
-.sitio .punto{width:20px;height:20px;border-radius:50%;background:var(--coral);border:3px solid #fff;
+.sitio{position:absolute;z-index:2;width:20px;height:20px;transform:translate(-50%,-50%);padding:0}
+.sitio .rotulo{position:absolute;left:50%;top:calc(100% + 4px);transform:translateX(-50%)}
+.sitio.r-arriba .rotulo{top:auto;bottom:calc(100% + 4px)}
+.sitio.r-izq .rotulo{left:auto;right:calc(100% + 6px);top:50%;transform:translateY(-50%)}
+.sitio.r-der .rotulo{left:calc(100% + 6px);top:50%;transform:translateY(-50%) translateX(0)}
+.sitio:hover,.sitio:focus-visible{z-index:5}
+.sitio .punto{display:block;width:20px;height:20px;border-radius:50%;background:var(--coral);border:3px solid #fff;
   box-shadow:0 2px 6px rgba(0,0,0,.55);display:grid;place-items:center;font:800 11px Nunito;color:#fff}
 .sitio .rotulo{background:rgba(255,255,255,.94);color:var(--ink);border-radius:99px;padding:1px 8px;
   font:800 11px Nunito;white-space:nowrap;box-shadow:0 2px 0 rgba(0,0,0,.15)}
@@ -914,4 +920,4 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .sitio.casa .punto{background:var(--gold);border-color:#fff;box-shadow:0 0 0 6px rgba(242,177,52,.45),0 2px 8px rgba(0,0,0,.5)}
 .sitio.casa .rotulo{background:var(--gold);font-size:12px}
 .cand.resalta{outline:3px solid var(--gold);outline-offset:3px}
-@media(max-width:560px){.himalaya{aspect-ratio:1/1}.sitio .rotulo{font-size:10px;padding:1px 6px}}
+@media(max-width:560px){.himalaya{aspect-ratio:1600/1173}.sitio .rotulo{font-size:10px;padding:1px 6px}}

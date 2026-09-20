@@ -124,9 +124,11 @@ La expectativa vive en lo que todavía no tiene, no en lo que no puede abrir.
 
 ## La Ciudad Aya
 
-La búsqueda de casa tiene ahora un **mapa del Himalaya** con los ocho lugares candidatos en sus coordenadas reales. No es un mapa nuevo: es el mismo `assets/mapa/mundi.jpg`, que es equirectangular, agrandado nueve veces y corrido hasta centrar 31°N 84°E. Los puntos se calculan con la misma proyección, así que caen donde están de verdad. Se recalcula al cambiar el tamaño de la ventana.
+La búsqueda de casa tiene un **mapa satelital real del Himalaya**: `assets/mapa/himalaya.jpg`, un recorte de la capa Blue Marble de la NASA (GIBS), dominio público, en proyección equirectangular, con límites exactos **20°N a 42°N y 70°E a 100°E**. Los ocho lugares se colocan con una regla de tres sobre esos límites, guardados en `LIMITES_HIMALAYA`. **Si se reemplaza la imagen hay que mantener esos límites o actualizar la constante**, o los puntos dejan de caer donde corresponde; está anotado también en `assets/mapa/FUENTES.txt`.
 
-Cada pista tacha un lugar y eso ahora **se ve**: el punto se apaga, el nombre se tacha. Cuando queda uno solo, se enciende en dorado. Tocar un punto resalta su ficha más abajo.
+Katmandú, Namche, Paro y Thimphu están a pocos kilómetros entre sí, así que cada rótulo lleva su lado asignado a mano en `LADO_ROTULO` para que no se pisen.
+
+Cada pista tacha un lugar y eso se ve: el punto se apaga y el nombre queda tachado. Cuando quede uno solo, se enciende en dorado. Tocar un punto resalta su ficha más abajo.
 
 ## Repaso
 
