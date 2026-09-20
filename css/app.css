@@ -956,3 +956,7 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 @media(max-width:560px){.wl-stage{min-height:230px}.wl-stage .trio{height:186px}}
 .wl-stage .mk{--s:196px!important}
 @media(max-width:560px){.wl-stage .mk{--s:156px!important}}
+.avisoflip{text-align:center;margin-top:14px;font-weight:700;font-size:14.5px;color:var(--ink-2)}
+.actions.juzgar{animation:aparece .3s ease-out}
+@keyframes aparece{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@media(prefers-reduced-motion:reduce){.actions.juzgar{animation:none}}

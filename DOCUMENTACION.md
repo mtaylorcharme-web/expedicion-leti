@@ -122,6 +122,10 @@ En el código: `campUnlocked()` y `missionUnlocked()` devuelven siempre verdader
 
 La expectativa vive en lo que todavía no tiene, no en lo que no puede abrir.
 
+## Las tarjetas de memoria
+
+Los botones «La sé» y «Repasar después» aparecen **solo después de dar vuelta la tarjeta**. Antes estaban visibles desde el principio, así que se podía decir «la sé» sin haber visto la respuesta, que es adivinar y no evaluarse. Mientras la tarjeta está por el frente, el pie dice «Piensa la respuesta y toca la tarjeta».
+
 ## La bienvenida
 
 La presentación usaba la foto real de la selva **recortada a la fuerza** como fondo, y los Ayas de esa foto salían cortados por arriba y por abajo. Ahora esa foto va difuminada y atenuada como atmósfera, y encima va el Aya recortado, entero, grande y centrado; el último paso muestra a los tres juntos, también completos. Regla del proyecto: las fotos de los Ayas nunca se recortan.

@@ -1648,8 +1648,16 @@ reconocer, distractores que sean confusiones reales, y nada de ranking.`;
       w.innerHTML = `<div class="mhead"><button class="close" id="quit">✕</button><div class="pbar"><b style="width:${(i / cards.length) * 100}%"></b></div><span class="small muted">${i + 1}/${cards.length}</span></div>
         <div class="today" style="margin-bottom:12px"><div class="char">${monkey("estaya", "happy", 80)}</div><div class="bubble"><span class="who">Estaya</span>Lee la tarjeta, piensa la respuesta y tócala para darla vuelta. ¡Como una canción que ya sabes!</div></div>
         <div class="fcard" id="fc"><div class="in"><div class="f">${esc(f)}<span class="hint">Toca para ver</span></div><div class="b">${esc(b)}</div></div></div>
-        <div class="actions" style="justify-content:center;margin-top:16px"><button class="btn ghost" id="no">🔁 Repasar después</button><button class="btn g" id="yes">✅ ¡La sé!</button></div>`;
-      $("#fc", w).addEventListener("click", e => e.currentTarget.classList.toggle("flip"));
+        <div class="actions juzgar" id="juzgar" hidden style="justify-content:center;margin-top:16px"><button class="btn ghost" id="no">🔁 Repasar después</button><button class="btn g" id="yes">✅ ¡La sé!</button></div>
+        <div class="avisoflip" id="avisoflip">Piensa la respuesta y toca la tarjeta</div>`;
+      /* Los botones de autoevaluación solo aparecen después de dar vuelta la tarjeta:
+         decir «la sé» sin haber visto la respuesta no es evaluarse, es adivinar. */
+      $("#fc", w).addEventListener("click", e => {
+        const vuelta = e.currentTarget.classList.toggle("flip");
+        $("#juzgar", w).hidden = !vuelta;
+        $("#avisoflip", w).hidden = vuelta;
+        if (vuelta) beep(true);
+      });
       $("#quit", w).addEventListener("click", () => go("camp", { camp: c.id }));
       $("#yes", w).addEventListener("click", () => { know++; i++; draw(); });
       $("#no", w).addEventListener("click", () => { cards.push(cards[i]); i++; draw(); });
