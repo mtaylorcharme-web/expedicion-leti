@@ -122,6 +122,10 @@ En el código: `campUnlocked()` y `missionUnlocked()` devuelven siempre verdader
 
 La expectativa vive en lo que todavía no tiene, no en lo que no puede abrir.
 
+## El reto del día
+
+Saca sus cinco preguntas solo de las selvas **ya visitadas** (`campVisitada`: la primera siempre, más las que tengan la bitácora leída o alguna misión hecha). Abrir todas las selvas fue lo correcto, pero el reto del día no puede preguntar de lo que todavía no ha estudiado: se perdería la racha por contenido nuevo. El repaso a la medida sí ofrece todas, porque ahí elige ella.
+
 ## Las tarjetas de memoria
 
 Los botones «La sé» y «Repasar después» aparecen **solo después de dar vuelta la tarjeta**. Antes estaban visibles desde el principio, así que se podía decir «la sé» sin haber visto la respuesta, que es adivinar y no evaluarse. Mientras la tarjeta está por el frente, el pie dice «Piensa la respuesta y toca la tarjeta».

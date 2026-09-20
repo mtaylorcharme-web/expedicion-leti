@@ -95,6 +95,11 @@
   /* En orden = hasta dónde llegó siguiendo el camino. Sirve para marcar lo que se
      adelantó, sin impedirlo. */
   const campEnOrden = c => c.n === 1 || campDone(C.camps[c.n - 2]) >= 1;
+  /* Abrir todas las selvas fue lo correcto, pero el reto del día no puede preguntar
+     de lo que todavía no ha estudiado: sería perder la racha por contenido nuevo.
+     Aquí "visitada" es la selva que ya empezó (leyó la bitácora o hizo una misión),
+     más la primera, que siempre cuenta. */
+  const campVisitada = c => c.n === 1 || !!S.done[c.id + "-notes"] || campDone(c) > 0;
   const totalMissions = C.camps.reduce((a, c) => a + c.missions.length, 0);
   const doneMissions = () => C.camps.reduce((a, c) => a + campDone(c), 0);
   const level = () => Math.floor(S.xp / 250) + 1;
@@ -1667,7 +1672,7 @@ reconocer, distractores que sean confusiones reales, y nada de ranking.`;
 
   /* ── RETO DEL DÍA ── */
   function daily(m) {
-    const pool = []; C.camps.filter(campUnlocked).forEach(c => c.missions.forEach(ms => ms.questions.forEach((q, i) => { if (q.t !== "write") pool.push({ q, key: `${ms.id}:${i}`, camp: c }); })));
+    const pool = []; C.camps.filter(campVisitada).forEach(c => c.missions.forEach(ms => ms.questions.forEach((q, i) => { if (q.t !== "write") pool.push({ q, key: `${ms.id}:${i}`, camp: c }); })));
     const qs = shuffle(pool).slice(0, 5);
     runQuiz(m, { title: "Reto del día", char: "ovaya", story: "¡Cinco preguntas sorpresa de la selva! Si las respondes hoy, tu racha sigue viva. ¡Vamos!", topic: "Reto del día", camp: qs[0].camp, questions: qs, quit: () => go("home"), onDone: errors => { const score = qs.length - errors; const xp = 30 + score * 4; addXP(xp); S.daily = { date: todayKey(), score }; if (score === 5) stamp("daily5"); save(); return { xp, stars: stars(errors), back: () => go("home") }; } });
   }
