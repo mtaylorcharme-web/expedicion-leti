@@ -524,7 +524,14 @@
     const qs = cfg.questions; let i = 0, errors = 0, hearts = 5; const perTopic = {};
     const ayudas = { ovaya: true, chupaya: true, estaya: true }; let escudo = false, ayudasUsadas = 0;
     const w = el("div", { class: "mission" }); m.appendChild(w);
-    function head() { return `<div class="mhead"><button class="close" id="quit" aria-label="Salir">✕</button><div class="pbar"><b style="width:${(i / qs.length) * 100}%"></b></div><div class="hearts">${"❤".repeat(hearts)}${"♡".repeat(5 - hearts)}</div></div>`; }
+    /* Una barra lisa al 0% parece rota. Un tramo por pregunta dice cuántas van,
+       cuántas faltan y en cuál está, de un vistazo. */
+    function head() {
+      const tramos = qs.map((_, k) => `<span class="tramo ${k < i ? "hecha" : k === i ? "ahora" : ""}"></span>`).join("");
+      return `<div class="mhead"><button class="close" id="quit" aria-label="Salir">✕</button>
+        <div class="avanceq"><div class="tramos">${tramos}</div><span class="cuenta">${i + 1} de ${qs.length}</span></div>
+        <div class="hearts" aria-label="Te quedan ${hearts} vidas">${"❤".repeat(hearts)}${"♡".repeat(5 - hearts)}</div></div>`;
+    }
     function next() { i++; if (i >= qs.length) return finish(); show(); }
     function finish() {
       const r = cfg.onDone(errors, perTopic, ayudasUsadas); confetti(); jingle("win");
@@ -543,7 +550,8 @@
     }
     function show() {
       const { q, key } = qs[i]; const ch = cfg.char;
-      w.innerHTML = head() + `<div class="ayudas" id="ay">${Object.keys(ayudas).map(k => `<button class="ay ${ayudas[k] ? "" : "usada"}" data-aya="${k}" ${ayudas[k] ? "" : "disabled"}>${monkey(k, "happy", 34)}<span><b>${CH[k].name}</b>${{ ovaya: "Escudo", chupaya: "Descarta", estaya: "Lee" }[k]}</span></button>`).join("")}</div><div class="scene"><div class="char">${monkey(ch, i === 0 ? "surprised" : "think", 92)}<span class="nm">${CH[ch].name}</span></div><div class="bubble"><span class="who">${i === 0 ? esc(cfg.title) : "Desafío " + (i + 1) + " de " + qs.length}</span><span class="tw">${i === 0 && cfg.story ? esc(cfg.story) : pickLine(ch)}</span>${SAYBTN}</div></div><div class="qcard" id="qc"></div>`;
+      const barraAyudas = `<div class="ayudas" id="ay"><span class="titulo">¿Te echan una mano?</span><div class="tres">${Object.keys(ayudas).map(k => `<button class="ay ${ayudas[k] ? "" : "usada"}" data-aya="${k}" ${ayudas[k] ? "" : "disabled"}>${monkey(k, "happy", 34)}<span><b>${CH[k].name}</b>${{ ovaya: "te cubre un fallo", chupaya: "quita una mala", estaya: "lee en voz alta" }[k]}</span></button>`).join("")}</div></div>`;
+      w.innerHTML = head() + `<div class="scene"><div class="char">${monkey(ch, i === 0 ? "surprised" : "think", 92)}<span class="nm">${CH[ch].name}</span></div><div class="bubble"><span class="who">${i === 0 ? esc(cfg.title) : "Desafío " + (i + 1) + " de " + qs.length}</span><span class="tw">${i === 0 && cfg.story ? esc(cfg.story) : pickLine(ch)}</span>${SAYBTN}</div></div><div class="qcard" id="qc"></div>` + barraAyudas;
       typewrite($(".bubble .tw", w));
       $("#quit", w).addEventListener("click", () => { if (confirm("¿Salir de la misión? Se perderá el avance de esta misión.")) cfg.quit ? cfg.quit() : go("camp", { camp: cfg.camp.id }); });
       $("#ay", w).addEventListener("click", e => {

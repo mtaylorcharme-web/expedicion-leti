@@ -112,6 +112,12 @@ La vista `camp` no es una lista de actividades: es una ruta con tres grupos, por
 
 Arriba va una barra de avance con las misiones completadas y las estrellas. Si se agrega una actividad nueva, hay que decidir a qué grupo pertenece: `camino`, `hondo` o `repaso`.
 
+## La pantalla de misión
+
+La cabecera lleva un tramo por pregunta (`.tramo`): verdes las contestadas, dorado el actual, más el conteo «3 de 8» y las vidas. Una barra lisa al 0 % parecía rota y no decía cuántas faltaban.
+
+Las ayudas de los Ayas van **debajo** de la pregunta, no encima: arriba manda la pregunta, y abajo quedan al alcance del pulgar. Cada una dice qué hace en vez de una sola palabra: «te cubre un fallo», «quita una mala», «lee en voz alta».
+
 ## Criterios pedagógicos que hay que respetar
 
 Estas decisiones son deliberadas. Si se cambian, se pierde lo que hace que la app enseñe en vez de solo preguntar.

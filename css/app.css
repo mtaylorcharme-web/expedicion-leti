@@ -746,3 +746,22 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
   font:800 11px Nunito;letter-spacing:.03em;box-shadow:0 2px 0 var(--jungle-deep)}
 .step{position:relative}
 .steps{display:grid;gap:10px}
+
+/* ═══ La misión: saber siempre por dónde vas ═══ */
+.avanceq{flex:1;display:flex;align-items:center;gap:10px;min-width:0}
+.avanceq .tramos{flex:1;display:flex;gap:4px;min-width:0}
+.avanceq .tramo{flex:1;height:9px;border-radius:99px;background:#E3DCC8;transition:background .3s,transform .3s}
+.avanceq .tramo.hecha{background:var(--jungle)}
+.avanceq .tramo.ahora{background:var(--gold);transform:scaleY(1.5)}
+.avanceq .cuenta{font:800 13px Nunito;color:var(--ink-2);white-space:nowrap}
+.mhead .hearts{font-size:17px;letter-spacing:1px;color:var(--coral);text-shadow:0 1px 0 rgba(0,0,0,.12)}
+.ayudas{margin-top:14px;padding:12px 14px;border-radius:20px;background:#F4F1E8;border:2px dashed var(--line)}
+.ayudas .titulo{display:block;font:800 12px Nunito;letter-spacing:.07em;text-transform:uppercase;color:var(--ink-2);margin-bottom:8px}
+.ayudas .tres{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.ayudas .ay{display:flex;align-items:center;gap:8px;min-height:56px;padding:8px 10px;border-radius:16px;background:#fff;
+  border:2px solid var(--line);text-align:left;box-shadow:0 3px 0 rgba(0,0,0,.06)}
+.ayudas .ay span{display:grid;line-height:1.15;font-size:11.5px;font-weight:700;color:var(--ink-2)}
+.ayudas .ay b{font:600 14px Fredoka;color:var(--ink)}
+.ayudas .ay.usada{opacity:.4;box-shadow:none}
+.ayudas .ay:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.06)}
+@media(max-width:560px){.ayudas .tres{grid-template-columns:1fr}.ayudas .ay{min-height:52px}}
