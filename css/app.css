@@ -960,3 +960,19 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .actions.juzgar{animation:aparece .3s ease-out}
 @keyframes aparece{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
 @media(prefers-reduced-motion:reduce){.actions.juzgar{animation:none}}
+
+/* ═══ Canción sin grabar: primero lo que la niña puede hacer ═══ */
+.sinmusica{display:flex;align-items:center;gap:14px;margin-bottom:12px;padding:14px 16px;
+  background:linear-gradient(180deg,#FFF7E0,var(--paper));border:2px solid var(--gold)}
+.sinmusica .char{flex:none}
+.sinmusica b{display:block;font:600 18px Fredoka;line-height:1.15}
+.sinmusica span{font-weight:700;font-size:14.5px;color:var(--ink-2);line-height:1.35}
+details.receta{padding:0}
+details.receta > summary{list-style:none;cursor:pointer;display:grid;gap:1px;padding:13px 16px;min-height:56px;align-content:center;position:relative}
+details.receta > summary::-webkit-details-marker{display:none}
+details.receta > summary::after{content:"▾";position:absolute;right:16px;top:50%;transform:translateY(-50%);
+  font-size:16px;color:var(--ink-2);transition:transform .2s}
+details.receta[open] > summary::after{transform:translateY(-50%) rotate(180deg)}
+details.receta > summary b{font:600 16px Fredoka}
+details.receta > *:not(summary){margin-left:16px;margin-right:16px}
+details.receta > *:last-child{margin-bottom:14px}

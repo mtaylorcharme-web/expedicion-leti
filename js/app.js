@@ -786,15 +786,20 @@
     }
 
     function sinAudio(cont) {
-      cont.innerHTML = `<div class="receta card">
-        <div class="eyebrow">Esta canción todavía no está grabada</div>
+      /* Esto lo abre Leti, no un adulto: primero lo que ella puede hacer —cantar la
+         letra escrita— y las instrucciones de Suno plegadas, que son tarea de sus papás. */
+      cont.innerHTML = `<div class="sinmusica card">
+          <div class="char">${monkey("estaya", "happy", 76)}</div>
+          <div><b>Todavía no tengo la música</b><span>Pero la letra ya está escrita. Puedes cantarla tú y completar los huecos aquí abajo.</span></div>
+        </div>
+        <details class="receta card"><summary><span class="eyebrow">Para Mariana y Francisco</span><b>Cómo grabar esta canción</b></summary>
         <h3 style="font-size:19px;font-weight:600;margin:2px 0 6px">Crearla en Suno toma dos minutos</h3>
         <ol class="pasos"><li>Abre <b>suno.com</b> con tu cuenta y entra en <b>Create</b>.</li><li>Activa <b>Custom</b> para poder pegar la letra.</li><li>Copia el <b>estilo</b> y pégalo en «Style of Music».</li><li>Copia la <b>letra</b> y pégala en «Lyrics». El título es <b>${esc(CAN.titulo)}</b>.</li><li>Genera, elige la versión que más te guste y descárgala como MP3.</li><li>Guarda el archivo como <b>${CAN.id}.mp3</b> dentro de la carpeta <b>assets/musica</b> de la app.</li></ol>
         <div class="bloque-copia"><div class="row" style="justify-content:space-between"><span class="eyebrow">Estilo para Suno</span><button class="btn ghost sm" id="cEstilo">Copiar</button></div><p>${esc(CAN.estilo)}</p></div>
         <div class="bloque-copia"><div class="row" style="justify-content:space-between"><span class="eyebrow">Letra para Suno</span><button class="btn ghost sm" id="cLetra">Copiar</button></div><p class="mini">${esc(CAN.letra.slice(0, 5).join(" / "))}…</p></div>
         <div class="actions" style="justify-content:flex-start;gap:10px"><button class="btn" id="auto">Crearla ahora con Suno 🎶</button><span class="muted small">usa tu cuenta a través de tu puente en Netlify</span></div>
         <div id="estado"></div>
-        <p class="muted small" style="margin-top:8px">Mientras tanto puedes jugar igual con la letra escrita.</p></div>`;
+        </details>`;
       $("#auto", cont).addEventListener("click", async () => {
         const btn = $("#auto", cont), est = $("#estado", cont); btn.disabled = true;
         const pinta = t => { est.innerHTML = `<div class="componiendo"><div class="char">${monkey("estaya", "party", 64)}</div><div><b>Componiendo…</b><span>${esc(t)}</span></div></div>`; };

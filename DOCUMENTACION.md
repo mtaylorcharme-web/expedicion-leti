@@ -122,6 +122,10 @@ En el código: `campUnlocked()` y `missionUnlocked()` devuelven siempre verdader
 
 La expectativa vive en lo que todavía no tiene, no en lo que no puede abrir.
 
+## Las canciones
+
+Mientras una canción no tenga su MP3, la pantalla la abre **Estaya hablándole a Leti**: «todavía no tengo la música, pero la letra ya está escrita; puedes cantarla tú». Las instrucciones para grabarla en Suno van plegadas bajo «Para Mariana y Francisco», porque son tarea de adultos: antes eran seis pasos técnicos —con rutas de carpetas— como primera cosa que veía una niña de once años.
+
 ## El reto del día
 
 Saca sus cinco preguntas solo de las selvas **ya visitadas** (`campVisitada`: la primera siempre, más las que tengan la bitácora leída o alguna misión hecha). Abrir todas las selvas fue lo correcto, pero el reto del día no puede preguntar de lo que todavía no ha estudiado: se perdería la racha por contenido nuevo. El repaso a la medida sí ofrece todas, porque ahí elige ella.
