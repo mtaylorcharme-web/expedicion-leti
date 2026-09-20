@@ -122,6 +122,10 @@ En el código: `campUnlocked()` y `missionUnlocked()` devuelven siempre verdader
 
 La expectativa vive en lo que todavía no tiene, no en lo que no puede abrir.
 
+## La bitácora
+
+El encabezado lleva un índice de páginas tocable: dorada la actual, crema las que ya vio, gris las que no. Se puede saltar a cualquiera, que es lo que hace falta al repasar la víspera de la prueba; antes había que pasar una por una. El botón de terminar aparece en cuanto ha visto todas, no solo estando en la última.
+
 ## Las selfies
 
 El Aya se asoma dentro del encuadre, entero, con un halo blanco y una sombra que lo separan del cuadro antiguo: sobre un retrato oscuro, sin ese contraste, se confundía con la pintura y solo se le distinguían los brazos. Va inclinado, como quien se mete en la foto. En el álbum se dibuja más pequeño (`--s:46px`) para no comerse la miniatura.
