@@ -1383,15 +1383,31 @@ reconocer, distractores que sean confusiones reales, y nada de ranking.`;
     w.innerHTML = `<div class="camphead"><div class="icon" style="background:#4FB3C9">🌍</div><div><div class="eyebrow">Ubícate en el mundo</div><h2 style="font-size:26px;font-weight:600">Dónde y cuándo pasó</h2><div class="muted small">Toca un punto del mapa para ver qué ocurrió ahí y abrirlo en Google Earth.</div></div></div>
       <div class="mundo-mapa"><img src="assets/mapa/mundi.jpg" alt="Mapa del mundo"><div class="pines" id="pines"></div></div>
       <div id="ficha"></div>
-      <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:8px">Línea de tiempo de la unidad</h3><div class="tline" id="tl">${lugares.map(l => `<button class="tev ${abiertos.includes(l.camp) ? "" : "gris"}" data-id="${l.id}"><b>${l.anio < 0 ? Math.abs(l.anio) + " a.C." : l.anio}</b><span>${esc(l.n)}</span></button>`).join("")}</div></div>`;
+      <div class="card" style="margin-top:14px"><h3 style="font-size:18px;font-weight:600;margin-bottom:8px">Línea de tiempo de la unidad</h3><div class="tline" id="tl">${lugares.map(l => `<button class="tev ${abiertos.includes(l.camp) ? "" : "gris"}" data-id="${l.id}"><span class="n">${lugares.indexOf(l) + 1}</span><b>${l.anio < 0 ? Math.abs(l.anio) + " a.C." : l.anio}</b><span>${esc(l.n)}</span></button>`).join("")}</div></div>`;
     const pines = $("#pines", w);
     lugares.forEach(l => {
-      const b = el("button", { class: `pin ${abiertos.includes(l.camp) ? "" : "gris"}`, style: `left:${((l.lon + 180) / 360) * 100}%;top:${((90 - l.lat) / 180) * 100}%`, "aria-label": l.n, "data-id": l.id });
+      const n = lugares.indexOf(l) + 1;
+      const b = el("button", { class: `pin ${abiertos.includes(l.camp) ? "" : "gris"}`, style: `left:${((l.lon + 180) / 360) * 100}%;top:${((90 - l.lat) / 180) * 100}%`, "aria-label": `${n}. ${l.n}`, "data-id": l.id }, `<span class="n">${n}</span>`);
       pines.appendChild(b);
     });
     const mostrar = id => {
       const l = LUGARES.find(x => x.id === id); const c = C.camps.find(x => x.id === l.camp);
+      /* Esta vista existe para unir dónde y cuándo: al elegir en el mapa, la línea de
+         tiempo se marca y se desplaza sola, y al revés. Antes eran dos listas sueltas. */
       pines.querySelectorAll(".pin").forEach(p => p.classList.toggle("sel", p.dataset.id === id));
+      const tl = $("#tl", w);
+      if (tl) {
+        let elegido = null;
+        tl.querySelectorAll(".tev").forEach(t => { const esta = t.dataset.id === id; t.classList.toggle("sel", esta); if (esta) elegido = t; });
+        /* scrollIntoView aquí lo cancela el desplazamiento de la ficha que viene después,
+           así que la tira se mueve a mano. */
+        if (elegido) {
+          const destino = Math.max(0, elegido.offsetLeft - (tl.clientWidth - elegido.offsetWidth) / 2);
+          /* El desplazamiento suave lo cancela el cambio de la ficha que viene justo
+             después, así que se asigna directo. */
+          tl.scrollLeft = destino;
+        }
+      }
       $("#ficha", w).innerHTML = `<div class="card ficha-lugar fade"><div class="row" style="justify-content:space-between;align-items:flex-start;gap:10px"><div><div class="eyebrow">${esc(l.pais)} · ${l.anio < 0 ? Math.abs(l.anio) + " a.C." : "año " + l.anio}</div><h3 style="font-size:22px;font-weight:600">${esc(l.n)}</h3></div><span class="tag" style="background:${c.color}22;color:${c.color}">${c.icon} ${esc(c.name)}</span></div>
         <p style="margin:8px 0 0;font-size:16px">${esc(l.q)}</p>
         <div class="actions" style="justify-content:flex-start"><a class="btn sm" style="text-decoration:none;background:#4FB3C9;box-shadow:0 3px 0 #2E8AA0" href="${earthURL(l.lat, l.lon)}" target="_blank" rel="noopener">Ver en Google Earth 🌎</a><span class="muted small">${l.lat.toFixed(2)}°, ${l.lon.toFixed(2)}°</span></div></div>`;

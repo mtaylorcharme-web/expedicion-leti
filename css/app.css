@@ -832,3 +832,15 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .stamp.got{box-shadow:0 4px 0 rgba(31,90,56,.18)}
 .stamp.got .t{color:var(--jungle-deep)}
 @media(max-width:560px){.stamps{grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:10px}.stamp{min-height:118px}.stamp .como{font-size:9.5px}}
+
+/* ═══ Mundo: el mapa y la línea de tiempo son lo mismo ═══ */
+.pin{width:26px;height:26px;margin:-13px 0 0 -13px;display:grid;place-items:center}
+.pin .n{font:800 11px Nunito;color:#fff;text-shadow:0 1px 1px rgba(0,0,0,.4);pointer-events:none}
+.pin.sel{z-index:3;transform:scale(1.25)}
+.pin.gris .n{opacity:.7}
+.tev{position:relative;padding-top:20px}
+.tev .n{position:absolute;left:8px;top:5px;width:19px;height:19px;border-radius:50%;background:var(--line);
+  color:var(--ink);font:800 11px Nunito;display:grid;place-items:center}
+.tev.sel{border-color:var(--gold);background:#FFF7E0;box-shadow:0 4px 0 var(--gold-deep)}
+.tev.sel .n{background:var(--gold);color:var(--ink)}
+.tline{position:relative}
