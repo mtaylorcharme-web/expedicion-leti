@@ -112,6 +112,12 @@ La vista `camp` no es una lista de actividades: es una ruta con tres grupos, por
 
 Arriba va una barra de avance con las misiones completadas y las estrellas. Si se agrega una actividad nueva, hay que decidir a qué grupo pertenece: `camino`, `hondo` o `repaso`.
 
+## El hilo de las causas, por dentro
+
+El paso de unir causas lleva una barra pegada arriba (`.estadohilo`) que dice en todo momento qué toca hacer: «Toca el hecho que fue la causa» y, cuando hay uno elegido, «Ahora toca lo que provocó «…»» con un botón Soltar. Al lado va un tramo por unión y el conteo. Cada tarjeta indica de cuántas flechas ya forma parte.
+
+Antes la instrucción vivía en la burbuja del guía, que se escribía y se olvidaba, y la respuesta aparecía al final de la lista, fuera de pantalla. En una actividad de dos toques el estado tiene que verse siempre.
+
 ## La pantalla de misión
 
 La cabecera lleva un tramo por pregunta (`.tramo`): verdes las contestadas, dorado el actual, más el conteo «3 de 8» y las vidas. Una barra lisa al 0 % parecía rota y no decía cuántas faltaban.

@@ -1775,10 +1775,19 @@ reconocer, distractores que sean confusiones reales, y nada de ranking.`;
     function conectar() {
       paso = 2; sel = null;
       w.innerHTML = cabecera("Toca primero la causa y después lo que provocó. Si la flecha no corresponde, te lo digo.", "Encuentra las " + total + " uniones verdaderas. Cuidado: que un hecho venga después de otro no significa que lo haya causado.") +
-        `<div class="causas" id="red"><svg class="hilos" id="hilos" aria-hidden="true"></svg>
-          ${A.hechos.map(h => `<button class="hecho" data-h="${h.id}"><span class="fecha">${esc(h.fecha || "·")}</span><span class="txt">${esc(h.t)}</span></button>`).join("")}</div>
-         <div class="contador small muted" id="cnt">0 de ${total} uniones</div>
-         <div id="exp"></div>`;
+        /* El estado de la interacción tiene que verse siempre: qué toca hacer ahora,
+           qué llevo seleccionado y cuántas uniones van. Antes vivía en una burbuja
+           que se escribía y se olvidaba, y el resultado aparecía al final de la lista,
+           fuera de pantalla. */
+        `<div class="estadohilo" id="estado">
+            <div class="fila"><span class="paso" id="instruccion">Toca el hecho que fue la <b>causa</b></span>
+              <button class="btn ghost sm" id="soltar" hidden>Soltar</button></div>
+            <div class="tramos" id="tramos">${[...Array(total)].map(() => `<span class="tramo"></span>`).join("")}</div>
+            <span class="cuenta" id="cnt">0 de ${total} uniones</span>
+          </div>
+          <div id="exp"></div>
+          <div class="causas" id="red"><svg class="hilos" id="hilos" aria-hidden="true"></svg>
+          ${A.hechos.map(h => `<button class="hecho" data-h="${h.id}"><span class="fecha">${esc(h.fecha || "·")}</span><span class="txt">${esc(h.t)}</span><span class="cuantas" hidden></span></button>`).join("")}</div>`;
       salir();
       const red = $("#red", w), svg = $("#hilos", w);
 
@@ -1802,19 +1811,37 @@ reconocer, distractores que sean confusiones reales, y nada de ranking.`;
       function explicar(clase, titulo, texto) {
         $("#exp", w).innerHTML = `<div class="fb show ${clase}"><div style="font-size:26px">${clase === "ok" ? "🧵" : "💡"}</div><div><span class="t">${esc(titulo)}</span><div class="why">${esc(texto)}</div></div></div>`;
       }
-      function limpiar() { [...red.querySelectorAll(".hecho")].forEach(b => b.classList.remove("sel")); sel = null; }
+      function limpiar() { [...red.querySelectorAll(".hecho")].forEach(b => b.classList.remove("sel")); sel = null; pintarEstado(); }
+      function pintarEstado() {
+        const ins = $("#instruccion", w), soltar = $("#soltar", w);
+        if (sel) {
+          const h = A.hechos.find(x => x.id === sel);
+          ins.innerHTML = `Ahora toca <b>lo que provocó</b> «${esc(h.t.length > 34 ? h.t.slice(0, 32) + "…" : h.t)}»`;
+          soltar.hidden = false;
+        } else { ins.innerHTML = `Toca el hecho que fue la <b>causa</b>`; soltar.hidden = true; }
+        [...$("#tramos", w).children].forEach((t, k) => t.classList.toggle("hecha", k < hechas.length));
+        /* cada tarjeta muestra de cuántas uniones ya forma parte */
+        A.hechos.forEach(h => {
+          const n = hechas.filter(e => e.de === h.id || e.a === h.id).length;
+          const b = $(`[data-h="${h.id}"]`, red), c = b && $(".cuantas", b);
+          if (c) { c.hidden = !n; c.textContent = n === 1 ? "1 flecha" : n + " flechas"; }
+          if (b) b.classList.toggle("unida", !!n);
+        });
+      }
+      pintarEstado();
+      $("#soltar", w).addEventListener("click", () => { limpiar(); $("#exp", w).innerHTML = ""; });
 
       red.addEventListener("click", ev => {
         const b = ev.target.closest(".hecho"); if (!b) return;
         const id = b.dataset.h;
-        if (!sel) { limpiar(); sel = id; b.classList.add("sel"); $("#exp", w).innerHTML = `<div class="pista small">Ahora toca lo que esto provocó. Toca de nuevo el mismo para soltarlo.</div>`; return; }
+        if (!sel) { limpiar(); sel = id; b.classList.add("sel"); pintarEstado(); $("#exp", w).innerHTML = ""; return; }
         if (sel === id) { limpiar(); $("#exp", w).innerHTML = ""; return; }
         const de = sel, a = id; limpiar();
         if (hechas.some(e => e.de === de && e.a === a)) { explicar("ok", "Esa flecha ya la tienes", "Prueba con otra unión."); return; }
         const bueno = A.enlaces.find(e => e.de === de && e.a === a);
         if (bueno) {
           hechas.push(bueno); beep(true); repintar();
-          $("#cnt", w).textContent = `${hechas.length} de ${total} uniones`;
+          $("#cnt", w).textContent = `${hechas.length} de ${total} uniones`; pintarEstado();
           $("#mp", w).style.width = (30 + (hechas.length / total) * 55) + "%";
           explicar("ok", "¡Sí, esto provocó aquello!", bueno.por);
           if (hechas.length === total) { jingle("stamp"); setTimeout(escribir, 1400); }

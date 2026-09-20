@@ -765,3 +765,19 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .ayudas .ay.usada{opacity:.4;box-shadow:none}
 .ayudas .ay:active{transform:translateY(2px);box-shadow:0 1px 0 rgba(0,0,0,.06)}
 @media(max-width:560px){.ayudas .tres{grid-template-columns:1fr}.ayudas .ay{min-height:52px}}
+
+/* ═══ El hilo de las causas: el estado siempre a la vista ═══ */
+.estadohilo{position:sticky;top:64px;z-index:6;display:grid;gap:8px;margin-bottom:10px;padding:12px 14px;
+  border-radius:18px;background:var(--paper);border:2px solid var(--jungle-light);box-shadow:0 6px 14px rgba(31,42,30,.1)}
+.estadohilo .fila{display:flex;align-items:center;gap:10px;justify-content:space-between}
+.estadohilo .paso{font-weight:700;font-size:15px;line-height:1.25}
+.estadohilo .paso b{color:var(--jungle);font-weight:800}
+.estadohilo .tramos{display:flex;gap:4px}
+.estadohilo .tramo{flex:1;height:8px;border-radius:99px;background:#E3DCC8;transition:background .3s}
+.estadohilo .tramo.hecha{background:var(--jungle)}
+.estadohilo .cuenta{font:800 12px Nunito;color:var(--ink-2);letter-spacing:.04em}
+.hecho .cuantas{position:absolute;right:12px;top:10px;background:#E6F6EC;color:var(--jungle-deep);
+  border-radius:99px;padding:2px 9px;font:800 11px Nunito}
+.hecho.unida{border-color:var(--jungle-light);background:#FBFFFB}
+.hecho{padding-right:86px}
+@media(max-width:560px){.estadohilo{top:58px}.hecho{padding-right:14px}.hecho .cuantas{position:static;justify-self:start;margin-top:4px}}
