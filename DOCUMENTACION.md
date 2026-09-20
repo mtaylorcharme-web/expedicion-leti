@@ -122,6 +122,10 @@ En el código: `campUnlocked()` y `missionUnlocked()` devuelven siempre verdader
 
 La expectativa vive en lo que todavía no tiene, no en lo que no puede abrir.
 
+## La bienvenida
+
+La presentación usaba la foto real de la selva **recortada a la fuerza** como fondo, y los Ayas de esa foto salían cortados por arriba y por abajo. Ahora esa foto va difuminada y atenuada como atmósfera, y encima va el Aya recortado, entero, grande y centrado; el último paso muestra a los tres juntos, también completos. Regla del proyecto: las fotos de los Ayas nunca se recortan.
+
 ## Enséñale a Chupaya
 
 La memoria de Chupaya es el sentido de la actividad —él olvidó y ella lo llena explicándole—, así que se dibuja como un **frasco que se llena**, con el porcentaje grande al lado y un brinco cada vez que sube. Antes era una barra gris de tres píxeles arriba del todo, donde no la miraba nadie. La portada dice además de qué lección se trata.

@@ -943,3 +943,16 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .memoria.sube .frasco{animation:brinco .6s ease-out}
 @keyframes brinco{0%{transform:translateY(0)}35%{transform:translateY(-6px)}100%{transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.memoria.sube .frasco{animation:none}.memoria .frasco b{transition:none}}
+
+/* ═══ Bienvenida: el Aya entero, la selva detrás ═══ */
+.wl-stage{position:relative;height:auto;min-height:280px;padding:22px 16px 14px;overflow:hidden;
+  background:linear-gradient(160deg,#1F5A38,#2E7D4F 48%,#4E9A52);place-items:center}
+.wl-stage::before{content:"";position:absolute;inset:0;background:url(../assets/escena-selva.jpg) 50% 45%/cover no-repeat;
+  filter:blur(7px) saturate(.9);opacity:.32;transform:scale(1.08)}
+.wl-stage::after{content:"";position:absolute;inset:0;background:radial-gradient(85% 70% at 50% 45%,transparent 40%,rgba(12,34,22,.55))}
+.wl-stage .mk,.wl-stage .trio{position:relative;z-index:2}
+.wl-stage .mk img,.wl-stage .trio{object-fit:contain}
+.wl-stage .trio{height:236px;max-width:86%}
+@media(max-width:560px){.wl-stage{min-height:230px}.wl-stage .trio{height:186px}}
+.wl-stage .mk{--s:196px!important}
+@media(max-width:560px){.wl-stage .mk{--s:156px!important}}
