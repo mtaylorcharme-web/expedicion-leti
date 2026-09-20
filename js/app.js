@@ -968,8 +968,11 @@
     const L = LE().find(x => x.camp === c.id);
     let memoria = 0, momento = 0;
     const w = el("div", { class: "mission" }); m.appendChild(w);
-    const subir = (n) => { memoria = Math.min(100, memoria + n); const b = $("#mem b", w); if (b) { b.style.width = memoria + "%"; $("#mem .pct", w).textContent = Math.round(memoria) + "%"; } };
-    const barra = () => `<div class="memoria" id="mem"><span class="lbl">🧠 Memoria de Chupaya</span><div class="mbar"><b style="width:${memoria}%"></b></div><span class="pct">${Math.round(memoria)}%</span></div>`;
+    const subir = (n) => { memoria = Math.min(100, memoria + n); const b = $("#mem b", w); if (b) { b.style.height = memoria + "%"; $("#mem .pct", w).textContent = Math.round(memoria) + "%"; const f = $("#mem", w); f.classList.add("sube"); setTimeout(() => f.classList.remove("sube"), 700); } };
+    /* La memoria de Chupaya es el sentido de toda la actividad: él olvida y ella lo
+       llena explicándole. Como barra gris de tres píxeles no se veía; ahora es un
+       frasco que se llena al lado de él. */
+    const barra = () => `<div class="memoria" id="mem"><div class="frasco"><b style="height:${memoria}%"></b><span class="burbujas"></span></div><div class="etq"><span class="lbl">Memoria de Chupaya</span><span class="pct">${Math.round(memoria)}%</span><span class="ayuda">Se llena cuando le explicas bien</span></div></div>`;
     const cabeza = () => `<div class="mhead"><button class="close" id="quit" aria-label="Salir">✕</button><div class="pbar"><b style="width:${(momento / 4) * 100}%;background:linear-gradient(90deg,#2E7D4F,#6FD394)"></b></div><span class="small muted" style="min-width:70px;text-align:right">Paso ${Math.min(momento + 1, 4)}/4</span></div>` + barra();
     const salir = () => { if (confirm("¿Dejar a Chupaya a medias? Se perderá el avance de esta lección.")) go("camp", { camp: c.id }); };
     const dice = (texto, mood, clase) => `<div class="scene"><div class="char">${monkey("chupaya", mood || "think", 84)}<span class="nm">Chupaya</span></div><div class="bubble ${clase || ""}"><span class="who">Chupaya pregunta</span><span class="tw">${esc(texto)}</span>${SAYBTN}</div></div>`;
@@ -977,6 +980,7 @@
     function intro() {
       w.innerHTML = `<button class="btn ghost sm" id="back">← ${esc(c.name)}</button>` + barra() + `
         <div class="result" style="margin-top:8px"><div class="chars"><span>${monkey("chupaya", "think", 130)}</span></div>
+        <div class="eyebrow">${esc(L.titulo)}</div>
         <h2>Chupaya se olvidó de todo</h2>
         <p class="muted">Explicárselo a alguien es la mejor forma de aprenderlo tú. Si él entiende, es porque tú entendiste.</p>
         <div class="bubble wl" style="text-align:left;margin-top:12px"><span class="who">Chupaya</span><span class="tw">${esc(L.pregunta)}</span>${SAYBTN}</div>

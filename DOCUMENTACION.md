@@ -122,6 +122,10 @@ En el código: `campUnlocked()` y `missionUnlocked()` devuelven siempre verdader
 
 La expectativa vive en lo que todavía no tiene, no en lo que no puede abrir.
 
+## Enséñale a Chupaya
+
+La memoria de Chupaya es el sentido de la actividad —él olvidó y ella lo llena explicándole—, así que se dibuja como un **frasco que se llena**, con el porcentaje grande al lado y un brinco cada vez que sube. Antes era una barra gris de tres píxeles arriba del todo, donde no la miraba nadie. La portada dice además de qué lección se trata.
+
 ## La Ciudad Aya
 
 La búsqueda de casa tiene un **mapa satelital real del Himalaya**: `assets/mapa/himalaya.jpg`, un recorte de la capa Blue Marble de la NASA (GIBS), dominio público, en proyección equirectangular, con límites exactos **20°N a 42°N y 70°E a 100°E**. Los ocho lugares se colocan con una regla de tres sobre esos límites, guardados en `LIMITES_HIMALAYA`. **Si se reemplaza la imagen hay que mantener esos límites o actualizar la constante**, o los puntos dejan de caer donde corresponde; está anotado también en `assets/mapa/FUENTES.txt`.

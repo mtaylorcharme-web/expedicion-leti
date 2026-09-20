@@ -921,3 +921,25 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .sitio.casa .rotulo{background:var(--gold);font-size:12px}
 .cand.resalta{outline:3px solid var(--gold);outline-offset:3px}
 @media(max-width:560px){.himalaya{aspect-ratio:1600/1173}.sitio .rotulo{font-size:10px;padding:1px 6px}}
+
+
+/* ═══ La memoria de Chupaya: un frasco que se llena ═══ */
+.memoria{display:flex;align-items:center;gap:14px;margin:10px 0 4px;padding:12px 16px;border-radius:20px;
+  background:var(--paper);border:2px solid var(--line);box-shadow:0 5px 0 rgba(0,0,0,.05)}
+.memoria .frasco{position:relative;width:46px;height:64px;flex:none;border-radius:8px 8px 14px 14px;
+  background:#EDE7D6;box-shadow:inset 0 0 0 3px #fff,inset 0 -2px 6px rgba(0,0,0,.12);overflow:hidden}
+.memoria .frasco::before{content:"";position:absolute;left:50%;top:-7px;transform:translateX(-50%);
+  width:22px;height:9px;border-radius:4px 4px 2px 2px;background:#B99C6B;box-shadow:0 1px 0 rgba(0,0,0,.15)}
+.memoria .frasco b{position:absolute;left:0;right:0;bottom:0;display:block;border-radius:6px 6px 12px 12px;
+  background:linear-gradient(180deg,#6FD394,var(--jungle));transition:height .55s cubic-bezier(.3,1.2,.5,1)}
+.memoria .frasco .burbujas{position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(circle at 30% 70%,rgba(255,255,255,.55) 2px,transparent 3px),
+             radial-gradient(circle at 62% 45%,rgba(255,255,255,.45) 2.5px,transparent 3.5px),
+             radial-gradient(circle at 46% 22%,rgba(255,255,255,.35) 2px,transparent 3px)}
+.memoria .etq{display:grid;gap:1px;min-width:0}
+.memoria .lbl{font:600 16px Fredoka;line-height:1.1}
+.memoria .pct{font:800 22px Fredoka;color:var(--jungle-deep);line-height:1}
+.memoria .ayuda{font-weight:700;font-size:12.5px;color:var(--ink-2)}
+.memoria.sube .frasco{animation:brinco .6s ease-out}
+@keyframes brinco{0%{transform:translateY(0)}35%{transform:translateY(-6px)}100%{transform:translateY(0)}}
+@media(prefers-reduced-motion:reduce){.memoria.sube .frasco{animation:none}.memoria .frasco b{transition:none}}
