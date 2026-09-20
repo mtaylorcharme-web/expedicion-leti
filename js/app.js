@@ -130,36 +130,97 @@
        horizontales van a alturas fijas (ramasY) y son las que sostienen de verdad a
        los Ayas: de ahí cuelgan sus lianas. */
     const ramasY = [92, 214, 336, 458, 580, 702, 824, 946];
-    const troncoSVG = (x, ancho, color, luz, op) =>
-      `<g opacity="${op}"><rect x="${x}" y="-30" width="${ancho}" height="${mapH + 60}" rx="${ancho * .34}" fill="${color}"/>` +
-      `<rect x="${x + ancho * .17}" y="-30" width="${ancho * .3}" height="${mapH + 60}" rx="${ancho * .15}" fill="${luz}" opacity=".55"/>` +
-      `<rect x="${x + ancho * .72}" y="-30" width="${ancho * .12}" height="${mapH + 60}" rx="${ancho * .06}" fill="#241A11" opacity=".45"/></g>`;
-    const troncosLejos = [[122, 20], [246, 16], [352, 22], [468, 18], [196, 14], [420, 15]]
-      .map(([x, w], i) => troncoSVG(x, w, "#4A6B48", "#6E8C63", .34 + (i % 2) * .06)).join("");
-    const troncosMedio = [[96, 40], [300, 34], [452, 44]]
-      .map(([x, w]) => troncoSVG(x, w, "#5B4330", "#7C5B3E", .62)).join("");
-    const troncosCerca = troncoSVG(2, 84, "#3B2A1C", "#6B4C33", 1) + troncoSVG(514, 84, "#3B2A1C", "#6B4C33", 1);
+    /* ── Los árboles ──────────────────────────────────────────────────────────
+       Un tronco de verdad no es una barra: es más ancho abajo que arriba, tiene
+       una curva propia, corteza, y raíces que se abren en la base. Las ramas no
+       son palos horizontales: nacen del tronco, se afinan hacia la punta y se
+       bifurcan. Se dibujan como polígonos porque el trazo del SVG no sabe afinarse. */
+    const ALTO_ARB = mapH + 80, Y0 = -40;
+    const troncoSVG = (cx, arriba, abajo, curva, color, luz, sombra, op) => {
+      const y1 = Y0, y2 = ALTO_ARB + Y0;
+      const ta = arriba / 2, tb = abajo / 2;
+      const m1 = mapH * .34, m2 = mapH * .7;
+      const izqD = `M ${cx - ta} ${y1} C ${cx - ta - curva} ${m1}, ${cx - tb * .82 - curva * .4} ${m2}, ${cx - tb} ${y2}`;
+      const derD = `L ${cx + tb} ${y2} C ${cx + tb * .82 + curva * .4} ${m2}, ${cx + ta + curva} ${m1}, ${cx + ta} ${y1} Z`;
+      const vetas = [...Array(3)].map((_, k) => {
+        const off = (k - 1) * (arriba * .26), an = 1.6 + k * .8;
+        return `<path d="M ${cx + off} ${y1} C ${cx + off - curva * .9} ${m1}, ${cx + off - curva * .35} ${m2}, ${cx + off * .85} ${y2}"
+          stroke="${k === 1 ? sombra : luz}" stroke-width="${an}" fill="none" opacity="${k === 1 ? .5 : .38}"/>`;
+      }).join("");
+      /* raíces: la base se abre en dos o tres contrafuertes */
+      const raices = [-1, 1, 0].map((d, k) => {
+        const anc = tb * (k === 2 ? .5 : .9), h = 60 + k * 26, px = cx + d * tb * .8;
+        return `<path d="M ${px - anc * .5} ${y2} C ${px - anc * .5} ${y2 - h}, ${px + d * anc * .8} ${y2 - h * .5}, ${px + d * anc * 1.5} ${y2}" fill="${color}"/>`;
+      }).join("");
+      return `<g opacity="${op}">${raices}<path d="${izqD} ${derD}" fill="${color}"/>
+        <path d="${izqD} L ${cx - tb + abajo * .3} ${y2} C ${cx - tb * .5} ${m2}, ${cx - ta * .3 - curva} ${m1}, ${cx - ta + arriba * .3} ${y1} Z" fill="${luz}" opacity=".45"/>
+        ${vetas}
+        <path d="${derD.replace("L", "M")}" stroke="${sombra}" stroke-width="${Math.max(3, abajo * .09)}" fill="none" opacity=".5"/></g>`;
+    };
 
-    /* Cada rama nace de un tronco y cruza buena parte del mapa, con su racimo de hojas */
-    const hojaRacimo = (cx, cy, n, giro) => [...Array(n)].map((_, k) => {
-      const dx = (k - n / 2) * 26, dy = (k % 2 ? -9 : 7);
-      return `<ellipse cx="${cx + dx}" cy="${cy + dy}" rx="22" ry="10" fill="${k % 2 ? "#3FA66B" : "#2E7D4F"}" transform="rotate(${giro + (k % 2 ? -14 : 12)} ${cx + dx} ${cy + dy})"/>`;
+    const troncosLejos = [[130, 14, 22, 16], [250, 11, 17, -12], [356, 15, 24, 10], [472, 12, 19, -14], [200, 10, 15, 8], [424, 11, 18, -9]]
+      .map(([x, a, b, c], i) => troncoSVG(x, a, b, c, "#456B4A", "#6E8C63", "#2F4A34", .32 + (i % 2) * .07)).join("");
+    const troncosMedio = [[110, 26, 44, 18], [306, 22, 38, -15], [468, 28, 48, 13]]
+      .map(([x, a, b, c]) => troncoSVG(x, a, b, c, "#5B4330", "#8A6647", "#33220F", .66)).join("");
+    const troncosCerca = troncoSVG(44, 58, 96, 14, "#3B2A1C", "#6B4C33", "#241309", 1)
+      + troncoSVG(556, 58, 96, -14, "#3B2A1C", "#6B4C33", "#241309", 1);
+
+    /* Hojas: un racimo es un manojo de hojas con nervadura, no óvalos sueltos */
+    const hoja = (x, y, largo, giro, tono) =>
+      `<g transform="rotate(${giro} ${x} ${y})"><path d="M ${x} ${y} q ${largo * .5} ${-largo * .34} ${largo} 0 q ${-largo * .5} ${largo * .34} ${-largo} 0 Z" fill="${tono}"/>
+        <path d="M ${x} ${y} l ${largo} 0" stroke="#1F5A38" stroke-width="1.1" opacity=".45"/></g>`;
+    /* Un racimo es una masa de hojas que se solapan, no un abanico que sale de un punto:
+       cada hoja arranca de un sitio distinto dentro del racimo y mira hacia otro lado. */
+    const racimo = (cx, cy, n, haciaFuera) => {
+      const orden = [...Array(n)].map((_, k) => {
+        const t = n === 1 ? .5 : k / (n - 1);
+        const dx = haciaFuera * (-14 + t * 40) + ((k * 7) % 11) - 5;
+        const dy = -16 + Math.sin(t * Math.PI) * -10 + ((k * 13) % 17) - 8;
+        const l = 26 + (k % 3) * 10;
+        const ang = -38 + t * 76 + ((k * 11) % 13) - 6;
+        return { dx, dy, l, ang, k };
+      });
+      /* primero las de atrás, más oscuras; encima las de delante, más claras */
+      return orden.map(o => hoja(cx + o.dx, cy + o.dy, haciaFuera > 0 ? o.l : -o.l, haciaFuera > 0 ? o.ang : -o.ang, "#24603C")).join("")
+           + orden.map(o => hoja(cx + o.dx + haciaFuera * 4, cy + o.dy + 5, haciaFuera > 0 ? o.l * .88 : -o.l * .88, haciaFuera > 0 ? o.ang - 6 : -o.ang + 6, o.k % 2 ? "#3FA66B" : "#2E7D4F")).join("");
+    };
+
+    /* Cada rama sale del tronco, sube un poco y se afina hasta la punta, con una
+       bifurcación y hojas. La parte horizontal queda a la altura exacta de ramasY,
+       que es de donde se cuelgan los Ayas. */
+    const ramaSVG = (ry, izq, largo) => {
+      const xT = izq ? 92 : 508;           // borde del tronco cercano
+      const dir = izq ? 1 : -1;
+      const xP = xT + dir * largo;          // punta
+      const base = 30, punta = 7;
+      const yBase = ry + 34, yPunta = ry + 2;
+      const arriba = `M ${xT} ${yBase - base / 2} C ${xT + dir * largo * .34} ${ry - 10}, ${xT + dir * largo * .66} ${yPunta - punta / 2 - 3}, ${xP} ${yPunta - punta / 2}`;
+      const abajo = `L ${xP} ${yPunta + punta / 2} C ${xT + dir * largo * .66} ${yPunta + punta / 2 + 5}, ${xT + dir * largo * .34} ${ry + 16}, ${xT} ${yBase + base / 2} Z`;
+      const xBif = xT + dir * largo * .62, yBif = ry + 8;
+      const bifurca = `<path d="M ${xBif} ${yBif} C ${xBif + dir * 40} ${yBif - 26}, ${xBif + dir * 66} ${yBif - 44}, ${xBif + dir * 84} ${yBif - 52}"
+        stroke="#3B2A1C" stroke-width="7" fill="none" stroke-linecap="round"/>`;
+      return `<g><path d="${arriba} ${abajo}" fill="#3B2A1C"/>
+        <path d="${arriba}" stroke="#7C5B3E" stroke-width="4" fill="none" opacity=".65"/>
+        ${bifurca}
+        ${racimo(xBif + dir * 84, yBif - 52, 5, dir)}
+        ${racimo(xP, yPunta, 6, dir)}
+        ${racimo(xT + dir * largo * .38, ry + 6, 4, dir)}
+        ${[.18, .48, .78].map(t => racimo(xT + dir * largo * t, ry + 22, 2, dir)).join("")}</g>`;
+    };
+    const ramasSVG = ramasY.map((ry, i) => ramaSVG(ry, i % 2 === 0, 300 + (i % 3) * 56)).join("");
+
+    /* El dosel: estamos debajo de la copa, así que arriba todo es hoja */
+    const dosel = [...Array(22)].map((_, i) => {
+      const x = (i * 71) % 620 - 10, y = (i % 3) * 22 - 6, r = 44 + (i % 4) * 16;
+      return `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * .58}" fill="${i % 3 ? "#1F5A38" : "#17482C"}" opacity=".95"/>`;
     }).join("");
-    const ramasSVG = ramasY.map((ry, i) => {
-      const izq = i % 2 === 0;
-      const largo = 330 + (i % 3) * 52;
-      const x0 = izq ? 60 : 540 - largo;
-      const grosor = 19;
-      return `<g><rect x="${x0}" y="${ry}" width="${largo}" height="${grosor}" rx="${grosor / 2}" fill="#3B2A1C"/>` +
-        `<rect x="${x0}" y="${ry + 2}" width="${largo}" height="7" rx="3.5" fill="#6B4C33" opacity=".75"/>` +
-        hojaRacimo(izq ? x0 + largo - 40 : x0 + 40, ry - 4, 5, izq ? -12 : 12) +
-        hojaRacimo(izq ? x0 + largo * .45 : x0 + largo * .55, ry - 2, 3, izq ? 8 : -8) + `</g>`;
-    }).join("");
+
     /* Lianas sueltas que cuelgan de las ramas y dan sensación de espesura */
     const lianasSueltas = ramasY.flatMap((ry, i) => [0, 1].map(k => {
-      const x = (i * 137 + k * 211 + 70) % 540 + 30, largo = 70 + ((i + k) * 53) % 150;
+      const x = (i * 137 + k * 211 + 70) % 500 + 50, largo = 70 + ((i + k) * 53) % 150;
       return `<path d="M ${x} ${ry + 14} q ${k ? 12 : -12} ${largo / 2} 0 ${largo}" stroke="#3E5A26" stroke-width="5" fill="none" stroke-linecap="round" opacity=".7"/>` +
-             `<circle cx="${x}" cy="${ry + 14 + largo}" r="7" fill="#4E8A3A" opacity=".8"/>`;
+             `<circle cx="${x}" cy="${ry + 14 + largo}" r="7" fill="#4E8A3A" opacity=".8"/>` +
+             racimo(x, ry + 14 + largo, 3, k ? 1 : -1);
     })).join("");
 
     const lianas = P.slice(0, -1).map(([x0, y0], i) => {
@@ -186,6 +247,7 @@
       ${troncosCerca}
       ${ramasSVG}
       ${lianasSueltas}
+      ${dosel}
       ${lianas}
       ${[...Array(14)].map((_, i) => { const izq = i % 2 === 0; const x = izq ? 22 + (i * 17) % 40 : 522 + (i * 13) % 40, y = (i * 173 + 70) % (mapH * .8); return `<text x="${x}" y="${y}" font-size="30" opacity=".75">${["🌴", "🌿", "🦜", "🌺", "🍃", "🌳"][i % 6]}</text>`; }).join("")}
       <g filter="url(#cerca)" opacity=".85">${[...Array(9)].map((_, i) => { const izq = i % 2 === 0; const x = izq ? -30 + (i * 11) % 40 : 590 + (i * 7) % 30, y = 60 + i * (mapH / 9); const r = 74 + (i % 3) * 26; return `<ellipse cx="${x}" cy="${y}" rx="${r}" ry="${r * .74}" fill="${i % 2 ? "#1F5A38" : "#2A6B43"}"/><ellipse cx="${x + (izq ? 52 : -52)}" cy="${y + 46}" rx="${r * .6}" ry="${r * .44}" fill="#24603C"/>`; }).join("")}</g>
