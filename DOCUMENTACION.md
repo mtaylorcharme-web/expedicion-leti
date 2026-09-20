@@ -112,6 +112,16 @@ La vista `camp` no es una lista de actividades: es una ruta con tres grupos, por
 
 Arriba va una barra de avance con las misiones completadas y las estrellas. Si se agrega una actividad nueva, hay que decidir a qué grupo pertenece: `camino`, `hondo` o `repaso`.
 
+## Nada se bloquea: se reserva la recompensa
+
+Decisión de diseño importante, tomada pensando en la víspera de una prueba: **ninguna selva, misión, fuente ni el gran salto están bloqueados**. Una puerta cerrada tiene sentido en una aventura, pero si el miércoles quiere reforzar la selva 4 y la app le dice que primero termine la 3, la app está estorbando justo cuando debería ayudar.
+
+Lo que sigue siendo secuencial es la **recompensa**: el fragmento del mapa, el sello y la pista hacia la Ciudad Aya se ganan completando la selva, en el orden que sea. Y el camino sugerido se sigue viendo: la brújula de la portada, el cartel «Vas aquí» y el paso marcado dentro de cada selva.
+
+En el código: `campUnlocked()` y `missionUnlocked()` devuelven siempre verdadero; `campEnOrden(c)` dice hasta dónde llegó siguiendo el camino y solo sirve para marcar («por delante» en el mapa, aviso de Chupaya al entrar). `listaParaSalto` avisa si va con pocas selvas al gran salto, pero no lo impide.
+
+La expectativa vive en lo que todavía no tiene, no en lo que no puede abrir.
+
 ## El pasaporte
 
 Los sellos que faltan muestran **su propio símbolo en silueta gris** y una línea que dice cómo se ganan («Analiza una fuente entera», «Supera el gran salto»), más el contador de conseguidos. Antes eran veinte círculos vacíos idénticos con un punto al centro: un hueco no es una meta.

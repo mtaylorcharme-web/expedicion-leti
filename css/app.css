@@ -844,3 +844,16 @@ textarea.write:focus{outline:3px solid var(--gold);border-color:transparent}
 .tev.sel{border-color:var(--gold);background:#FFF7E0;box-shadow:0 4px 0 var(--gold-deep)}
 .tev.sel .n{background:var(--gold);color:var(--ink)}
 .tline{position:relative}
+
+/* ═══ Adelantarse está permitido: se avisa, no se impide ═══ */
+.camp.adelante .land{filter:saturate(.55) brightness(.95)}
+.camp.adelante .name small{color:#7A8577}
+.camp.adelante::after{content:"por delante";position:absolute;left:50%;top:-26px;transform:translateX(-50%);
+  background:rgba(255,255,255,.94);color:var(--ink-2);padding:2px 9px;border-radius:99px;font:800 10.5px Nunito;
+  white-space:nowrap;box-shadow:0 2px 0 rgba(0,0,0,.08)}
+.camp.adelante.here::after{content:none}
+.adelantada{display:flex;gap:12px;align-items:center;margin:12px 0 2px;padding:12px 15px;border-radius:18px;
+  background:#FFF7E0;border:2px dashed var(--gold)}
+.adelantada .ic{font-size:26px;flex:none}
+.adelantada b{display:block;font:600 16px Fredoka}
+.adelantada span{font-weight:700;font-size:13.5px;color:var(--ink-2);line-height:1.35}

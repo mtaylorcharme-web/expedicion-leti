@@ -77,8 +77,17 @@
   /* ── progreso ── */
   const campDone = c => c.missions.filter(m => S.done[m.id]).length;
   const campStars = c => c.missions.reduce((a, m) => a + (S.done[m.id] ? S.done[m.id].stars : 0), 0);
-  const campUnlocked = c => c.n === 1 || campDone(C.camps[c.n - 2]) >= 1;
-  const missionUnlocked = (c, i) => i === 0 || !!S.done[c.missions[i - 1].id];
+  /* Nada se bloquea. Una puerta cerrada tiene sentido en una aventura, pero no la
+     víspera de una prueba: si el miércoles quiere reforzar la selva 4, la app no
+     puede decirle que no. Lo que sigue siendo secuencial es la RECOMPENSA —el
+     fragmento del mapa, el sello y la pista hacia la Ciudad Aya se ganan completando—
+     y el camino sugerido, que se marca con «Vas aquí». La expectativa vive en lo que
+     todavía no tiene, no en lo que no puede abrir. */
+  const campUnlocked = () => true;
+  const missionUnlocked = () => true;
+  /* En orden = hasta dónde llegó siguiendo el camino. Sirve para marcar lo que se
+     adelantó, sin impedirlo. */
+  const campEnOrden = c => c.n === 1 || campDone(C.camps[c.n - 2]) >= 1;
   const totalMissions = C.camps.reduce((a, c) => a + c.missions.length, 0);
   const doneMissions = () => C.camps.reduce((a, c) => a + campDone(c), 0);
   const level = () => Math.floor(S.xp / 250) + 1;
@@ -116,7 +125,7 @@
     touchDay();
     if (!S.welcomed) return welcome(m);
     const d = daysToTest();
-    const cur = C.camps.find(c => campUnlocked(c) && campDone(c) < c.missions.length) || C.camps[C.camps.length - 1];
+    const cur = C.camps.find(c => campEnOrden(c) && campDone(c) < c.missions.length) || C.camps[C.camps.length - 1];
     const guide = cur.guide;
     const allDone = C.camps.every(c => campDone(c) === c.missions.length);
     const positions = [[22, 8], [66, 20], [24, 33], [68, 46], [26, 59], [64, 73], [40, 90]];
@@ -268,16 +277,19 @@
       setTimeout(anclar, 1020);
     };
     C.camps.forEach((c, i) => {
-      const [x, y] = positions[i]; const un = campUnlocked(c); const full = campDone(c) === c.missions.length;
-      const node = el("button", { class: `camp ${un ? "" : "locked"} ${c === cur && !allDone ? "here" : ""}`, style: `left:${x}%;top:${y}%`, "aria-label": c.name });
+      const [x, y] = positions[i]; const enOrden = campEnOrden(c); const un = true; const full = campDone(c) === c.missions.length;
+      const node = el("button", { class: `camp ${enOrden ? "" : "adelante"} ${c === cur && !allDone ? "here" : ""}`, style: `left:${x}%;top:${y}%`, "aria-label": c.name });
       node.innerHTML = `<div class="land" style="background:${c.color}"><span class="n">${c.n}</span>${un ? c.icon : "🔒"}${campDone(c) ? `<span class="stars">${"★".repeat(Math.min(3, Math.round(campStars(c) / c.missions.length)))}${full ? " ✓" : ""}</span>` : ""}</div><span class="name">${esc(c.name)}<small>${un ? esc(c.lugar) + " · " + esc(c.epoca) : "selva desconocida"}</small></span>`;
-      node.addEventListener("click", () => { if (!un) return toast("Salta primero por la selva anterior para llegar a esta rama."); const lm = $(".aya-viajero", map); if (lm) { moverAya(lm, x, y); lm.classList.add("walking"); } beep(true); setTimeout(() => go("camp", { camp: c.id }), 650); });
+      node.addEventListener("click", () => { if (!enOrden) toast("Te adelantas por las ramas. Puedes estudiarla igual."); const lm = $(".aya-viajero", map); if (lm) { moverAya(lm, x, y); lm.classList.add("walking"); } beep(true); setTimeout(() => go("camp", { camp: c.id }), 650); });
       map.appendChild(node);
     });
-    const [bx, by] = positions[5]; const bossOpen = C.camps.filter(c => campDone(c) >= 1).length >= 3;
-    const boss = el("button", { class: `camp boss ${bossOpen ? "" : "locked"}`, style: `left:${bx}%;top:${by}%` });
-    boss.innerHTML = `<div class="land">${bossOpen ? "🏆" : "🔒"}${S.boss ? `<span class="stars">${S.boss.pct}%</span>` : ""}</div><span class="name">El gran salto<small>${bossOpen ? "simulacro de la prueba" : "abre con 3 selvas"}</small></span>`;
-    boss.addEventListener("click", () => { if (!bossOpen) return toast("Los Ayas necesitan al menos 3 selvas recorridas antes del gran salto."); const lm = $(".aya-viajero", map); if (lm) { moverAya(lm, bx, by); lm.classList.add("walking"); } beep(true); setTimeout(() => go("boss"), 650); });
+    /* El gran salto es el simulacro de la prueba: bloquearlo justo antes de la prueba
+       sería lo contrario de ayudar. Siempre abierto; si va con pocas selvas hechas,
+       se le advierte, pero decide ella. */
+    const [bx, by] = positions[5]; const listaParaSalto = C.camps.filter(c => campDone(c) >= 1).length >= 3; const bossOpen = true;
+    const boss = el("button", { class: `camp boss ${listaParaSalto ? "" : "adelante"}`, style: `left:${bx}%;top:${by}%` });
+    boss.innerHTML = `<div class="land">🏆${S.boss ? `<span class="stars">${S.boss.pct}%</span>` : ""}</div><span class="name">El gran salto<small>${listaParaSalto ? "simulacro de la prueba" : "simulacro · aún te faltan selvas"}</small></span>`;
+    boss.addEventListener("click", () => { if (!listaParaSalto) toast("Vas con pocas selvas recorridas, pero puedes intentarlo igual."); const lm = $(".aya-viajero", map); if (lm) { moverAya(lm, bx, by); lm.classList.add("walking"); } beep(true); setTimeout(() => go("boss"), 650); });
     map.appendChild(boss);
     const [cx2, cy2] = positions[6]; const nPistas = (S.pistas || []).length; const quedanCand = CANDIDATOS.length - nPistas;
     const ciu = el("button", { class: "camp ciudad", style: `left:${cx2}%;top:${cy2}%` });
@@ -456,6 +468,9 @@
     ss.addEventListener("click", () => go("song", { camp: c.id })); repaso.appendChild(ss); }
     /* La ruta se arma con encabezados y el siguiente paso queda marcado, para que
        nunca haya que deducir cuál tocar. */
+    /* Si se adelantó, se le dice con la voz de Chupaya, que para eso se pierde:
+       es un aviso, no una puerta. */
+    if (!campEnOrden(c)) h.insertAdjacentHTML("beforeend", `<div class="adelantada"><span class="ic">🐒</span><div><b>Te adelantaste por las ramas</b><span>Puedes estudiar esta selva cuando quieras. El fragmento del mapa se gana completándola, en el orden que sea.</span></div></div>`);
     steps.appendChild(el("div", { class: "seccion" }, "<span>La ruta de esta selva</span>"));
     steps.appendChild(camino);
     if (hondo.children.length) { steps.appendChild(el("div", { class: "seccion" }, "<span>Para entenderlo de verdad</span>")); steps.appendChild(hondo); }
